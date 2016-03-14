@@ -39,10 +39,10 @@ public class FooMocker {
         return new GetRequestVerifier(wireMockServer, urlPath);
     }
 
-    public ListRequestMocker<Foo, List<Foo>> stubListFoos(String name) {
+    public ListRequestMocker<Foo> stubListFoos(String name) {
         String urlPath = UrlPathBuilder.buildUrlPath(FooResource.class, "getAllByName", ImmutableMap.<String, Object>of("name", name));
         List<Foo> collection = new ArrayList<Foo>();
-        return new ListRequestMocker<Foo, List<Foo>>(wireMockServer, objectMapper, urlPath, collection);
+        return new ListRequestMocker<Foo>(wireMockServer, objectMapper, urlPath, collection);
     }
 
     public GetRequestVerifier verifyListFoos(String name) {
@@ -147,17 +147,17 @@ public class FooMocker {
         }
     }
 
-    public static class ListRequestMocker<Entity, CollectionType extends Collection<Entity>> {
+    public static class ListRequestMocker<Entity> {
         private final WireMockServer wireMockServer;
         private final ObjectMapper objectMapper;
         private final String urlPath;
-        private final CollectionType collection;
+        private final Collection<Entity> collection;
 
         public ListRequestMocker(
                 WireMockServer wireMockServer,
                 ObjectMapper objectMapper,
                 String urlPath,
-                CollectionType collection
+                Collection<Entity> collection
         ) {
             this.wireMockServer = wireMockServer;
             this.objectMapper = objectMapper;
@@ -165,25 +165,25 @@ public class FooMocker {
             this.collection = collection;
         }
 
-        public ListResponseMocker<Entity, CollectionType> andRespondWith(Entity... items) {
+        public ListResponseMocker<Entity> andRespondWith(Entity... items) {
             MappingBuilder mappingBuilder = get(urlPathEqualTo(urlPath));
             Collections.addAll(collection, items);
-            return new ListResponseMocker<Entity, CollectionType>(wireMockServer, objectMapper, mappingBuilder, collection);
+            return new ListResponseMocker<Entity>(wireMockServer, objectMapper, mappingBuilder, collection);
         }
     }
 
-    public static class ListResponseMocker<Entity, CollectionType extends Collection<Entity>> {
+    public static class ListResponseMocker<Entity> {
         private final WireMockServer wireMockServer;
         private final ObjectMapper objectMapper;
         private final MappingBuilder mappingBuilder;
-        private final CollectionType entities;
+        private final Collection<Entity> entities;
         private final ResponseDefinitionBuilder responseDefinitionBuilder;
 
         public ListResponseMocker(
                 WireMockServer wireMockServer,
                 ObjectMapper objectMapper,
                 MappingBuilder mappingBuilder,
-                CollectionType entities
+                Collection<Entity> entities
         ) {
             this.wireMockServer = wireMockServer;
             this.objectMapper = objectMapper;
