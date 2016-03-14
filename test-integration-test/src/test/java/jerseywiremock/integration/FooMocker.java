@@ -7,11 +7,11 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.UrlMatchingStrategy;
-import com.google.common.collect.ImmutableMap;
 import jerseywiremock.service.core.Foo;
 import jerseywiremock.service.resources.FooResource;
 
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.UriBuilder;
 import java.lang.annotation.Annotation;
@@ -20,6 +20,7 @@ import java.util.*;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
+// TODO: Define as an annotated interface, and construct with ByteBuddy
 public class FooMocker {
     private final WireMockServer wireMockServer;
     private final ObjectMapper objectMapper;
@@ -30,44 +31,129 @@ public class FooMocker {
     }
 
     public GetRequestMocker<Foo> stubGetFoo(int id) {
-        String urlPath = UrlPathBuilder.buildUrlPath(FooResource.class, "getById", ImmutableMap.<String, Object>of("id", id));
-        return new GetRequestMocker<Foo>(wireMockServer, objectMapper, urlPath);
+        MockerInvocationHandler handler = new MockerInvocationHandler(FooResource.class, "getById", wireMockServer, objectMapper);
+        return handler.handleStubGet(new Object[]{id});
     }
 
     public GetRequestVerifier verifyGetFoo(int id) {
-        String urlPath = UrlPathBuilder.buildUrlPath(FooResource.class, "getById", ImmutableMap.<String, Object>of("id", id));
-        return new GetRequestVerifier(wireMockServer, urlPath);
+        MockerInvocationHandler handler = new MockerInvocationHandler(FooResource.class, "getById", wireMockServer, objectMapper);
+        return handler.handleVerifyGet(new Object[]{id});
     }
 
     public ListRequestMocker<Foo> stubListFoos(String name) {
-        String urlPath = UrlPathBuilder.buildUrlPath(FooResource.class, "getAllByName", ImmutableMap.<String, Object>of("name", name));
-        Collection<Foo> collection = CollectionFactory.createCollection(FooResource.class, "getAllByName");
-        return new ListRequestMocker<Foo>(wireMockServer, objectMapper, urlPath, collection);
+        MockerInvocationHandler handler = new MockerInvocationHandler(FooResource.class, "getAllByName", wireMockServer, objectMapper);
+        return handler.handleStubList(new Object[]{name});
     }
 
     public GetRequestVerifier verifyListFoos(String name) {
-        String urlPath = UrlPathBuilder.buildUrlPath(FooResource.class, "getAllByName", ImmutableMap.<String, Object>of("name", name));
-        return new GetRequestVerifier(wireMockServer, urlPath);
+        MockerInvocationHandler handler = new MockerInvocationHandler(FooResource.class, "getAllByName", wireMockServer, objectMapper);
+        return handler.handleVerifyList(new Object[]{name});
     }
 
     /*
       PRECOMPILED FILES
      */
 
-    public static class CollectionFactory {
-        public static <T> Collection<T> createCollection(Class<?> resourceClass, String methodName) {
-            for (Method method : resourceClass.getDeclaredMethods()) {
-                if (method.getName().equals(methodName)) {
-                    Class<?> returnType = method.getReturnType();
-                    if (returnType.isAssignableFrom(Collection.class)) {
-                        return createCollection(returnType);
-                    } else {
-                        throw new RuntimeException(method.getDeclaringClass().getSimpleName() + "#" + methodName +
-                                " does not return Collection type; it returns " + returnType.getSimpleName());
+    // TODO: When using ByteBuddy, the methods in this class will need to be static
+    public static class MockerInvocationHandler {
+        // TODO: When using ByteBuddy, the resourceClass & methodName will be read with reflection from an injected @Super's annotations
+        private final Class<?> resourceClass;
+        private final String methodName;
+        // TODO: When using ByteBuddy, the wireMockServer & objectMapper will be accessed from a @This
+        private final WireMockServer wireMockServer;
+        private final ObjectMapper objectMapper;
+
+        public MockerInvocationHandler(
+                Class<?> resourceClass,
+                String methodName,
+                WireMockServer wireMockServer,
+                ObjectMapper objectMapper
+        ) {
+            this.resourceClass = resourceClass;
+            this.methodName = methodName;
+            this.wireMockServer = wireMockServer;
+            this.objectMapper = objectMapper;
+        }
+
+        public <T> GetRequestMocker<T> handleStubGet(Object[] parameters) {
+            Map<String, Object> paramMap = getParamMap(parameters);
+            String urlPath = UrlPathBuilder.buildUrlPath(resourceClass, methodName, paramMap);
+            return new GetRequestMocker<T>(wireMockServer, objectMapper, urlPath);
+        }
+
+        public GetRequestVerifier handleVerifyGet(Object[] parameters) {
+            Map<String, Object> paramMap = getParamMap(parameters);
+            String urlPath = UrlPathBuilder.buildUrlPath(resourceClass, methodName, paramMap);
+            return new GetRequestVerifier(wireMockServer, urlPath);
+        }
+
+        public <T> ListRequestMocker<T> handleStubList(Object[] parameters) {
+            Map<String, Object> paramMap = getParamMap(parameters);
+            String urlPath = UrlPathBuilder.buildUrlPath(resourceClass, methodName, paramMap);
+            Collection<T> collection = CollectionFactory.createCollection(resourceClass, methodName);
+            return new ListRequestMocker<T>(wireMockServer, objectMapper, urlPath, collection);
+        }
+
+        public GetRequestVerifier handleVerifyList(Object[] parameters) {
+            Map<String, Object> paramMap = getParamMap(parameters);
+            String urlPath = UrlPathBuilder.buildUrlPath(FooResource.class, methodName, paramMap);
+            return new GetRequestVerifier(wireMockServer, urlPath);
+        }
+
+        private Map<String, Object> getParamMap(Object[] parameters) {
+            Method method = ReflectionHelper.getMethod(resourceClass, methodName);
+
+            List<String> paramNames = new ArrayList<String>();
+            for (Annotation[] parameterAnnotations : method.getParameterAnnotations()) {
+                for (Annotation parameterAnnotation : parameterAnnotations) {
+                    String paramName = null;
+                    if (parameterAnnotation instanceof QueryParam) {
+                        paramName = ((QueryParam) parameterAnnotation).value();
+                    } else if (parameterAnnotation instanceof PathParam) {
+                        paramName = ((PathParam) parameterAnnotation).value();
+                    }
+
+                    if (paramName != null) {
+                        paramNames.add(paramName);
                     }
                 }
             }
-            throw new RuntimeException("No method named " + methodName);
+
+            if (paramNames.size() != parameters.length) {
+                throw new RuntimeException("Invocation had " + parameters.length + " params, but " + paramNames.size() + " were given");
+            }
+
+            Map<String, Object> paramMap = new HashMap<String, Object>();
+            for (int i = 0; i < paramNames.size(); i++) {
+                paramMap.put(paramNames.get(i), parameters[i]);
+            }
+
+            return paramMap;
+        }
+    }
+
+    public static class ReflectionHelper {
+        public static Method getMethod(Class<?> clazz, String methodName) {
+            for (Method method : clazz.getDeclaredMethods()) {
+                if (method.getName().equals(methodName)) {
+                    return method;
+                }
+            }
+            throw new RuntimeException("No method named " + methodName + " on " + clazz.getSimpleName());
+        }
+    }
+
+    public static class CollectionFactory {
+        public static <T> Collection<T> createCollection(Class<?> resourceClass, String methodName) {
+            Method method = ReflectionHelper.getMethod(resourceClass, methodName);
+
+            Class<?> returnType = method.getReturnType();
+            if (returnType.isAssignableFrom(Collection.class)) {
+                return createCollection(returnType);
+            } else {
+                throw new RuntimeException(method.getDeclaringClass().getSimpleName() + "#" + methodName +
+                        " does not return Collection type; it returns " + returnType.getSimpleName());
+            }
         }
 
         private static <T> Collection<T> createCollection(Class<?> returnType) {
@@ -235,21 +321,19 @@ public class FooMocker {
         public static String buildUrlPath(Class<?> resourceClass, String methodName, Map<String, Object> paramValues) {
             UriBuilder uriBuilder = UriBuilder.fromResource(resourceClass);
 
-            for (Method method : resourceClass.getDeclaredMethods()) {
-                if (method.getName().equals(methodName)) {
-                    for (Annotation methodAnnotation : method.getDeclaredAnnotations()) {
-                        if (methodAnnotation.annotationType().equals(Path.class)) {
-                            uriBuilder.path(method);
-                        }
-                    }
-                    for (Annotation[] paramAnnotations : method.getParameterAnnotations()) {
-                        for (Annotation paramAnnotation : paramAnnotations) {
-                            if (paramAnnotation instanceof QueryParam) {
-                                QueryParam queryParam = (QueryParam) paramAnnotation;
-                                String queryParamName = queryParam.value();
-                                uriBuilder.queryParam(queryParamName, paramValues.get(queryParamName));
-                            }
-                        }
+            Method method = ReflectionHelper.getMethod(resourceClass, methodName);
+
+            for (Annotation methodAnnotation : method.getDeclaredAnnotations()) {
+                if (methodAnnotation.annotationType().equals(Path.class)) {
+                    uriBuilder.path(method);
+                }
+            }
+            for (Annotation[] paramAnnotations : method.getParameterAnnotations()) {
+                for (Annotation paramAnnotation : paramAnnotations) {
+                    if (paramAnnotation instanceof QueryParam) {
+                        QueryParam queryParam = (QueryParam) paramAnnotation;
+                        String queryParamName = queryParam.value();
+                        uriBuilder.queryParam(queryParamName, paramValues.get(queryParamName));
                     }
                 }
             }

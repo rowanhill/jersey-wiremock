@@ -14,7 +14,7 @@ import java.util.List;
 public class FooResource {
     @GET
     @Path("{id}")
-    public Foo getById(@PathParam("clubId") IntParam idParam) {
+    public Foo getById(@PathParam("id") IntParam idParam) {
         return new Foo(idParam.get(), "Test foo");
     }
 
