@@ -18,6 +18,7 @@ public class FooResource {
         return new Foo(idParam.get(), "Test foo");
     }
 
+    // TODO: Add a more troublesome data type as a param - e.g. DateTimeParam
     @GET
     public Collection<Foo> getAllByName(@QueryParam("name") String name) {
         List<Foo> foos = new ArrayList<Foo>();
@@ -25,4 +26,6 @@ public class FooResource {
         foos.add(new Foo(2, name));
         return foos;
     }
+
+    // TODO: @POST, @PUT and @DELETE endpoints
 }

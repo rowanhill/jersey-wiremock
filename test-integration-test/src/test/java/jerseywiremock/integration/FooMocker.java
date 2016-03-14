@@ -222,4 +222,6 @@ public class FooMocker {
             return new ArrayList<Foo>();
         }
     }
+
+    // TODO: Verifiers
 }
