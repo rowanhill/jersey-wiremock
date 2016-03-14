@@ -20,7 +20,24 @@ import java.util.*;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
-// TODO: Define as an annotated interface, and construct with ByteBuddy
+/*
+@WireMockForResource(FooResource.class)
+public interface FooMocker {
+    @WireMockStub("getById")
+    GetRequestMocker<Foo> stubGetFoo(int id);
+
+    @WireMockVerify("getById")
+    GetRequestVerifier verifyGetFoo(int id);
+
+    @WireMockStub("getAllByName")
+    ListRequestMocker<Foo> stubListFoos(String name);
+
+    @WireMockVerify("getAllByName")
+    GetRequestVerifier verifyListFoos(String name);
+}
+*/
+
+// TODO: Define as an annotated interface (as above), and construct with ByteBuddy
 public class FooMocker {
     private final WireMockServer wireMockServer;
     private final ObjectMapper objectMapper;
@@ -76,18 +93,21 @@ public class FooMocker {
         }
 
         public <T> GetRequestMocker<T> handleStubGet(Object[] parameters) {
+            // TODO: Check method is @GET annotated
             Map<String, Object> paramMap = getParamMap(parameters);
             String urlPath = UrlPathBuilder.buildUrlPath(resourceClass, methodName, paramMap);
             return new GetRequestMocker<T>(wireMockServer, objectMapper, urlPath);
         }
 
         public GetRequestVerifier handleVerifyGet(Object[] parameters) {
+            // TODO: Check method is @GET annotated
             Map<String, Object> paramMap = getParamMap(parameters);
             String urlPath = UrlPathBuilder.buildUrlPath(resourceClass, methodName, paramMap);
             return new GetRequestVerifier(wireMockServer, urlPath);
         }
 
         public <T> ListRequestMocker<T> handleStubList(Object[] parameters) {
+            // TODO: Check method is @GET annotated
             Map<String, Object> paramMap = getParamMap(parameters);
             String urlPath = UrlPathBuilder.buildUrlPath(resourceClass, methodName, paramMap);
             Collection<T> collection = CollectionFactory.createCollection(resourceClass, methodName);
@@ -95,6 +115,7 @@ public class FooMocker {
         }
 
         public GetRequestVerifier handleVerifyList(Object[] parameters) {
+            // TODO: Check method is @GET annotated
             Map<String, Object> paramMap = getParamMap(parameters);
             String urlPath = UrlPathBuilder.buildUrlPath(FooResource.class, methodName, paramMap);
             return new GetRequestVerifier(wireMockServer, urlPath);
