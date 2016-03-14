@@ -10,7 +10,6 @@ import jerseywiremock.service.core.Foo;
 import jerseywiremock.service.resources.FooResource;
 
 import javax.ws.rs.core.UriBuilder;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,11 +27,11 @@ public class FooMocker {
     }
 
     public GetFooRequestMocker stubGetFoo(int id) {
-        return new GetFooRequestMocker(wireMockServer, objectMapper, id);
+        return new GetFooRequestMocker(wireMockServer, objectMapper, new GetFooRequestUrlPathBuilder(id));
     }
 
     public ListFoosRequestMocker stubListFoos(String name) {
-        return new ListFoosRequestMocker(wireMockServer, objectMapper, name);
+        return new ListFoosRequestMocker(wireMockServer, objectMapper, new ListFoosRequestUrlPathBuilder(name));
     }
 
     /*
@@ -44,10 +43,10 @@ public class FooMocker {
         private final ObjectMapper objectMapper;
         private final String urlPath;
 
-        public GetRequestMocker(WireMockServer wireMockServer, ObjectMapper objectMapper, String urlPath) {
+        public GetRequestMocker(WireMockServer wireMockServer, ObjectMapper objectMapper, UrlPathBuilder urlPathBuilder) {
             this.wireMockServer = wireMockServer;
             this.objectMapper = objectMapper;
-            this.urlPath = urlPath;
+            this.urlPath = urlPathBuilder.buildUrlPath();
         }
 
         public ResponseMocker andRespondWith(Entity entity) {
@@ -102,10 +101,10 @@ public class FooMocker {
         private final ObjectMapper objectMapper;
         private final String urlPath;
 
-        public ListRequestMocker(WireMockServer wireMockServer, ObjectMapper objectMapper, String urlPath) {
+        public ListRequestMocker(WireMockServer wireMockServer, ObjectMapper objectMapper, UrlPathBuilder urlPathBuilder) {
             this.wireMockServer = wireMockServer;
             this.objectMapper = objectMapper;
-            this.urlPath = urlPath;
+            this.urlPath = urlPathBuilder.buildUrlPath();
         }
 
         public ResponseMocker andRespondWith(Entity... items) {
@@ -155,19 +154,37 @@ public class FooMocker {
         public abstract CollectionType createEntitiesCollection();
     }
 
+    public interface UrlPathBuilder {
+        String buildUrlPath();
+    }
+
 
     /*
       GENERATED FILES
      */
 
+    public static class GetFooRequestUrlPathBuilder implements UrlPathBuilder {
+        private final int id;
+
+        public GetFooRequestUrlPathBuilder(int id) {
+            this.id = id;
+        }
+
+        public String buildUrlPath() {
+            return UriBuilder.fromResource(FooResource.class)
+                    .path(FooResource.class, "getById")
+                    .buildFromMap(ImmutableMap.of("id", id))
+                    .toString();
+        }
+    }
+
     public static class GetFooRequestMocker extends GetRequestMocker<Foo, GetFooResponseMocker> {
-        public GetFooRequestMocker(WireMockServer wireMockServer, ObjectMapper objectMapper, int id) {
-            super(wireMockServer,
-                    objectMapper,
-                    UriBuilder.fromResource(FooResource.class)
-                            .path(FooResource.class, "getById")
-                            .buildFromMap(ImmutableMap.of("id", id))
-                            .toString());
+        public GetFooRequestMocker(
+                WireMockServer wireMockServer,
+                ObjectMapper objectMapper,
+                UrlPathBuilder urlPathBuilder
+        ) {
+            super(wireMockServer, objectMapper, urlPathBuilder);
         }
 
         @Override
@@ -190,13 +207,27 @@ public class FooMocker {
     }
 
 
+    public static class ListFoosRequestUrlPathBuilder implements UrlPathBuilder {
+        private final String name;
+
+        public ListFoosRequestUrlPathBuilder(String name) {
+            this.name = name;
+        }
+
+        public String buildUrlPath() {
+            return UriBuilder.fromResource(FooResource.class)
+                    .queryParam("name", name)
+                    .toString();
+        }
+    }
+
     public static class ListFoosRequestMocker extends ListRequestMocker<Foo, List<Foo>, ListFoosResponseMocker> {
-        public ListFoosRequestMocker(WireMockServer wireMockServer, ObjectMapper objectMapper, String name) {
-            super(wireMockServer,
-                    objectMapper,
-                    UriBuilder.fromResource(FooResource.class)
-                            .queryParam("name", name)
-                            .toString());
+        public ListFoosRequestMocker(
+                WireMockServer wireMockServer,
+                ObjectMapper objectMapper,
+                UrlPathBuilder urlPathBuilder
+        ) {
+            super(wireMockServer, objectMapper, urlPathBuilder);
         }
 
         @Override
