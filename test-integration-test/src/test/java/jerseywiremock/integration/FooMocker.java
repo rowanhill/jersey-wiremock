@@ -41,7 +41,7 @@ public class FooMocker {
 
     public ListRequestMocker<Foo> stubListFoos(String name) {
         String urlPath = UrlPathBuilder.buildUrlPath(FooResource.class, "getAllByName", ImmutableMap.<String, Object>of("name", name));
-        List<Foo> collection = new ArrayList<Foo>();
+        Collection<Foo> collection = CollectionFactory.createCollection(FooResource.class, "getAllByName");
         return new ListRequestMocker<Foo>(wireMockServer, objectMapper, urlPath, collection);
     }
 
@@ -53,6 +53,35 @@ public class FooMocker {
     /*
       PRECOMPILED FILES
      */
+
+    public static class CollectionFactory {
+        public static <T> Collection<T> createCollection(Class<?> resourceClass, String methodName) {
+            for (Method method : resourceClass.getDeclaredMethods()) {
+                if (method.getName().equals(methodName)) {
+                    Class<?> returnType = method.getReturnType();
+                    if (returnType.isAssignableFrom(Collection.class)) {
+                        return createCollection(returnType);
+                    } else {
+                        throw new RuntimeException(method.getDeclaringClass().getSimpleName() + "#" + methodName +
+                                " does not return Collection type; it returns " + returnType.getSimpleName());
+                    }
+                }
+            }
+            throw new RuntimeException("No method named " + methodName);
+        }
+
+        private static <T> Collection<T> createCollection(Class<?> returnType) {
+            if (returnType.isAssignableFrom(List.class)) {
+                return new ArrayList<T>();
+            } else if (returnType.isAssignableFrom(Set.class)) {
+                return new HashSet<T>();
+            } else if (returnType.equals(Collection.class)) {
+                return new ArrayList<T>();
+            } else {
+                throw new RuntimeException("Cannot create collection for type " + returnType.getSimpleName());
+            }
+        }
+    }
 
     public static class GetRequestMocker<Entity> {
         private final WireMockServer wireMockServer;
