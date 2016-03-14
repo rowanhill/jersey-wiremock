@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.client.UrlMatchingStrategy;
 import com.google.common.collect.ImmutableMap;
 import jerseywiremock.service.core.Foo;
 import jerseywiremock.service.resources.FooResource;
@@ -30,8 +32,16 @@ public class FooMocker {
         return new GetFooRequestMocker(wireMockServer, objectMapper, new GetFooRequestUrlPathBuilder(id));
     }
 
+    public GetRequestVerifier verifyGetFoo(int id) {
+        return new GetRequestVerifier(wireMockServer, new GetFooRequestUrlPathBuilder(id));
+    }
+
     public ListFoosRequestMocker stubListFoos(String name) {
         return new ListFoosRequestMocker(wireMockServer, objectMapper, new ListFoosRequestUrlPathBuilder(name));
+    }
+
+    public GetRequestVerifier verifyListFoos(String name) {
+        return new GetRequestVerifier(wireMockServer, new ListFoosRequestUrlPathBuilder(name));
     }
 
     /*
@@ -89,6 +99,53 @@ public class FooMocker {
             responseDefinitionBuilder.withBody(bodyString);
 
             wireMockServer.stubFor(mappingBuilder.willReturn(responseDefinitionBuilder));
+        }
+    }
+
+    public static abstract class BaseRequestVerifyBuilder {
+        private final WireMockServer wireMockServer;
+        private final RequestPatternBuilder requestPatternBuilder;
+
+        private Integer numOfTimes;
+
+        public BaseRequestVerifyBuilder(
+                WireMockServer wireMockServer,
+                VerbRequestedForStrategy verbRequestedForStrategy,
+                UrlPathBuilder urlPathBuilder
+        ) {
+            this.wireMockServer = wireMockServer;
+
+            this.requestPatternBuilder = verbRequestedForStrategy.verbRequestedFor(
+                    urlPathEqualTo(urlPathBuilder.buildUrlPath()));
+        }
+
+        public BaseRequestVerifyBuilder times(int numTimes) {
+            this.numOfTimes = numTimes;
+            return this;
+        }
+
+        public void verify() {
+            if (numOfTimes != null) {
+                wireMockServer.verify(numOfTimes, requestPatternBuilder);
+            } else {
+                wireMockServer.verify(requestPatternBuilder);
+            }
+        }
+    }
+
+    public interface VerbRequestedForStrategy {
+        RequestPatternBuilder verbRequestedFor(UrlMatchingStrategy urlMatchingStrategy);
+    }
+
+    public static class GetRequestedForStrategy implements VerbRequestedForStrategy {
+        public RequestPatternBuilder verbRequestedFor(UrlMatchingStrategy urlMatchingStrategy) {
+            return getRequestedFor(urlMatchingStrategy);
+        }
+    }
+
+    public static class GetRequestVerifier extends BaseRequestVerifyBuilder {
+        public GetRequestVerifier(WireMockServer wireMockServer, UrlPathBuilder urlPathBuilder) {
+            super(wireMockServer, new GetRequestedForStrategy(), urlPathBuilder);
         }
     }
 
@@ -253,6 +310,4 @@ public class FooMocker {
             return new ArrayList<Foo>();
         }
     }
-
-    // TODO: Verifiers
 }

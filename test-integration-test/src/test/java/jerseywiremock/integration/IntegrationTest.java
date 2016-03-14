@@ -27,5 +27,8 @@ public class IntegrationTest {
 
         ListStubMappingsResult stubMappings = wireMockRule.listAllStubMappings();
         stubMappings.getMappings();
+
+        fooMocker.verifyGetFoo(123).times(0).verify();
+        fooMocker.verifyListFoos("Test foo").times(0).verify();
     }
 }
