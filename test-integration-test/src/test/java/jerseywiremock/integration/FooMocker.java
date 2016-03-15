@@ -43,16 +43,16 @@ public class FooMocker {
 
     public GetRequestVerifier verifyGetFoo(int id) {
         MockerInvocationHandler handler = new MockerInvocationHandler(FooResource.class, "getById", wireMockServer, objectMapper);
-        return handler.handleVerifyGet(new Object[]{id});
+        return handler.handleVerifyGetVerb(new Object[]{id}, null, null);
     }
 
     public ListRequestMocker<Foo> stubListFoos(String name) {
         MockerInvocationHandler handler = new MockerInvocationHandler(FooResource.class, "getAllByName", wireMockServer, objectMapper);
-        return handler.handleStubList(new Object[]{name});
+        return handler.handleStubList(new Object[]{name}, null, null);
     }
 
     public GetRequestVerifier verifyListFoos(String name) {
         MockerInvocationHandler handler = new MockerInvocationHandler(FooResource.class, "getAllByName", wireMockServer, objectMapper);
-        return handler.handleVerifyList(new Object[]{name});
+        return handler.handleVerifyGetVerb(new Object[]{name}, null, null);
     }
 }
