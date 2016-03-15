@@ -17,7 +17,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 
-// TODO: When using ByteBuddy, the methods in this class will need to be static
 public class MockerInvocationHandler {
     public <T> GetRequestMocker<T> handleStubGet(@AllArguments Object[] parameters, @This BaseMocker mocker, @Origin Method method) {
         Class<?> resourceClass = method.getDeclaringClass().getAnnotation(WireMockForResource.class).value();
