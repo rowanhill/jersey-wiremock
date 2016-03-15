@@ -13,6 +13,7 @@
         <module>test-integration-test</module>
         <module>annotations</module>
         <module>processor</module>
+        <module>core</module>
     </modules>
 
 

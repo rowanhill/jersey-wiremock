@@ -9,13 +9,19 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>jersey-wiremock-annotations</artifactId>
-
+    <artifactId>jersey-wiremock-core</artifactId>
     <dependencies>
         <dependency>
-            <groupId>jersey-wiremock</groupId>
-            <artifactId>jersey-wiremock-core</artifactId>
-            <version>${project.version}</version>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-core</artifactId>
+            <version>1.18.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>1.57</version>
         </dependency>
     </dependencies>
+
+
 </project>
