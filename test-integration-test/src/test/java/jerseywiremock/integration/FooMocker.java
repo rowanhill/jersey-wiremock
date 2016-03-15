@@ -38,7 +38,7 @@ public class FooMocker {
 
     public GetRequestMocker<Foo> stubGetFoo(int id) {
         MockerInvocationHandler handler = new MockerInvocationHandler(FooResource.class, "getById", wireMockServer, objectMapper);
-        return handler.handleStubGet(new Object[]{id});
+        return handler.handleStubGet(new Object[]{id}, null, null);
     }
 
     public GetRequestVerifier verifyGetFoo(int id) {
