@@ -2,6 +2,7 @@ package jerseywiremock.annotations.handler;
 
 import jerseywiremock.annotations.WireMockForResource;
 import jerseywiremock.annotations.WireMockStub;
+import jerseywiremock.annotations.WireMockVerify;
 import jerseywiremock.core.ReflectionHelper;
 import jerseywiremock.core.UrlPathBuilder;
 import jerseywiremock.core.stub.GetRequestMocker;
@@ -41,7 +42,7 @@ public class MockerInvocationHandler {
 
     public GetRequestVerifier handleVerifyGetVerb(@AllArguments Object[] parameters, @This BaseMocker mocker, @Origin Method method) {
         Class<?> resourceClass = method.getDeclaringClass().getAnnotation(WireMockForResource.class).value();
-        String methodName = method.getAnnotation(WireMockStub.class).value();
+        String methodName = method.getAnnotation(WireMockVerify.class).value();
 
         // TODO: Check method is @GET annotated
         Map<String, Object> paramMap = getParamMap(parameters, resourceClass, methodName);
