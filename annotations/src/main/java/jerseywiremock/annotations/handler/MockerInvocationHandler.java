@@ -50,6 +50,7 @@ public class MockerInvocationHandler {
         return new GetRequestVerifier(mocker.wireMockServer, urlPath);
     }
 
+    // TODO: Extract into separate class
     private Map<String, Object> getParamMap(Object[] parameters, Class<?> resourceClass, String methodName) {
         Method method = ReflectionHelper.getMethod(resourceClass, methodName);
 
