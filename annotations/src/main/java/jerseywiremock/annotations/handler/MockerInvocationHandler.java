@@ -1,5 +1,6 @@
 package jerseywiremock.annotations.handler;
 
+import jerseywiremock.annotations.ParamFormat;
 import jerseywiremock.annotations.WireMockForResource;
 import jerseywiremock.annotations.WireMockStub;
 import jerseywiremock.annotations.WireMockVerify;
@@ -8,6 +9,7 @@ import jerseywiremock.core.UrlPathBuilder;
 import jerseywiremock.core.stub.GetRequestMocker;
 import jerseywiremock.core.stub.ListRequestMocker;
 import jerseywiremock.core.verify.GetRequestVerifier;
+import jerseywiremock.formatter.ParamFormatter;
 import net.bytebuddy.implementation.bind.annotation.AllArguments;
 import net.bytebuddy.implementation.bind.annotation.Origin;
 import net.bytebuddy.implementation.bind.annotation.This;
@@ -55,17 +57,25 @@ public class MockerInvocationHandler {
         Method method = ReflectionHelper.getMethod(resourceClass, methodName);
 
         List<String> paramNames = new ArrayList<String>();
+        Map<String, Class<? extends ParamFormatter>> formatters = new HashMap<String, Class<? extends ParamFormatter>>();
         for (Annotation[] parameterAnnotations : method.getParameterAnnotations()) {
+            String paramName = null;
+            Class<? extends ParamFormatter> formatter = null;
+
             for (Annotation parameterAnnotation : parameterAnnotations) {
-                String paramName = null;
                 if (parameterAnnotation instanceof QueryParam) {
                     paramName = ((QueryParam) parameterAnnotation).value();
                 } else if (parameterAnnotation instanceof PathParam) {
                     paramName = ((PathParam) parameterAnnotation).value();
+                } else if (parameterAnnotation instanceof ParamFormat) {
+                    formatter = ((ParamFormat) parameterAnnotation).value();
                 }
+            }
 
-                if (paramName != null) {
-                    paramNames.add(paramName);
+            if (paramName != null) {
+                paramNames.add(paramName);
+                if (formatter != null) {
+                    formatters.put(paramName, formatter);
                 }
             }
         }
@@ -76,7 +86,30 @@ public class MockerInvocationHandler {
 
         Map<String, Object> paramMap = new HashMap<String, Object>();
         for (int i = 0; i < paramNames.size(); i++) {
-            paramMap.put(paramNames.get(i), parameters[i]);
+            String paramName = paramNames.get(i);
+            Object rawParamValue = parameters[i];
+
+            String formattedValue;
+            if (formatters.containsKey(paramName)) {
+                Class<? extends ParamFormatter> formatterClass = formatters.get(paramName);
+                ParamFormatter formatter;
+                try {
+                    formatter = formatterClass.newInstance();
+                } catch (InstantiationException e) {
+                    throw new RuntimeException(e);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+
+                // ParamFormatter is generic, and the generic type is erased by run-time, so we can't check whether
+                // rawParamValue is of the right type or not...
+                //noinspection unchecked
+                formattedValue = formatter.format(rawParamValue);
+            } else {
+                formattedValue = rawParamValue.toString();
+            }
+
+            paramMap.put(paramName, formattedValue);
         }
 
         return paramMap;
