@@ -37,18 +37,6 @@ public class StubOrVerifyQueryParamAdder {
                 case NOT_MATCHING:
                     valueMatchingStrategy = notMatching(paramValue);
                     break;
-                case EQUAL_TO_JSON:
-                    valueMatchingStrategy = equalToJson(paramValue);
-                    break;
-                case EQUAL_TO_XML:
-                    valueMatchingStrategy = equalToXml(paramValue);
-                    break;
-                case MATCHING_XPATH:
-                    valueMatchingStrategy = matchingXPath(paramValue);
-                    break;
-                case MATCHING_JSON_PATH:
-                    valueMatchingStrategy = matchingJsonPath(paramValue);
-                    break;
                 default:
                     throw new RuntimeException("Unexpected matching strategy " + matchingStrategy.name());
             }
