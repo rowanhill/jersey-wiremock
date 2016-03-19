@@ -5,12 +5,12 @@ import jerseywiremock.core.ReflectionHelper;
 import java.lang.reflect.Method;
 import java.util.*;
 
-class CollectionFactory {
+abstract class CollectionFactory {
     static <T> Collection<T> createCollection(Class<?> resourceClass, String methodName) {
         Method method = ReflectionHelper.getMethod(resourceClass, methodName);
 
         Class<?> returnType = method.getReturnType();
-        if (returnType.isAssignableFrom(Collection.class)) {
+        if (Collection.class.isAssignableFrom(returnType)) {
             return createCollection(returnType);
         } else {
             throw new RuntimeException(method.getDeclaringClass().getSimpleName() + "#" + methodName +
@@ -19,11 +19,11 @@ class CollectionFactory {
     }
 
     private static <T> Collection<T> createCollection(Class<?> returnType) {
-        if (returnType.isAssignableFrom(List.class)) {
+        if (List.class.isAssignableFrom(returnType)) {
             return new ArrayList<T>();
-        } else if (returnType.isAssignableFrom(Set.class)) {
+        } else if (Set.class.isAssignableFrom(returnType)) {
             return new HashSet<T>();
-        } else if (returnType.equals(Collection.class)) {
+        } else if (Collection.class.equals(returnType)) {
             return new ArrayList<T>();
         } else {
             throw new RuntimeException("Cannot create collection for type " + returnType.getSimpleName());
