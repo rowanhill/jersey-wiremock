@@ -11,6 +11,7 @@ import jerseywiremock.core.verify.GetRequestVerifier;
 import jerseywiremock.formatter.ParamFormatter;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -30,28 +31,54 @@ public class MockerFactoryTest {
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
 
-    @Test
-    public void mockerCanBeCreated() throws Exception {
-        TestClient client = new TestClient();
-        ObjectMapper objectMapper = new ObjectMapper();
-        TestMockerInterface mocker = MockerFactory.wireMockerFor(TestMockerInterface.class, wireMockRule, objectMapper);
-        DateTime now = DateTime.now();
+    private TestClient client;
+    private TestMockerInterface mocker;
 
+    @Before
+    public void setUp() throws Exception {
+        client = new TestClient();
+        ObjectMapper objectMapper = new ObjectMapper();
+        mocker = MockerFactory.wireMockerFor(TestMockerInterface.class, wireMockRule, objectMapper);
+    }
+
+    @Test
+    public void getWithSimplePathParamCanBeStubbedAndVerified() throws Exception {
+        // given
         mocker.stubGetDoubleGivenInt(1).andRespondWith(5).stub();
+
+        // when
+        int doubleOne = client.getDoubleGivenInt(1);
+
+        // then
+        assertThat(doubleOne).isEqualTo(5);
+        mocker.verifyGetDoubleGivenInt(1).times(1).verify();
+    }
+
+    @Test
+    public void listWithSimplePathParamCanBeStubbedAndVerified() throws Exception {
+        // given
         mocker.stubGetListOfInts().andRespondWith(1, 2, 3).stub();
+
+        // when
+        Collection<Integer> listOfInts = client.getListOfInts();
+
+        // then
+        assertThat(listOfInts).containsOnly(1, 2, 3);
+        mocker.verifyGetListOfInts().times(1).verify();
+    }
+
+    @Test
+    public void getWithQueryParamNeedingFormattingCanBeStubbedAndVerified() throws Exception {
+        // given
+        DateTime now = DateTime.now();
         mocker.stubGetIntsByDate(now).andRespondWith(4, 5, 6).stub();
 
-        int doubleOne = client.getDoubleGivenInt(1);
-        assertThat(doubleOne).isEqualTo(5);
-
-        Collection<Integer> listOfInts = client.getListOfInts();
-        assertThat(listOfInts).containsOnly(1, 2, 3);
-
+        // when
         Collection<Integer> intsByDate = client.getIntsByDate(now);
-        assertThat(intsByDate).containsOnly(4, 5, 6);
 
-        mocker.verifyGetDoubleGivenInt(1).times(1).verify();
-        mocker.verifyGetListOfInts().times(1).verify();
+        // then
+        assertThat(intsByDate).containsOnly(4, 5, 6);
+        mocker.verifyGetIntsByDate(now).verify();
     }
 
     @WireMockForResource(TestResource.class)
@@ -70,6 +97,9 @@ public class MockerFactoryTest {
 
         @WireMockStub("getIntsByDate")
         ListRequestMocker<Integer> stubGetIntsByDate(DateTime dateTime);
+
+        @WireMockVerify("getIntsByDate")
+        GetRequestVerifier verifyGetIntsByDate(DateTime dateTime);
     }
 
     @Path("/test")
