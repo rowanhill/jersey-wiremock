@@ -9,8 +9,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class ParamMapBuilder {
-    public Map<String, Object> getParamMap(Object[] parameters, Class<?> resourceClass, String methodName) {
+public class ParamMapFactory {
+    public Map<String, Object> createParamMap(Object[] parameters, Class<?> resourceClass, String methodName) {
         Method method = ReflectionHelper.getMethod(resourceClass, methodName);
 
         LinkedList<ParameterDescriptor> parameterDescriptors = getParameterDescriptors(method);

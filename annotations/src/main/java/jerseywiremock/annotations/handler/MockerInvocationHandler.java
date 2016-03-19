@@ -1,7 +1,7 @@
 package jerseywiremock.annotations.handler;
 
 import jerseywiremock.annotations.*;
-import jerseywiremock.core.UrlPathBuilder;
+import jerseywiremock.core.UrlPathFactory;
 import jerseywiremock.core.stub.GetRequestMocker;
 import jerseywiremock.core.stub.ListRequestMocker;
 import jerseywiremock.core.verify.GetRequestVerifier;
@@ -14,12 +14,12 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 public class MockerInvocationHandler {
-    private final ParamMapBuilder paramMapBuilder;
-    private final UrlPathBuilder urlPathBuilder;
+    private final ParamMapFactory paramMapFactory;
+    private final UrlPathFactory urlPathFactory;
 
-    public MockerInvocationHandler(ParamMapBuilder paramMapBuilder, UrlPathBuilder urlPathBuilder) {
-        this.paramMapBuilder = paramMapBuilder;
-        this.urlPathBuilder = urlPathBuilder;
+    public MockerInvocationHandler(ParamMapFactory paramMapFactory, UrlPathFactory urlPathFactory) {
+        this.paramMapFactory = paramMapFactory;
+        this.urlPathFactory = urlPathFactory;
     }
 
     public <T> GetRequestMocker<T> handleStubGet(@AllArguments Object[] parameters, @This BaseMocker mocker, @Origin Method method) {
@@ -44,8 +44,8 @@ public class MockerInvocationHandler {
     private MockerMethodDescriptor constructUrlPath(Object[] parameters, Method method, Class<? extends Annotation> wireMockAnnotationType) {
         Class<?> resourceClass = method.getDeclaringClass().getAnnotation(WireMockForResource.class).value();
         String methodName = getTargetMethodName(method, wireMockAnnotationType);
-        Map<String, Object> paramMap = paramMapBuilder.getParamMap(parameters, resourceClass, methodName);
-        return new MockerMethodDescriptor(resourceClass, methodName, urlPathBuilder.buildUrlPath(resourceClass, methodName, paramMap));
+        Map<String, Object> paramMap = paramMapFactory.createParamMap(parameters, resourceClass, methodName);
+        return new MockerMethodDescriptor(resourceClass, methodName, urlPathFactory.createUrlPath(resourceClass, methodName, paramMap));
     }
 
     private String getTargetMethodName(Method method, Class<? extends Annotation> wireMockAnnotationType) {
