@@ -18,35 +18,59 @@ public class MockerInvocationHandler {
     private final ParamMapFactory paramMapFactory;
     private final RequestMappingDescriptorFactory requestMappingDescriptorFactory;
 
-    public MockerInvocationHandler(ParamMapFactory paramMapFactory, RequestMappingDescriptorFactory requestMappingDescriptorFactory) {
+    public MockerInvocationHandler(
+            ParamMapFactory paramMapFactory,
+            RequestMappingDescriptorFactory requestMappingDescriptorFactory
+    ) {
         this.paramMapFactory = paramMapFactory;
         this.requestMappingDescriptorFactory = requestMappingDescriptorFactory;
     }
 
-    public <T> GetRequestMocker<T> handleStubGet(@AllArguments Object[] parameters, @This BaseMocker mocker, @Origin Method method) {
+    public <T> GetRequestMocker<T> handleStubGet(
+            @AllArguments Object[] parameters,
+            @This BaseMocker mocker,
+            @Origin Method method
+    ) {
         // TODO: Check method is @GET annotated
         MockerMethodDescriptor descriptor = constructMethodDescriptor(parameters, method, WireMockStub.class);
         return new GetRequestMocker<T>(mocker.wireMockServer, mocker.objectMapper, descriptor.requestMappingDescriptor);
     }
 
-    public <T> ListRequestMocker<T> handleStubList(@AllArguments Object[] parameters, @This BaseMocker mocker, @Origin Method method) {
+    public <T> ListRequestMocker<T> handleStubList(
+            @AllArguments Object[] parameters,
+            @This BaseMocker mocker,
+            @Origin Method method
+    ) {
         // TODO: Check method is @GET annotated
         MockerMethodDescriptor descriptor = constructMethodDescriptor(parameters, method, WireMockStub.class);
         Collection<T> collection = CollectionFactory.createCollection(descriptor.resourceClass, descriptor.methodName);
-        return new ListRequestMocker<T>(mocker.wireMockServer, mocker.objectMapper, descriptor.requestMappingDescriptor, collection);
+        return new ListRequestMocker<T>(
+                mocker.wireMockServer,
+                mocker.objectMapper,
+                descriptor.requestMappingDescriptor, collection);
     }
 
-    public GetRequestVerifier handleVerifyGetVerb(@AllArguments Object[] parameters, @This BaseMocker mocker, @Origin Method method) {
+    public GetRequestVerifier handleVerifyGetVerb(
+            @AllArguments Object[] parameters,
+            @This BaseMocker mocker,
+            @Origin Method method
+    ) {
         // TODO: Check method is @GET annotated
         MockerMethodDescriptor descriptor = constructMethodDescriptor(parameters, method, WireMockVerify.class);
         return new GetRequestVerifier(mocker.wireMockServer, descriptor.requestMappingDescriptor);
     }
 
-    private MockerMethodDescriptor constructMethodDescriptor(Object[] parameters, Method method, Class<? extends Annotation> wireMockAnnotationType) {
+    private MockerMethodDescriptor constructMethodDescriptor(
+            Object[] parameters,
+            Method method,
+            Class<? extends Annotation> wireMockAnnotationType
+    ) {
         Class<?> resourceClass = method.getDeclaringClass().getAnnotation(WireMockForResource.class).value();
         String methodName = getTargetMethodName(method, wireMockAnnotationType);
         Map<String, String> paramMap = paramMapFactory.createParamMap(parameters, resourceClass, methodName);
-        return new MockerMethodDescriptor(resourceClass, methodName, requestMappingDescriptorFactory.createMappingDescriptor(resourceClass, methodName, paramMap));
+        RequestMappingDescriptor mappingDescriptor = requestMappingDescriptorFactory
+                .createMappingDescriptor(resourceClass, methodName, paramMap);
+        return new MockerMethodDescriptor(resourceClass, methodName, mappingDescriptor);
     }
 
     private String getTargetMethodName(Method method, Class<? extends Annotation> wireMockAnnotationType) {
@@ -66,7 +90,11 @@ public class MockerInvocationHandler {
         private final String methodName;
         private final RequestMappingDescriptor requestMappingDescriptor;
 
-        public MockerMethodDescriptor(Class<?> resourceClass, String methodName, RequestMappingDescriptor requestMappingDescriptor) {
+        public MockerMethodDescriptor(
+                Class<?> resourceClass,
+                String methodName,
+                RequestMappingDescriptor requestMappingDescriptor
+        ) {
             this.resourceClass = resourceClass;
             this.methodName = methodName;
             this.requestMappingDescriptor = requestMappingDescriptor;
