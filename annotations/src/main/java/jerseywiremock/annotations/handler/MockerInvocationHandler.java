@@ -9,6 +9,7 @@ import net.bytebuddy.implementation.bind.annotation.AllArguments;
 import net.bytebuddy.implementation.bind.annotation.Origin;
 import net.bytebuddy.implementation.bind.annotation.This;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -20,33 +21,52 @@ public class MockerInvocationHandler {
     }
 
     public <T> GetRequestMocker<T> handleStubGet(@AllArguments Object[] parameters, @This BaseMocker mocker, @Origin Method method) {
-        Class<?> resourceClass = method.getDeclaringClass().getAnnotation(WireMockForResource.class).value();
-        String methodName = method.getAnnotation(WireMockStub.class).value();
-
         // TODO: Check method is @GET annotated
-        Map<String, Object> paramMap = paramMapBuilder.getParamMap(parameters, resourceClass, methodName);
-        String urlPath = UrlPathBuilder.buildUrlPath(resourceClass, methodName, paramMap);
-        return new GetRequestMocker<T>(mocker.wireMockServer, mocker.objectMapper, urlPath);
+        MockerMethodDescriptor descriptor = constructUrlPath(parameters, method, WireMockStub.class);
+        return new GetRequestMocker<T>(mocker.wireMockServer, mocker.objectMapper, descriptor.urlPath);
     }
 
     public <T> ListRequestMocker<T> handleStubList(@AllArguments Object[] parameters, @This BaseMocker mocker, @Origin Method method) {
-        Class<?> resourceClass = method.getDeclaringClass().getAnnotation(WireMockForResource.class).value();
-        String methodName = method.getAnnotation(WireMockStub.class).value();
-
         // TODO: Check method is @GET annotated
-        Map<String, Object> paramMap = paramMapBuilder.getParamMap(parameters, resourceClass, methodName);
-        String urlPath = UrlPathBuilder.buildUrlPath(resourceClass, methodName, paramMap);
-        Collection<T> collection = CollectionFactory.createCollection(resourceClass, methodName);
-        return new ListRequestMocker<T>(mocker.wireMockServer, mocker.objectMapper, urlPath, collection);
+        MockerMethodDescriptor descriptor = constructUrlPath(parameters, method, WireMockStub.class);
+        Collection<T> collection = CollectionFactory.createCollection(descriptor.resourceClass, descriptor.methodName);
+        return new ListRequestMocker<T>(mocker.wireMockServer, mocker.objectMapper, descriptor.urlPath, collection);
     }
 
     public GetRequestVerifier handleVerifyGetVerb(@AllArguments Object[] parameters, @This BaseMocker mocker, @Origin Method method) {
-        Class<?> resourceClass = method.getDeclaringClass().getAnnotation(WireMockForResource.class).value();
-        String methodName = method.getAnnotation(WireMockVerify.class).value();
-
         // TODO: Check method is @GET annotated
+        MockerMethodDescriptor descriptor = constructUrlPath(parameters, method, WireMockVerify.class);
+        return new GetRequestVerifier(mocker.wireMockServer, descriptor.urlPath);
+    }
+
+    private MockerMethodDescriptor constructUrlPath(Object[] parameters, Method method, Class<? extends Annotation> wireMockAnnotationType) {
+        Class<?> resourceClass = method.getDeclaringClass().getAnnotation(WireMockForResource.class).value();
+        String methodName = getTargetMethodName(method, wireMockAnnotationType);
         Map<String, Object> paramMap = paramMapBuilder.getParamMap(parameters, resourceClass, methodName);
-        String urlPath = UrlPathBuilder.buildUrlPath(resourceClass, methodName, paramMap);
-        return new GetRequestVerifier(mocker.wireMockServer, urlPath);
+        return new MockerMethodDescriptor(resourceClass, methodName, UrlPathBuilder.buildUrlPath(resourceClass, methodName, paramMap));
+    }
+
+    private String getTargetMethodName(Method method, Class<? extends Annotation> wireMockAnnotationType) {
+        String methodName;
+        if (wireMockAnnotationType == WireMockStub.class) {
+            methodName = method.getAnnotation(WireMockStub.class).value();
+        } else if (wireMockAnnotationType == WireMockVerify.class) {
+            methodName = method.getAnnotation(WireMockVerify.class).value();
+        } else {
+            throw new RuntimeException("Unexpected annotation: " + wireMockAnnotationType.getSimpleName());
+        }
+        return methodName;
+    }
+
+    private static class MockerMethodDescriptor {
+        private final Class<?> resourceClass;
+        private final String methodName;
+        private final String urlPath;
+
+        public MockerMethodDescriptor(Class<?> resourceClass, String methodName, String urlPath) {
+            this.resourceClass = resourceClass;
+            this.methodName = methodName;
+            this.urlPath = urlPath;
+        }
     }
 }
