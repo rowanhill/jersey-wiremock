@@ -1,6 +1,7 @@
 package jerseywiremock.annotations.handler;
 
 import jerseywiremock.annotations.*;
+import jerseywiremock.core.ParameterDescriptors;
 import jerseywiremock.core.RequestMappingDescriptor;
 import jerseywiremock.core.RequestMappingDescriptorFactory;
 import jerseywiremock.core.stub.GetRequestMocker;
@@ -15,14 +16,14 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 public class MockerInvocationHandler {
-    private final ParamMapFactory paramMapFactory;
+    private final ParameterDescriptorsFactory parameterDescriptorsFactory;
     private final RequestMappingDescriptorFactory requestMappingDescriptorFactory;
 
     public MockerInvocationHandler(
-            ParamMapFactory paramMapFactory,
+            ParameterDescriptorsFactory parameterDescriptorsFactory,
             RequestMappingDescriptorFactory requestMappingDescriptorFactory
     ) {
-        this.paramMapFactory = paramMapFactory;
+        this.parameterDescriptorsFactory = parameterDescriptorsFactory;
         this.requestMappingDescriptorFactory = requestMappingDescriptorFactory;
     }
 
@@ -66,11 +67,16 @@ public class MockerInvocationHandler {
             Class<? extends Annotation> wireMockAnnotationType
     ) {
         Class<?> resourceClass = method.getDeclaringClass().getAnnotation(WireMockForResource.class).value();
-        String methodName = getTargetMethodName(method, wireMockAnnotationType);
-        Map<String, String> paramMap = paramMapFactory.createParamMap(parameters, resourceClass, methodName);
+        String targetMethodName = getTargetMethodName(method, wireMockAnnotationType);
+        Annotation[][] mockerMethodParameterAnnotations = method.getParameterAnnotations();
+        ParameterDescriptors parameterDescriptors = parameterDescriptorsFactory.createParameterDescriptors(
+                parameters,
+                mockerMethodParameterAnnotations,
+                resourceClass,
+                targetMethodName);
         RequestMappingDescriptor mappingDescriptor = requestMappingDescriptorFactory
-                .createMappingDescriptor(resourceClass, methodName, paramMap);
-        return new MockerMethodDescriptor(resourceClass, methodName, mappingDescriptor);
+                .createMappingDescriptor(resourceClass, targetMethodName, parameterDescriptors);
+        return new MockerMethodDescriptor(resourceClass, targetMethodName, mappingDescriptor);
     }
 
     private String getTargetMethodName(Method method, Class<? extends Annotation> wireMockAnnotationType) {

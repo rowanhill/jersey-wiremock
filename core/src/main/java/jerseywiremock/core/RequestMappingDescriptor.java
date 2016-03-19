@@ -1,21 +1,21 @@
 package jerseywiremock.core;
 
-import java.util.Map;
+import java.util.List;
 
 public class RequestMappingDescriptor {
     private final String urlPath;
-    private final Map<String, String> queryParams;
+    private final List<QueryParamMatchDescriptor> queryParamMatchDescriptors;
 
-    public RequestMappingDescriptor(String urlPath, Map<String, String> queryParams) {
+    public RequestMappingDescriptor(String urlPath, List<QueryParamMatchDescriptor> queryParamMatchDescriptors) {
         this.urlPath = urlPath;
-        this.queryParams = queryParams;
+        this.queryParamMatchDescriptors = queryParamMatchDescriptors;
     }
 
     public String getUrlPath() {
         return urlPath;
     }
 
-    public Map<String, String> getQueryParams() {
-        return queryParams;
+    public List<QueryParamMatchDescriptor> getQueryParamMatchDescriptors() {
+        return queryParamMatchDescriptors;
     }
 }

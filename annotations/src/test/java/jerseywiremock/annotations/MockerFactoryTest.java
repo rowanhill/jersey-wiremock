@@ -5,6 +5,7 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableList;
 import io.dropwizard.jersey.params.DateTimeParam;
+import jerseywiremock.core.ParamMatchingStrategy;
 import jerseywiremock.core.stub.GetRequestMocker;
 import jerseywiremock.core.stub.ListRequestMocker;
 import jerseywiremock.core.verify.GetRequestVerifier;
@@ -81,6 +82,21 @@ public class MockerFactoryTest {
         mocker.verifyGetIntsByDate(now).verify();
     }
 
+    @Test
+    public void requestWithQueryParamMatchedByContainingCanBeStubbedAndVerified() throws Exception {
+        // given
+        DateTime now = DateTime.now();
+        String year = Integer.toString(now.getYear());
+        mocker.stubGetIntsByDateContaining(year).andRespondWith(4, 5, 6).stub();
+
+        // when
+        Collection<Integer> intsByDate = client.getIntsByDate(now);
+
+        // then
+        assertThat(intsByDate).containsOnly(4, 5, 6);
+        mocker.verifyGetIntsByDate(now).verify();
+    }
+
     @WireMockForResource(TestResource.class)
     public interface TestMockerInterface {
         @WireMockStub("getDoubleGivenInt")
@@ -100,6 +116,11 @@ public class MockerFactoryTest {
 
         @WireMockVerify("getIntsByDate")
         GetRequestVerifier verifyGetIntsByDate(DateTime dateTime);
+
+        @WireMockStub("getIntsByDate")
+        ListRequestMocker<Integer> stubGetIntsByDateContaining(
+                @ParamMatchedBy(ParamMatchingStrategy.CONTAINING) String dateSubstring
+        );
     }
 
     @Path("/test")

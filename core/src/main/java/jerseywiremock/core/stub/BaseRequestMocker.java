@@ -5,11 +5,9 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.UrlMatchingStrategy;
 import jerseywiremock.core.RequestMappingDescriptor;
+import jerseywiremock.core.StubOrVerifyQueryParamAdder;
 import jerseywiremock.core.stub.verbs.VerbMappingBuilderStrategy;
 
-import java.util.Map;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 public abstract class BaseRequestMocker {
@@ -35,9 +33,8 @@ public abstract class BaseRequestMocker {
     ) {
         UrlMatchingStrategy urlMatchingStrategy = urlPathEqualTo(mappingDescriptor.getUrlPath());
         MappingBuilder mappingBuilder = verbMappingBuilderStrategy.verb(urlMatchingStrategy);
-        for (Map.Entry<String, String> entry : mappingDescriptor.getQueryParams().entrySet()) {
-            mappingBuilder.withQueryParam(entry.getKey(), equalTo(entry.getValue()));
-        }
+        StubOrVerifyQueryParamAdder queryParamAdder = new StubOrVerifyQueryParamAdder(mappingBuilder);
+        queryParamAdder.addQueryParameters(mappingDescriptor);
         return mappingBuilder;
     }
 }

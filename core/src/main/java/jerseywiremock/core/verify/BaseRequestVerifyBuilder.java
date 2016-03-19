@@ -4,10 +4,8 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.client.UrlMatchingStrategy;
 import jerseywiremock.core.RequestMappingDescriptor;
+import jerseywiremock.core.StubOrVerifyQueryParamAdder;
 
-import java.util.Map;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 public abstract class BaseRequestVerifyBuilder {
@@ -45,9 +43,8 @@ public abstract class BaseRequestVerifyBuilder {
     ) {
         UrlMatchingStrategy urlMatchingStrategy = urlPathEqualTo(mappingDescriptor.getUrlPath());
         RequestPatternBuilder patternBuilder = verbRequestedForStrategy.verbRequestedFor(urlMatchingStrategy);
-        for (Map.Entry<String, String> entry : mappingDescriptor.getQueryParams().entrySet()) {
-            patternBuilder.withQueryParam(entry.getKey(), equalTo(entry.getValue()));
-        }
+        StubOrVerifyQueryParamAdder queryParamAdder = new StubOrVerifyQueryParamAdder(patternBuilder);
+        queryParamAdder.addQueryParameters(mappingDescriptor);
         return patternBuilder;
     }
 }
