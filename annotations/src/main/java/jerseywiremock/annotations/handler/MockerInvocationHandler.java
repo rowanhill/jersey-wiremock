@@ -25,24 +25,24 @@ public class MockerInvocationHandler {
 
     public <T> GetRequestMocker<T> handleStubGet(@AllArguments Object[] parameters, @This BaseMocker mocker, @Origin Method method) {
         // TODO: Check method is @GET annotated
-        MockerMethodDescriptor descriptor = constructUrlPath(parameters, method, WireMockStub.class);
+        MockerMethodDescriptor descriptor = constructMethodDescriptor(parameters, method, WireMockStub.class);
         return new GetRequestMocker<T>(mocker.wireMockServer, mocker.objectMapper, descriptor.requestMappingDescriptor);
     }
 
     public <T> ListRequestMocker<T> handleStubList(@AllArguments Object[] parameters, @This BaseMocker mocker, @Origin Method method) {
         // TODO: Check method is @GET annotated
-        MockerMethodDescriptor descriptor = constructUrlPath(parameters, method, WireMockStub.class);
+        MockerMethodDescriptor descriptor = constructMethodDescriptor(parameters, method, WireMockStub.class);
         Collection<T> collection = CollectionFactory.createCollection(descriptor.resourceClass, descriptor.methodName);
         return new ListRequestMocker<T>(mocker.wireMockServer, mocker.objectMapper, descriptor.requestMappingDescriptor, collection);
     }
 
     public GetRequestVerifier handleVerifyGetVerb(@AllArguments Object[] parameters, @This BaseMocker mocker, @Origin Method method) {
         // TODO: Check method is @GET annotated
-        MockerMethodDescriptor descriptor = constructUrlPath(parameters, method, WireMockVerify.class);
+        MockerMethodDescriptor descriptor = constructMethodDescriptor(parameters, method, WireMockVerify.class);
         return new GetRequestVerifier(mocker.wireMockServer, descriptor.requestMappingDescriptor);
     }
 
-    private MockerMethodDescriptor constructUrlPath(Object[] parameters, Method method, Class<? extends Annotation> wireMockAnnotationType) {
+    private MockerMethodDescriptor constructMethodDescriptor(Object[] parameters, Method method, Class<? extends Annotation> wireMockAnnotationType) {
         Class<?> resourceClass = method.getDeclaringClass().getAnnotation(WireMockForResource.class).value();
         String methodName = getTargetMethodName(method, wireMockAnnotationType);
         Map<String, String> paramMap = paramMapFactory.createParamMap(parameters, resourceClass, methodName);
