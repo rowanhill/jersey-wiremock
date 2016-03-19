@@ -6,17 +6,20 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 
-public class GetResponseMocker<Entity> extends BaseResponseMocker {
-    private final Entity entity;
+public class GetResponseMocker<Entity> extends BaseResponseMocker<GetResponseMocker<Entity>> {
+    private Entity entity;
 
     public GetResponseMocker(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
-            MappingBuilder mappingBuilder,
-            Entity entity
+            MappingBuilder mappingBuilder
     ) {
         super(wireMockServer, objectMapper, mappingBuilder);
+    }
+
+    public GetResponseMocker<Entity> withEntity(Entity entity) {
         this.entity = entity;
+        return this;
     }
 
     @Override

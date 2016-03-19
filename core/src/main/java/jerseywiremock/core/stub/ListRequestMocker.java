@@ -10,30 +10,33 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class ListRequestMocker<Entity> extends BaseRequestMocker {
-    private final Collection<Entity> collection;
+    private final Collection<Entity> initialCollection;
 
     public ListRequestMocker(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
             RequestMappingDescriptor mappingDescriptor,
-            Collection<Entity> collection
+            Collection<Entity> initialCollection
     ) {
         super(wireMockServer, objectMapper, mappingDescriptor, new GetMappingBuilderStrategy());
-        this.collection = collection;
+        this.initialCollection = initialCollection;
     }
 
     public ListRequestMocker(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
             MappingBuilder mappingBuilder,
-            Collection<Entity> collection
+            Collection<Entity> initialCollection
     ) {
         super(wireMockServer, objectMapper, mappingBuilder);
-        this.collection = collection;
+        this.initialCollection = initialCollection;
+    }
+
+    public ListResponseMocker<Entity> andRespond() {
+        return new ListResponseMocker<Entity>(wireMockServer, objectMapper, mappingBuilder, initialCollection);
     }
 
     public ListResponseMocker<Entity> andRespondWith(Entity... items) {
-        Collections.addAll(collection, items);
-        return new ListResponseMocker<Entity>(wireMockServer, objectMapper, mappingBuilder, collection);
+        return andRespond().withEntities(items);
     }
 }

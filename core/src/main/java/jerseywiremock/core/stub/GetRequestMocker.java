@@ -19,7 +19,11 @@ public class GetRequestMocker<Entity> extends BaseRequestMocker {
         super(wireMockServer, objectMapper, mappingBuilder);
     }
 
+    public GetResponseMocker<Entity> andRespond() {
+        return new GetResponseMocker<Entity>(wireMockServer, objectMapper, mappingBuilder);
+    }
+
     public GetResponseMocker<Entity> andRespondWith(Entity entity) {
-        return new GetResponseMocker<Entity>(wireMockServer, objectMapper, mappingBuilder, entity);
+        return andRespond().withEntity(entity);
     }
 }

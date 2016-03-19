@@ -8,7 +8,7 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 
-public abstract class BaseResponseMocker {
+public abstract class BaseResponseMocker<SelfType extends BaseResponseMocker> {
     protected final WireMockServer wireMockServer;
     protected final ObjectMapper objectMapper;
     protected final MappingBuilder mappingBuilder;
@@ -24,6 +24,12 @@ public abstract class BaseResponseMocker {
         this.mappingBuilder = mappingBuilder;
 
         responseDefinitionBuilder = aResponse().withHeader("Content-Type", "application/json");
+    }
+
+    public SelfType withStatusCode(int statusCode) {
+        responseDefinitionBuilder.withStatus(statusCode);
+        //noinspection unchecked
+        return (SelfType) this;
     }
 
     public void stub() throws JsonProcessingException {

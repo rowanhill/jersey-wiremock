@@ -23,6 +23,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.util.Collection;
 
@@ -95,6 +96,18 @@ public class MockerFactoryTest {
         // then
         assertThat(intsByDate).containsOnly(4, 5, 6);
         mocker.verifyGetIntsByDate(now).verify();
+    }
+
+    @Test
+    public void requestCanBeStubbedWithArbitraryStatusCodes() throws Exception {
+        // given
+        mocker.stubGetListOfInts().andRespond().withStatusCode(403).withEntities(10, 20).stub();
+
+        // when
+        Response response = client.getResponseForListOfInts();
+
+        // then
+        assertThat(response.getStatus()).isEqualTo(403);
     }
 
     @WireMockForResource(TestResource.class)
@@ -180,6 +193,18 @@ public class MockerFactoryTest {
                     .request()
                     .get()
                     .readEntity(new GenericType<Collection<Integer>>(){});
+        }
+
+        public Response getResponseForListOfInts() {
+            return client
+                    .target(UriBuilder
+                            .fromResource(TestResource.class)
+                            .path(TestResource.class, "getListOfInts")
+                            .scheme("http")
+                            .host("localhost")
+                            .port(8080))
+                    .request()
+                    .get();
         }
 
         public Collection<Integer> getIntsByDate(DateTime dateTime) {

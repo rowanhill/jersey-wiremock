@@ -7,18 +7,24 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 
 import java.util.Collection;
+import java.util.Collections;
 
-public class ListResponseMocker<Entity> extends BaseResponseMocker {
-    private final Collection<Entity> entities;
+public class ListResponseMocker<Entity> extends BaseResponseMocker<ListResponseMocker<Entity>> {
+    private Collection<Entity> entities;
 
     public ListResponseMocker(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
             MappingBuilder mappingBuilder,
-            Collection<Entity> entities
+            Collection<Entity> initialCollection
     ) {
         super(wireMockServer, objectMapper, mappingBuilder);
-        this.entities = entities;
+        this.entities = initialCollection;
+    }
+
+    public ListResponseMocker<Entity> withEntities(Entity... items) {
+        Collections.addAll(entities, items);
+        return this;
     }
 
     @Override
