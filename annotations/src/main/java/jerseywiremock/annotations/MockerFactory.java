@@ -17,7 +17,7 @@ public class MockerFactory {
     public static <T> T wireMockerFor(Class<T> mockerInterface, WireMockServer wireMockServer, ObjectMapper objectMapper)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException
     {
-        MockerInvocationHandler handler = new MockerInvocationHandler();
+        MockerInvocationHandler handler = new MockerInvocationHandler(new ParamMapBuilder());
 
         Class<? extends BaseMocker> mockerSubclass = new ByteBuddy()
                 .with(new NamingStrategy.SuffixingRandom("JerseyWireMockGenerated"))
