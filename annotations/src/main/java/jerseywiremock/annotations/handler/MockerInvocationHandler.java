@@ -15,9 +15,11 @@ import java.util.*;
 
 public class MockerInvocationHandler {
     private final ParamMapBuilder paramMapBuilder;
+    private final UrlPathBuilder urlPathBuilder;
 
-    public MockerInvocationHandler(ParamMapBuilder paramMapBuilder) {
+    public MockerInvocationHandler(ParamMapBuilder paramMapBuilder, UrlPathBuilder urlPathBuilder) {
         this.paramMapBuilder = paramMapBuilder;
+        this.urlPathBuilder = urlPathBuilder;
     }
 
     public <T> GetRequestMocker<T> handleStubGet(@AllArguments Object[] parameters, @This BaseMocker mocker, @Origin Method method) {
@@ -43,7 +45,7 @@ public class MockerInvocationHandler {
         Class<?> resourceClass = method.getDeclaringClass().getAnnotation(WireMockForResource.class).value();
         String methodName = getTargetMethodName(method, wireMockAnnotationType);
         Map<String, Object> paramMap = paramMapBuilder.getParamMap(parameters, resourceClass, methodName);
-        return new MockerMethodDescriptor(resourceClass, methodName, UrlPathBuilder.buildUrlPath(resourceClass, methodName, paramMap));
+        return new MockerMethodDescriptor(resourceClass, methodName, urlPathBuilder.buildUrlPath(resourceClass, methodName, paramMap));
     }
 
     private String getTargetMethodName(Method method, Class<? extends Annotation> wireMockAnnotationType) {

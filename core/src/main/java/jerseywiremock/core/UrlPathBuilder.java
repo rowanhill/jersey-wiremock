@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 public class UrlPathBuilder {
-    public static String buildUrlPath(Class<?> resourceClass, String methodName, Map<String, Object> paramValues) {
+    public String buildUrlPath(Class<?> resourceClass, String methodName, Map<String, Object> paramValues) {
         UriBuilder uriBuilder = UriBuilder.fromResource(resourceClass);
 
         Method method = ReflectionHelper.getMethod(resourceClass, methodName);
