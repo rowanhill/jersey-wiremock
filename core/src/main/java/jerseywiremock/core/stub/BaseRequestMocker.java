@@ -15,19 +15,22 @@ public abstract class BaseRequestMocker {
     protected final ObjectMapper objectMapper;
     protected final MappingBuilder mappingBuilder;
 
+    public BaseRequestMocker(WireMockServer wireMockServer, ObjectMapper objectMapper, MappingBuilder mappingBuilder) {
+        this.wireMockServer = wireMockServer;
+        this.objectMapper = objectMapper;
+        this.mappingBuilder = mappingBuilder;
+    }
+
     public BaseRequestMocker(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
             RequestMappingDescriptor mappingDescriptor,
             VerbMappingBuilderStrategy verbMappingBuilderStrategy
     ) {
-        this.wireMockServer = wireMockServer;
-        this.objectMapper = objectMapper;
-
-        this.mappingBuilder = createMappingBuilder(verbMappingBuilderStrategy, mappingDescriptor);
+        this(wireMockServer, objectMapper, createMappingBuilder(verbMappingBuilderStrategy, mappingDescriptor));
     }
 
-    private MappingBuilder createMappingBuilder(
+    private static MappingBuilder createMappingBuilder(
             VerbMappingBuilderStrategy verbMappingBuilderStrategy,
             RequestMappingDescriptor mappingDescriptor
     ) {

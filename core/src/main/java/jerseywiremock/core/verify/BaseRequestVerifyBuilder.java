@@ -14,14 +14,17 @@ public abstract class BaseRequestVerifyBuilder {
 
     private Integer numOfTimes;
 
+    public BaseRequestVerifyBuilder(WireMockServer wireMockServer, RequestPatternBuilder patternBuilder) {
+        this.wireMockServer = wireMockServer;
+        this.requestPatternBuilder = patternBuilder;
+    }
+
     public BaseRequestVerifyBuilder(
             WireMockServer wireMockServer,
             VerbRequestedForStrategy verbRequestedForStrategy,
             RequestMappingDescriptor mappingDescriptor
     ) {
-        this.wireMockServer = wireMockServer;
-
-        this.requestPatternBuilder = createRequestPatternBuilder(verbRequestedForStrategy, mappingDescriptor);
+        this(wireMockServer, createRequestPatternBuilder(verbRequestedForStrategy, mappingDescriptor));
     }
 
     public BaseRequestVerifyBuilder times(int numTimes) {
@@ -37,7 +40,7 @@ public abstract class BaseRequestVerifyBuilder {
         }
     }
 
-    private RequestPatternBuilder createRequestPatternBuilder(
+    private static RequestPatternBuilder createRequestPatternBuilder(
             VerbRequestedForStrategy verbRequestedForStrategy,
             RequestMappingDescriptor mappingDescriptor
     ) {
