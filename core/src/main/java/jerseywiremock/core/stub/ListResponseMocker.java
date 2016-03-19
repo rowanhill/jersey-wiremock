@@ -8,14 +8,8 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 
 import java.util.Collection;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-
-public class ListResponseMocker<Entity> {
-    private final WireMockServer wireMockServer;
-    private final ObjectMapper objectMapper;
-    private final MappingBuilder mappingBuilder;
+public class ListResponseMocker<Entity> extends BaseResponseMocker {
     private final Collection<Entity> entities;
-    private final ResponseDefinitionBuilder responseDefinitionBuilder;
 
     public ListResponseMocker(
             WireMockServer wireMockServer,
@@ -23,19 +17,15 @@ public class ListResponseMocker<Entity> {
             MappingBuilder mappingBuilder,
             Collection<Entity> entities
     ) {
-        this.wireMockServer = wireMockServer;
-        this.objectMapper = objectMapper;
-        this.mappingBuilder = mappingBuilder;
+        super(wireMockServer, objectMapper, mappingBuilder);
         this.entities = entities;
-
-        responseDefinitionBuilder = aResponse().withHeader("Content-Type", "application/json");
     }
 
-    public void stub() throws JsonProcessingException {
+    @Override
+    protected void amendResponseDefinition(ResponseDefinitionBuilder responseDefinitionBuilder)
+            throws JsonProcessingException
+    {
         String bodyString = objectMapper.writeValueAsString(entities);
-
         responseDefinitionBuilder.withBody(bodyString);
-
-        wireMockServer.stubFor(mappingBuilder.willReturn(responseDefinitionBuilder));
     }
 }
