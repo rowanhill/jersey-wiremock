@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RequestMappingDescriptorFactory {
-    // qq rename
     public RequestMappingDescriptor createMappingDescriptor(Class<?> resourceClass, String methodName, Map<String, String> paramValues) {
         Method method = ReflectionHelper.getMethod(resourceClass, methodName);
 
