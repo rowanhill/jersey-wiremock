@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import jerseywiremock.annotations.handler.BaseMocker;
 import jerseywiremock.annotations.handler.MockerInvocationHandler;
-import jerseywiremock.core.UrlPathFactory;
+import jerseywiremock.core.RequestMappingDescriptorFactory;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.NamingStrategy;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
@@ -18,7 +18,7 @@ public class MockerFactory {
     public static <T> T wireMockerFor(Class<T> mockerInterface, WireMockServer wireMockServer, ObjectMapper objectMapper)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException
     {
-        MockerInvocationHandler handler = new MockerInvocationHandler(new ParamMapFactory(), new UrlPathFactory());
+        MockerInvocationHandler handler = new MockerInvocationHandler(new ParamMapFactory(), new RequestMappingDescriptorFactory());
 
         Class<? extends BaseMocker> mockerSubclass = new ByteBuddy()
                 .with(new NamingStrategy.SuffixingRandom("JerseyWireMockGenerated"))

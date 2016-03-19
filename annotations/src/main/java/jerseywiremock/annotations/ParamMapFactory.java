@@ -10,7 +10,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 public class ParamMapFactory {
-    public Map<String, Object> createParamMap(Object[] parameters, Class<?> resourceClass, String methodName) {
+    public Map<String, String> createParamMap(Object[] parameters, Class<?> resourceClass, String methodName) {
         Method method = ReflectionHelper.getMethod(resourceClass, methodName);
 
         LinkedList<ParameterDescriptor> parameterDescriptors = getParameterDescriptors(method);
@@ -53,11 +53,11 @@ public class ParamMapFactory {
         return parameterDescriptor;
     }
 
-    private Map<String, Object> buildParamMap(
+    private Map<String, String> buildParamMap(
             Object[] parameters,
             LinkedList<ParameterDescriptor> parameterDescriptors
     ) {
-        Map<String, Object> paramMap = new HashMap<String, Object>();
+        Map<String, String> paramMap = new HashMap<String, String>();
         for (int i = 0; i < parameterDescriptors.size(); i++) {
             String paramName = parameterDescriptors.get(i).paramName;
             Class<? extends ParamFormatter> formatterClass = parameterDescriptors.get(i).formatterClass;

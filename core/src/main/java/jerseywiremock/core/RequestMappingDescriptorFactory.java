@@ -5,29 +5,34 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.UriBuilder;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
 
-public class UrlPathFactory {
-    public String createUrlPath(Class<?> resourceClass, String methodName, Map<String, Object> paramValues) {
-        UriBuilder uriBuilder = UriBuilder.fromResource(resourceClass);
-
+public class RequestMappingDescriptorFactory {
+    // qq rename
+    public RequestMappingDescriptor createMappingDescriptor(Class<?> resourceClass, String methodName, Map<String, String> paramValues) {
         Method method = ReflectionHelper.getMethod(resourceClass, methodName);
 
+        UriBuilder uriBuilder = UriBuilder.fromResource(resourceClass);
         for (Annotation methodAnnotation : method.getDeclaredAnnotations()) {
             if (methodAnnotation.annotationType().equals(Path.class)) {
                 uriBuilder.path(method);
             }
         }
+        String urlPath = uriBuilder.buildFromMap(paramValues).toString();
+
+        Map<String, String> queryParams = new HashMap<String, String>();
         for (Annotation[] paramAnnotations : method.getParameterAnnotations()) {
             for (Annotation paramAnnotation : paramAnnotations) {
                 if (paramAnnotation instanceof QueryParam) {
                     QueryParam queryParam = (QueryParam) paramAnnotation;
                     String queryParamName = queryParam.value();
-                    uriBuilder.queryParam(queryParamName, paramValues.get(queryParamName));
+                    queryParams.put(queryParamName, paramValues.get(queryParamName));
                 }
             }
         }
 
-        return uriBuilder.buildFromMap(paramValues).toString();
+        return new RequestMappingDescriptor(urlPath, queryParams);
     }
+
 }
