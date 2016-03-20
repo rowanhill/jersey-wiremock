@@ -21,13 +21,13 @@ public class ParameterDescriptorsFactory {
     ) {
         Method targetMethod = ReflectionHelper.getMethod(resourceClass, targetMethodName);
 
-        if (targetMethod.getParameterTypes().length != parameters.length) {
-            throw new RuntimeException("Invocation of " + targetMethodName + " had " + parameters.length +
-                    " params, but " + targetMethod.getParameterTypes().length + " are desired");
-        }
-
         LinkedList<ParameterDescriptor> parameterDescriptors =
                 getParameterDescriptors(targetMethod, mockerMethodParameterAnnotations);
+
+        if (parameterDescriptors.size() != parameters.length) {
+            throw new RuntimeException("Invocation of " + targetMethodName + " had " + parameters.length +
+                    " params, but " + parameterDescriptors.size() + " are desired");
+        }
 
         return buildParameterDescriptorsObject(parameters, parameterDescriptors);
     }
@@ -38,18 +38,31 @@ public class ParameterDescriptorsFactory {
     ) {
         LinkedList<ParameterDescriptor> parameterDescriptors = new LinkedList<>();
         Annotation[][] targetMethodParameterAnnotations = targetMethod.getParameterAnnotations();
-        for (int i = 0; i < targetMethodParameterAnnotations.length; i++) {
-            Annotation[] targetSingleParamAnnotations = targetMethodParameterAnnotations[i];
-            Annotation[] mockerSingleParamAnnotations = mockerMethodParameterAnnotations[i];
+
+        int mockerMethodParamIndex = 0;
+        for (Annotation[] targetSingleParamAnnotations : targetMethodParameterAnnotations) {
+            if (!includesQueryOrPathParams(targetSingleParamAnnotations)) {
+                continue;
+            }
+            Annotation[] mockerSingleParamAnnotations = mockerMethodParameterAnnotations[mockerMethodParamIndex];
+
 
             ParameterDescriptor parameterDescriptor =
                     getParameterDescriptor(targetSingleParamAnnotations, mockerSingleParamAnnotations);
+            parameterDescriptors.add(parameterDescriptor);
 
-            if (parameterDescriptor != null) {
-                parameterDescriptors.add(parameterDescriptor);
-            }
+            mockerMethodParamIndex++;
         }
         return parameterDescriptors;
+    }
+
+    private boolean includesQueryOrPathParams(Annotation[] annotations) {
+        for (Annotation annotation : annotations) {
+            if (annotation instanceof QueryParam || annotation instanceof PathParam) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private ParameterDescriptor getParameterDescriptor(
@@ -69,11 +82,6 @@ public class ParameterDescriptorsFactory {
             } else if (parameterAnnotation instanceof ParamFormat) {
                 formatter = ((ParamFormat) parameterAnnotation).value();
             }
-        }
-
-        if (paramName == null) {
-            // This parameter isn't a @PathParam or @QueryParam, so we're not interested
-            return null;
         }
 
         // Resource method params with @QueryParam can have their equivalent mocker method param annotated with
