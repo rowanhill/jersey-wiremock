@@ -34,7 +34,7 @@ public class MockerInvocationHandler {
     ) {
         // TODO: Check method is @GET annotated
         MockerMethodDescriptor descriptor = constructMethodDescriptor(parameters, method, WireMockStub.class);
-        return new GetRequestMocker<T>(mocker.wireMockServer, mocker.objectMapper, descriptor.requestMappingDescriptor);
+        return new GetRequestMocker<>(mocker.wireMockServer, mocker.objectMapper, descriptor.requestMappingDescriptor);
     }
 
     public <T> ListRequestMocker<T> handleStubList(
@@ -45,7 +45,7 @@ public class MockerInvocationHandler {
         // TODO: Check method is @GET annotated
         MockerMethodDescriptor descriptor = constructMethodDescriptor(parameters, method, WireMockStub.class);
         Collection<T> collection = CollectionFactory.createCollection(descriptor.resourceClass, descriptor.methodName);
-        return new ListRequestMocker<T>(
+        return new ListRequestMocker<>(
                 mocker.wireMockServer,
                 mocker.objectMapper,
                 descriptor.requestMappingDescriptor, collection);

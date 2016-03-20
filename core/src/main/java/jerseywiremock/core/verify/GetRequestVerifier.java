@@ -1,7 +1,6 @@
 package jerseywiremock.core.verify;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 import jerseywiremock.core.RequestMappingDescriptor;
 

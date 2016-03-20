@@ -36,7 +36,7 @@ public class ParameterDescriptorsFactory {
             Method targetMethod,
             Annotation[][] mockerMethodParameterAnnotations
     ) {
-        LinkedList<ParameterDescriptor> parameterDescriptors = new LinkedList<ParameterDescriptor>();
+        LinkedList<ParameterDescriptor> parameterDescriptors = new LinkedList<>();
         Annotation[][] targetMethodParameterAnnotations = targetMethod.getParameterAnnotations();
         for (int i = 0; i < targetMethodParameterAnnotations.length; i++) {
             Annotation[] targetSingleParamAnnotations = targetMethodParameterAnnotations[i];
@@ -95,8 +95,8 @@ public class ParameterDescriptorsFactory {
             Object[] parameters,
             LinkedList<ParameterDescriptor> parameterDescriptors
     ) {
-        Map<String, String> pathParms = new HashMap<String, String>();
-        List<QueryParamMatchDescriptor> queryParamMatchDescriptors = new LinkedList<QueryParamMatchDescriptor>();
+        Map<String, String> pathParms = new HashMap<>();
+        List<QueryParamMatchDescriptor> queryParamMatchDescriptors = new LinkedList<>();
 
         for (int i = 0; i < parameterDescriptors.size(); i++) {
             ParameterDescriptor parameterDescriptor = parameterDescriptors.get(i);
@@ -129,9 +129,7 @@ public class ParameterDescriptorsFactory {
             ParamFormatter formatter;
             try {
                 formatter = formatterClass.newInstance();
-            } catch (InstantiationException e) {
-                throw new RuntimeException(e);
-            } catch (IllegalAccessException e) {
+            } catch (InstantiationException | IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
 

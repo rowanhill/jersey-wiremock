@@ -7,7 +7,6 @@ import jerseywiremock.core.RequestMappingDescriptor;
 import jerseywiremock.core.stub.verbs.GetMappingBuilderStrategy;
 
 import java.util.Collection;
-import java.util.Collections;
 
 public class ListRequestMocker<Entity> extends BaseRequestMocker {
     private final Collection<Entity> initialCollection;
@@ -33,10 +32,11 @@ public class ListRequestMocker<Entity> extends BaseRequestMocker {
     }
 
     public ListResponseMocker<Entity> andRespond() {
-        return new ListResponseMocker<Entity>(wireMockServer, objectMapper, mappingBuilder, initialCollection);
+        return new ListResponseMocker<>(wireMockServer, objectMapper, mappingBuilder, initialCollection);
     }
 
-    public ListResponseMocker<Entity> andRespondWith(Entity... items) {
+    @SafeVarargs
+    public final ListResponseMocker<Entity> andRespondWith(Entity... items) {
         return andRespond().withEntities(items);
     }
 }

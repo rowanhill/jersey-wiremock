@@ -36,7 +36,7 @@ public class ManualMockerTest {
                     .path(TestResource.class, "getDoubleGivenInt")
                     .build(input)
                     .toString();
-            return new GetRequestMocker<Integer>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)));
+            return new GetRequestMocker<>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)));
         }
 
         public ListRequestMocker<Integer> stubGetListOfInts() {
@@ -44,8 +44,8 @@ public class ManualMockerTest {
                     .path(TestResource.class, "getListOfInts")
                     .build()
                     .toString();
-            Collection<Integer> collection = new ArrayList<Integer>();
-            return new ListRequestMocker<Integer>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)), collection);
+            Collection<Integer> collection = new ArrayList<>();
+            return new ListRequestMocker<>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)), collection);
         }
 
         public GetRequestVerifier verifyGetDoubleGivenInt(int input) {

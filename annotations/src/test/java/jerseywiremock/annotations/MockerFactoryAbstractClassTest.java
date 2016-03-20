@@ -42,14 +42,15 @@ public class MockerFactoryAbstractClassTest {
         mocker.stubGetByQuery(1).andRespondWith(10).stub();
 
         // when
-        client.getByQuery(1);
+        int result = client.getByQuery(1);
 
         // then
+        assertThat(result).isEqualTo(10);
         mocker.verifyGetByQuery(1).times(1).verify();
     }
 
     @Test
-    public void handCraftedMethodsCanBeCalled() throws Exception {
+    public void handCraftedMethodsCanBeCalled() {
         // given
         mocker.stub500ForAnyUrlStartingBadUrl();
 

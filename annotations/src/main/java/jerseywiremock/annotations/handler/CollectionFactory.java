@@ -20,11 +20,11 @@ abstract class CollectionFactory {
 
     private static <T> Collection<T> createCollection(Class<?> returnType) {
         if (List.class.isAssignableFrom(returnType)) {
-            return new ArrayList<T>();
+            return new ArrayList<>();
         } else if (Set.class.isAssignableFrom(returnType)) {
-            return new HashSet<T>();
+            return new HashSet<>();
         } else if (Collection.class.equals(returnType)) {
-            return new ArrayList<T>();
+            return new ArrayList<>();
         } else {
             throw new RuntimeException("Cannot create collection for type " + returnType.getSimpleName());
         }

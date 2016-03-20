@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class ListResponseMocker<Entity> extends BaseResponseMocker<ListResponseMocker<Entity>> {
-    private Collection<Entity> entities;
+    private final Collection<Entity> entities;
 
     public ListResponseMocker(
             WireMockServer wireMockServer,
@@ -22,7 +22,8 @@ public class ListResponseMocker<Entity> extends BaseResponseMocker<ListResponseM
         this.entities = initialCollection;
     }
 
-    public ListResponseMocker<Entity> withEntities(Entity... items) {
+    @SafeVarargs
+    public final ListResponseMocker<Entity> withEntities(Entity... items) {
         Collections.addAll(entities, items);
         return this;
     }
