@@ -9,10 +9,7 @@
     <packaging>pom</packaging>
     <version>0.1-SNAPSHOT</version>
     <modules>
-        <module>test-service</module>
-        <module>test-integration-test</module>
         <module>annotations</module>
-        <module>processor</module>
         <module>core</module>
     </modules>
 
