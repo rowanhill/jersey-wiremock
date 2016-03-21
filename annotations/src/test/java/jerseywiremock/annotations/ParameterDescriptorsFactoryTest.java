@@ -2,6 +2,7 @@ package jerseywiremock.annotations;
 
 import jerseywiremock.core.ParamMatchingStrategy;
 import jerseywiremock.core.ParameterDescriptors;
+import jerseywiremock.formatter.ParamFormatter;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -9,12 +10,12 @@ import org.junit.rules.ExpectedException;
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
-
 import java.lang.annotation.Annotation;
+import java.util.Date;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-import static org.assertj.core.api.Assertions.tuple;
+import static jerseywiremock.core.ParamMatchingStrategy.CONTAINING;
+import static org.assertj.core.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.isA;
 
 public class ParameterDescriptorsFactoryTest {
     @Rule
@@ -40,7 +41,7 @@ public class ParameterDescriptorsFactoryTest {
     @Test
     public void paramsDescriptorsForOnePathParamMethodHasOnePathParamDescriptor() throws Exception {
         // when
-        ParameterDescriptors descriptors = createDescriptors(mockerOnePathParamAnnotations(), params(1), "onePathParam");
+        ParameterDescriptors descriptors = createDescriptors(mockerOneParamAnnotations(), params(1), "onePathParam");
 
         // then
         assertThat(descriptors.getPathParams()).containsOnly(entry("one", "val1"));
@@ -51,7 +52,7 @@ public class ParameterDescriptorsFactoryTest {
     public void paramsDescriptorsForTwoPathParamsMethodHasTwoPathParamsDescriptor() throws Exception {
         // when
         ParameterDescriptors descriptors =
-                createDescriptors(mockerTwoPathParamsAnnotations(), params(2), "twoPathParams");
+                createDescriptors(mockerTwoParamsAnnotations(), params(2), "twoPathParams");
 
         // then
         assertThat(descriptors.getPathParams()).containsOnly(entry("one", "val1"), entry("two", "val2"));
@@ -62,7 +63,7 @@ public class ParameterDescriptorsFactoryTest {
     public void paramsDescriptorsForOneQueryParamMethodHasOneQueryParamDescriptor() throws Exception {
         // when
         ParameterDescriptors descriptors =
-                createDescriptors(mockerOnePathParamAnnotations(), params(1), "oneQueryParam");
+                createDescriptors(mockerOneParamAnnotations(), params(1), "oneQueryParam");
 
         // then
         assertThat(descriptors.getPathParams()).isEmpty();
@@ -75,7 +76,7 @@ public class ParameterDescriptorsFactoryTest {
     public void paramsDescriptorsForTwoQueryParamsMethodHasTwoQueryParamsDescriptor() throws Exception {
         // when
         ParameterDescriptors descriptors =
-                createDescriptors(mockerTwoPathParamsAnnotations(), params(2), "twoQueryParams");
+                createDescriptors(mockerTwoParamsAnnotations(), params(2), "twoQueryParams");
 
         // then
         assertThat(descriptors.getPathParams()).isEmpty();
@@ -90,7 +91,7 @@ public class ParameterDescriptorsFactoryTest {
     public void paramsDescriptorsForMixedPathAndQueryParamsMethodHasBothPathAndQueryParamsDescriptor() throws Exception {
         // when
         ParameterDescriptors descriptors =
-                createDescriptors(mockerTwoPathParamsAnnotations(), params(2), "mixedPathAndQueryParams");
+                createDescriptors(mockerTwoParamsAnnotations(), params(2), "mixedPathAndQueryParams");
 
         // then
         assertThat(descriptors.getPathParams()).containsOnly(entry("path", "val1"));
@@ -116,7 +117,90 @@ public class ParameterDescriptorsFactoryTest {
         assertThat(descriptors.getQueryParamMatchDescriptors()).isEmpty();
     }
 
-    // TODO: @ParamFormat and @ParamMatchedBy tests
+    @Test
+    public void paramFormatUsesSpecifiedClassToTransformPathParam() throws Exception {
+        // when
+        ParameterDescriptors descriptors =
+                createDescriptors(mockerOneParamAnnotations(), new Date[]{null}, "formattedPathParam");
+
+        // then
+        assertThat(descriptors.getPathParams()).containsOnly(entry("one", "formatted"));
+        assertThat(descriptors.getQueryParamMatchDescriptors()).isEmpty();
+    }
+
+    @Test
+    public void paramFormatUsesSpecifiedClassToTransformQueryParam() throws Exception {
+        // when
+        ParameterDescriptors descriptors =
+                createDescriptors(mockerOneParamAnnotations(), new Date[]{null}, "formattedQueryParam");
+
+        // then
+        assertThat(descriptors.getPathParams()).isEmpty();
+        assertThat(descriptors.getQueryParamMatchDescriptors())
+                .extracting("paramName", "value", "matchingStrategy")
+                .containsOnly(tuple("one", "formatted", ParamMatchingStrategy.EQUAL_TO));
+    }
+
+    @Test
+    public void queryParamMatchingStrategyCanBeChangedWithParamMatchedByAnnotation() throws Exception {
+        // when
+        ParameterDescriptors descriptors =
+                createDescriptors(mockerContainingParamAnnotations(), params(1), "oneQueryParam");
+
+        // then
+        assertThat(descriptors.getPathParams()).isEmpty();
+        assertThat(descriptors.getQueryParamMatchDescriptors())
+                .extracting("paramName", "value", "matchingStrategy")
+                .containsOnly(tuple("one", "val1", ParamMatchingStrategy.CONTAINING));
+    }
+
+    @Test
+    public void paramMatchedByAnnotationHasNoEffectOnPathParam() throws Exception {
+        // when
+        ParameterDescriptors descriptors =
+                createDescriptors(mockerContainingParamAnnotations(), params(1), "onePathParam");
+
+        // then
+        assertThat(descriptors.getPathParams()).containsOnly(entry("one", "val1"));
+        assertThat(descriptors.getQueryParamMatchDescriptors()).isEmpty();
+    }
+
+    @Test
+    public void paramFormatAndParamMatchedByCanBothBeSpecifiedForTheSameParameter() throws Exception {
+        // when
+        ParameterDescriptors descriptors =
+                createDescriptors(mockerContainingParamAnnotations(), new Date[]{null}, "formattedQueryParam");
+
+        // then
+        assertThat(descriptors.getPathParams()).isEmpty();
+        assertThat(descriptors.getQueryParamMatchDescriptors())
+                .extracting("paramName", "value", "matchingStrategy")
+                .containsOnly(tuple("one", "formatted", ParamMatchingStrategy.CONTAINING));
+    }
+
+    @Test
+    public void usingAbstractFormatterClassThrowsException() throws Exception {
+        // when
+        expectedException.expectMessage("Could not instantiate formatter AbstractFormatter");
+        expectedException.expectCause(isA(InstantiationException.class));
+        createDescriptors(mockerOneParamAnnotations(), new Date[]{null}, "abstractFormatter");
+    }
+
+    @Test
+    public void usingNoNullConstructorFormatterClassThrowsException() throws Exception {
+        // when
+        expectedException.expectMessage("Could not instantiate formatter NoNullConstructorFormatter");
+        expectedException.expectCause(isA(InstantiationException.class));
+        createDescriptors(mockerOneParamAnnotations(), new Date[]{null}, "noNullConstructorFormatter");
+    }
+
+    @Test
+    public void usingPrivateFormatterClassThrowsException() throws Exception {
+        // when
+        expectedException.expectMessage("Could not instantiate formatter PrivateFormatter");
+        expectedException.expectCause(isA(IllegalAccessException.class));
+        createDescriptors(mockerOneParamAnnotations(), new Date[]{null}, "privateFormatter");
+    }
 
     private ParameterDescriptors createDescriptors(
             Annotation[][] mockerAnnotations,
@@ -144,30 +228,79 @@ public class ParameterDescriptorsFactoryTest {
         return TestMocker.class.getDeclaredMethod("noParams").getParameterAnnotations();
     }
 
-    private Annotation[][] mockerOnePathParamAnnotations() throws NoSuchMethodException {
+    private Annotation[][] mockerOneParamAnnotations() throws NoSuchMethodException {
         return TestMocker.class.getDeclaredMethod("oneNakedParam", String.class).getParameterAnnotations();
     }
 
-    private Annotation[][] mockerTwoPathParamsAnnotations() throws NoSuchMethodException {
+    private Annotation[][] mockerTwoParamsAnnotations() throws NoSuchMethodException {
         return TestMocker.class.getDeclaredMethod("twoNakedParams", String.class, String.class)
+                .getParameterAnnotations();
+    }
+
+    private Annotation[][] mockerContainingParamAnnotations() throws NoSuchMethodException {
+        return TestMocker.class.getDeclaredMethod("containingParam", String.class)
                 .getParameterAnnotations();
     }
 
     @SuppressWarnings("unused")
     private static class ParamDescTestResource {
         void noParams() {}
+
         void onePathParam(@PathParam("one") String one) {}
         void twoPathParams(@PathParam("one") String one, @PathParam("two") String two) {}
+
         void oneQueryParam(@QueryParam("one") String one) {}
         void twoQueryParams(@QueryParam("one") String one, @QueryParam("two") String two) {}
+
         void mixedPathAndQueryParams(@PathParam("path") String path, @QueryParam("query") String query) {}
+
         void noImportantParams(String notPathOrQuery) {}
+
+        void formattedPathParam(@ParamFormat(StaticFormatter.class) @PathParam("one") Date date) {}
+        void formattedQueryParam(@ParamFormat(StaticFormatter.class) @QueryParam("one") Date date) {}
+        void abstractFormatter(@ParamFormat(AbstractFormatter.class) @PathParam("one") Date date) {}
+        void noNullConstructorFormatter(@ParamFormat(NoNullConstructorFormatter.class) @PathParam("one") Date date) {}
+        void privateFormatter(@ParamFormat(PrivateFormatter.class) @PathParam("one") Date date) {}
     }
 
     @SuppressWarnings("unused")
     private static class TestMocker {
         void noParams() {}
+
         void oneNakedParam(String one) {}
         void twoNakedParams(String one, String two) {}
+
+        void containingParam(@ParamMatchedBy(CONTAINING) String containing) {}
+    }
+
+    static class StaticFormatter implements ParamFormatter<Date> {
+        @Override
+        public String format(Date param) {
+            return "formatted";
+        }
+    }
+
+    static abstract class AbstractFormatter implements ParamFormatter<Date> {
+
+    }
+
+    static class NoNullConstructorFormatter implements ParamFormatter<Date> {
+        private final String result;
+
+        NoNullConstructorFormatter(String result) {
+            this.result = result;
+        }
+
+        @Override
+        public String format(Date param) {
+            return result;
+        }
+    }
+
+    private static class PrivateFormatter implements ParamFormatter<Date> {
+        @Override
+        public String format(Date param) {
+            return "This formatter should be inaccessible, because it is private";
+        }
     }
 }

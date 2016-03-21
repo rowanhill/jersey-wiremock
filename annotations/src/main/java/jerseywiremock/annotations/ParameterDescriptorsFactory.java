@@ -138,7 +138,7 @@ public class ParameterDescriptorsFactory {
             try {
                 formatter = formatterClass.newInstance();
             } catch (InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("Could not instantiate formatter " + formatterClass.getSimpleName(), e);
             }
 
             // ParamFormatter is generic, and the generic type is erased by run-time, so we can't check whether
