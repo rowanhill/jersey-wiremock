@@ -2,10 +2,14 @@ package jerseywiremock.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableList;
 import jerseywiremock.core.stub.GetRequestMocker;
 import jerseywiremock.core.stub.ListRequestMocker;
 import jerseywiremock.core.verify.GetRequestVerifier;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -18,9 +22,35 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
+/*
+  Note: the tests in this class simply check that mocker calls can be made without exceptions. Testing the actual
+  functionality is done in the annotations module.
+ */
 public class ManualMockerTest {
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(8080);
+    private ManualTestMocker testMocker;
 
-    // The "tests" here are just ensuring the below compiles; actual functionality is tested in the annotations module
+    @Before
+    public void setUp() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        testMocker = new ManualTestMocker(wireMockRule, objectMapper);
+    }
+
+    @Test
+    public void getRequestsCanBeStubbed() throws Exception {
+        testMocker.stubGetDoubleGivenInt(2).andRespondWith(4).stub();
+    }
+
+    @Test
+    public void listRequestsCanBeStubbed() throws Exception {
+        testMocker.stubGetListOfInts().andRespondWith(4, 8, 16).stub();
+    }
+
+    @Test
+    public void getRequestsCanBeVerified() {
+        testMocker.verifyGetDoubleGivenInt(2).times(0).verify();
+    }
 
     public static class ManualTestMocker {
         private final WireMockServer wireMockServer;
