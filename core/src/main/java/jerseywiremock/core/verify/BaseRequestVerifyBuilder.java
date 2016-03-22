@@ -8,7 +8,7 @@ import jerseywiremock.core.StubOrVerifyQueryParamAdder;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
-public abstract class BaseRequestVerifyBuilder {
+public abstract class BaseRequestVerifyBuilder<Self extends BaseRequestVerifyBuilder> {
     private final WireMockServer wireMockServer;
     private final RequestPatternBuilder requestPatternBuilder;
 
@@ -27,9 +27,10 @@ public abstract class BaseRequestVerifyBuilder {
         this(wireMockServer, createRequestPatternBuilder(verbRequestedForStrategy, mappingDescriptor));
     }
 
-    public BaseRequestVerifyBuilder times(int numTimes) {
+    public Self times(int numTimes) {
         this.numOfTimes = numTimes;
-        return this;
+        //noinspection unchecked
+        return (Self) this;
     }
 
     public void verify() {
