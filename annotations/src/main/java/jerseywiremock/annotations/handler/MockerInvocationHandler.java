@@ -1,6 +1,7 @@
 package jerseywiremock.annotations.handler;
 
 import jerseywiremock.annotations.*;
+import jerseywiremock.annotations.factory.ParameterDescriptorsFactory;
 import jerseywiremock.core.ParameterDescriptors;
 import jerseywiremock.core.RequestMappingDescriptor;
 import jerseywiremock.core.RequestMappingDescriptorFactory;

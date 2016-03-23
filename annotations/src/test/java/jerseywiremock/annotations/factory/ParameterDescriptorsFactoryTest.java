@@ -1,5 +1,7 @@
-package jerseywiremock.annotations;
+package jerseywiremock.annotations.factory;
 
+import jerseywiremock.annotations.ParamFormat;
+import jerseywiremock.annotations.ParamMatchedBy;
 import jerseywiremock.core.ParamMatchingStrategy;
 import jerseywiremock.core.ParameterDescriptors;
 import jerseywiremock.formatter.ParamFormatter;

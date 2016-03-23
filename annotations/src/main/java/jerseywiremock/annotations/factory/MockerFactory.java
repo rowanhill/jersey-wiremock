@@ -1,4 +1,4 @@
-package jerseywiremock.annotations;
+package jerseywiremock.annotations.factory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;

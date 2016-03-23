@@ -1,9 +1,12 @@
-package jerseywiremock.annotations;
+package jerseywiremock.annotations.factory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import jerseywiremock.annotations.WireMockForResource;
+import jerseywiremock.annotations.WireMockStub;
+import jerseywiremock.annotations.WireMockVerify;
 import jerseywiremock.annotations.handler.BaseMocker;
 import jerseywiremock.core.stub.GetRequestMocker;
 import jerseywiremock.core.verify.GetRequestVerifier;

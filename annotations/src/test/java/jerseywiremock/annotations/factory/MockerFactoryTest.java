@@ -1,10 +1,11 @@
-package jerseywiremock.annotations;
+package jerseywiremock.annotations.factory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableList;
 import io.dropwizard.jersey.params.DateTimeParam;
+import jerseywiremock.annotations.*;
 import jerseywiremock.core.ParamMatchingStrategy;
 import jerseywiremock.core.stub.GetRequestMocker;
 import jerseywiremock.core.stub.ListRequestMocker;
