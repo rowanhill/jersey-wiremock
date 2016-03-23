@@ -1,55 +1,45 @@
 package jerseywiremock.core;
 
-import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
+
+import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 public class StubOrVerifyQueryParamAdder {
-    private MappingBuilder mappingBuilder;
-    private RequestPatternBuilder requestPatternBuilder;
+    private final WireMockQueryParamBuilderWrapper builderWrapper;
 
-    public StubOrVerifyQueryParamAdder(MappingBuilder mappingBuilder) {
-        this.mappingBuilder = mappingBuilder;
+    public StubOrVerifyQueryParamAdder(WireMockQueryParamBuilderWrapper builderWrapper) {
+        this.builderWrapper = builderWrapper;
     }
 
-    public StubOrVerifyQueryParamAdder(RequestPatternBuilder requestPatternBuilder) {
-        this.requestPatternBuilder = requestPatternBuilder;
-    }
-
-    public void addQueryParameters(RequestMappingDescriptor mappingDescriptor) {
-        for (QueryParamMatchDescriptor queryParamMatchDescriptor : mappingDescriptor.getQueryParamMatchDescriptors()) {
-            ParamMatchingStrategy matchingStrategy = queryParamMatchDescriptor.getMatchingStrategy();
-
-            String paramValue = queryParamMatchDescriptor.getValue();
-            ValueMatchingStrategy valueMatchingStrategy;
-            switch (matchingStrategy) {
-                case EQUAL_TO:
-                    valueMatchingStrategy = equalTo(paramValue);
-                    break;
-                case CONTAINING:
-                    valueMatchingStrategy = containing(paramValue);
-                    break;
-                case MATCHING:
-                    valueMatchingStrategy = matching(paramValue);
-                    break;
-                case NOT_MATCHING:
-                    valueMatchingStrategy = notMatching(paramValue);
-                    break;
-                default:
-                    throw new RuntimeException("Unexpected matching strategy " + matchingStrategy.name());
-            }
-
-            addQueryParam(queryParamMatchDescriptor.getParamName(), valueMatchingStrategy);
+    public void addQueryParameters(List<QueryParamMatchDescriptor> queryParamMatchDescriptors) {
+        for (QueryParamMatchDescriptor queryParamMatchDescriptor : queryParamMatchDescriptors) {
+            ValueMatchingStrategy valueMatchingStrategy = getValueMatchingStrategy(queryParamMatchDescriptor);
+            builderWrapper.withQueryParam(queryParamMatchDescriptor.getParamName(), valueMatchingStrategy);
         }
     }
 
-    private void addQueryParam(String paramName, ValueMatchingStrategy valueMatchingStrategy) {
-        if (mappingBuilder != null) {
-            mappingBuilder.withQueryParam(paramName, valueMatchingStrategy);
-        } else {
-            requestPatternBuilder.withQueryParam(paramName, valueMatchingStrategy);
+    private ValueMatchingStrategy getValueMatchingStrategy(QueryParamMatchDescriptor queryParamMatchDescriptor) {
+        String paramValue = queryParamMatchDescriptor.getValue();
+        ParamMatchingStrategy matchingStrategy = queryParamMatchDescriptor.getMatchingStrategy();
+        ValueMatchingStrategy valueMatchingStrategy;
+        switch (matchingStrategy) {
+            case EQUAL_TO:
+                valueMatchingStrategy = equalTo(paramValue);
+                break;
+            case CONTAINING:
+                valueMatchingStrategy = containing(paramValue);
+                break;
+            case MATCHING:
+                valueMatchingStrategy = matching(paramValue);
+                break;
+            case NOT_MATCHING:
+                valueMatchingStrategy = notMatching(paramValue);
+                break;
+            default:
+                throw new RuntimeException("Unexpected matching strategy " + matchingStrategy.name());
         }
+        return valueMatchingStrategy;
     }
 }
