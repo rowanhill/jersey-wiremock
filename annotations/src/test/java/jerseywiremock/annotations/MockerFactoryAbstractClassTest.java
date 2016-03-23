@@ -10,6 +10,7 @@ import jerseywiremock.core.verify.GetRequestVerifier;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -23,6 +24,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MockerFactoryAbstractClassTest {
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
+
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
 
@@ -61,6 +65,13 @@ public class MockerFactoryAbstractClassTest {
         assertThat(response.getStatus()).isEqualTo(500);
     }
 
+    @Test
+    public void exceptionIsThrownCreatingMockerFromAbstractClassThatDoesNotInheritFromBaseMocker() throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+        expectedException.expectMessage("must subclass BaseMocker. TestMockerWithoutBase does not.");
+        MockerFactory.wireMockerFor(TestMockerWithoutBase.class, wireMockRule, objectMapper);
+    }
+
     @WireMockForResource(TestResource.class)
     public static abstract class TestMockerFromBase extends BaseMocker {
         public TestMockerFromBase(
@@ -80,6 +91,9 @@ public class MockerFactoryAbstractClassTest {
 
         @WireMockVerify("getByQuery")
         public abstract GetRequestVerifier verifyGetByQuery(int input);
+    }
+
+    public static abstract class TestMockerWithoutBase {
     }
 
     @Path("/test")
