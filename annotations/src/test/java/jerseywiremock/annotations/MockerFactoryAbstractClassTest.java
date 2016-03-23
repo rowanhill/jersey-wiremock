@@ -55,7 +55,6 @@ public class MockerFactoryAbstractClassTest {
         mocker.stub500ForAnyUrlStartingBadUrl();
 
         // when
-        System.out.println(wireMockRule.listAllStubMappings().getMappings());
         Response response = client.makeBadRequest();
 
         // then
