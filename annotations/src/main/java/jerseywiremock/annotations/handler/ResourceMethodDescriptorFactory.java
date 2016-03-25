@@ -11,11 +11,11 @@ import jerseywiremock.core.RequestMappingDescriptorFactory;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-public class MockerMethodDescriptorFactory {
+public class ResourceMethodDescriptorFactory {
     private final ParameterDescriptorsFactory parameterDescriptorsFactory;
     private final RequestMappingDescriptorFactory requestMappingDescriptorFactory;
 
-    public MockerMethodDescriptorFactory(
+    public ResourceMethodDescriptorFactory(
             ParameterDescriptorsFactory parameterDescriptorsFactory,
             RequestMappingDescriptorFactory requestMappingDescriptorFactory
     ) {
@@ -23,7 +23,7 @@ public class MockerMethodDescriptorFactory {
         this.requestMappingDescriptorFactory = requestMappingDescriptorFactory;
     }
 
-    MockerMethodDescriptor constructMethodDescriptor(
+    ResourceMethodDescriptor constructMethodDescriptor(
             Object[] parameters,
             Method method,
             Class<? extends Annotation> wireMockAnnotationType
@@ -38,7 +38,7 @@ public class MockerMethodDescriptorFactory {
                 targetMethodName);
         RequestMappingDescriptor mappingDescriptor = requestMappingDescriptorFactory
                 .createMappingDescriptor(resourceClass, targetMethodName, parameterDescriptors);
-        return new MockerMethodDescriptor(resourceClass, targetMethodName, mappingDescriptor);
+        return new ResourceMethodDescriptor(resourceClass, targetMethodName, mappingDescriptor);
     }
 
     private String getTargetMethodName(Method method, Class<? extends Annotation> wireMockAnnotationType) {

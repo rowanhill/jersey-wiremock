@@ -13,10 +13,10 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 
 public class MockerInvocationHandler {
-    private final MockerMethodDescriptorFactory mockerMethodDescriptorFactory;
+    private final ResourceMethodDescriptorFactory resourceMethodDescriptorFactory;
 
-    public MockerInvocationHandler(MockerMethodDescriptorFactory mockerMethodDescriptorFactory) {
-        this.mockerMethodDescriptorFactory = mockerMethodDescriptorFactory;
+    public MockerInvocationHandler(ResourceMethodDescriptorFactory resourceMethodDescriptorFactory) {
+        this.resourceMethodDescriptorFactory = resourceMethodDescriptorFactory;
     }
 
     public <T> GetRequestMocker<T> handleStubGet(
@@ -25,8 +25,8 @@ public class MockerInvocationHandler {
             @Origin Method method
     ) {
         // TODO: Check method is @GET annotated
-        MockerMethodDescriptor descriptor =
-                mockerMethodDescriptorFactory.constructMethodDescriptor(parameters, method, WireMockStub.class);
+        ResourceMethodDescriptor descriptor =
+                resourceMethodDescriptorFactory.constructMethodDescriptor(parameters, method, WireMockStub.class);
         return new GetRequestMocker<>(
                 mocker.wireMockServer,
                 mocker.objectMapper,
@@ -39,8 +39,8 @@ public class MockerInvocationHandler {
             @Origin Method method
     ) {
         // TODO: Check method is @GET annotated
-        MockerMethodDescriptor descriptor =
-                mockerMethodDescriptorFactory.constructMethodDescriptor(parameters, method, WireMockStub.class);
+        ResourceMethodDescriptor descriptor =
+                resourceMethodDescriptorFactory.constructMethodDescriptor(parameters, method, WireMockStub.class);
         Collection<T> collection =
                 CollectionFactory.createCollection(descriptor.getResourceClass(), descriptor.getMethodName());
         return new ListRequestMocker<>(
@@ -55,8 +55,8 @@ public class MockerInvocationHandler {
             @Origin Method method
     ) {
         // TODO: Check method is @GET annotated
-        MockerMethodDescriptor descriptor =
-                mockerMethodDescriptorFactory.constructMethodDescriptor(parameters, method, WireMockVerify.class);
+        ResourceMethodDescriptor descriptor =
+                resourceMethodDescriptorFactory.constructMethodDescriptor(parameters, method, WireMockVerify.class);
         return new GetRequestVerifier(mocker.wireMockServer, descriptor.getRequestMappingDescriptor());
     }
 
