@@ -29,9 +29,9 @@ public class MockerInvocationHandler {
             @This BaseMocker mocker,
             @Origin Method method
     ) {
-        // TODO: Check method is @GET annotated
         ResourceMethodDescriptor descriptor =
                 resourceMethodDescriptorFactory.constructMethodDescriptor(parameters, method, WireMockStub.class);
+        assertVerb(descriptor, HttpVerb.GET);
         return new GetRequestMocker<>(
                 mocker.wireMockServer,
                 mocker.objectMapper,
@@ -43,9 +43,9 @@ public class MockerInvocationHandler {
             @This BaseMocker mocker,
             @Origin Method method
     ) {
-        // TODO: Check method is @GET annotated
         ResourceMethodDescriptor descriptor =
                 resourceMethodDescriptorFactory.constructMethodDescriptor(parameters, method, WireMockStub.class);
+        assertVerb(descriptor, HttpVerb.GET);
         Collection<T> collection =
                 collectionFactory.createCollection(descriptor.getResourceClass(), descriptor.getMethodName());
         return new ListRequestMocker<>(
@@ -59,10 +59,17 @@ public class MockerInvocationHandler {
             @This BaseMocker mocker,
             @Origin Method method
     ) {
-        // TODO: Check method is @GET annotated
         ResourceMethodDescriptor descriptor =
                 resourceMethodDescriptorFactory.constructMethodDescriptor(parameters, method, WireMockVerify.class);
+        assertVerb(descriptor, HttpVerb.GET);
         return new GetRequestVerifier(mocker.wireMockServer, descriptor.getRequestMappingDescriptor());
+    }
+
+    private void assertVerb(ResourceMethodDescriptor descriptor, HttpVerb verb) {
+        if (descriptor.getVerb() != HttpVerb.GET) {
+            throw new RuntimeException("Expected " + descriptor.getMethodName() + " to be annotated with @"
+                    + verb.getAnnotation().getSimpleName());
+        }
     }
 
 }

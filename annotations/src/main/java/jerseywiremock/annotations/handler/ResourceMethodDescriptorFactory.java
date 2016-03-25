@@ -12,13 +12,16 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 public class ResourceMethodDescriptorFactory {
+    private final HttpVerbDetector verbDetector;
     private final ParameterDescriptorsFactory parameterDescriptorsFactory;
     private final RequestMappingDescriptorFactory requestMappingDescriptorFactory;
 
     public ResourceMethodDescriptorFactory(
+            HttpVerbDetector verbDetector,
             ParameterDescriptorsFactory parameterDescriptorsFactory,
             RequestMappingDescriptorFactory requestMappingDescriptorFactory
     ) {
+        this.verbDetector = verbDetector;
         this.parameterDescriptorsFactory = parameterDescriptorsFactory;
         this.requestMappingDescriptorFactory = requestMappingDescriptorFactory;
     }
@@ -38,7 +41,8 @@ public class ResourceMethodDescriptorFactory {
                 targetMethodName);
         RequestMappingDescriptor mappingDescriptor = requestMappingDescriptorFactory
                 .createMappingDescriptor(resourceClass, targetMethodName, parameterDescriptors);
-        return new ResourceMethodDescriptor(resourceClass, targetMethodName, mappingDescriptor);
+        HttpVerb verb = verbDetector.getVerbFromAnnotation(resourceClass, targetMethodName);
+        return new ResourceMethodDescriptor(resourceClass, targetMethodName, verb, mappingDescriptor);
     }
 
     private String getTargetMethodName(Method method, Class<? extends Annotation> wireMockAnnotationType) {

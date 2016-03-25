@@ -5,15 +5,18 @@ import jerseywiremock.core.RequestMappingDescriptor;
 class ResourceMethodDescriptor {
     private final Class<?> resourceClass;
     private final String methodName;
+    private final HttpVerb verb;
     private final RequestMappingDescriptor requestMappingDescriptor;
 
     ResourceMethodDescriptor(
             Class<?> resourceClass,
             String methodName,
+            HttpVerb verb,
             RequestMappingDescriptor requestMappingDescriptor
     ) {
         this.resourceClass = resourceClass;
         this.methodName = methodName;
+        this.verb = verb;
         this.requestMappingDescriptor = requestMappingDescriptor;
     }
 
@@ -29,6 +32,13 @@ class ResourceMethodDescriptor {
      */
     public String getMethodName() {
         return methodName;
+    }
+
+    /**
+     * The HTTP verb the described Jersey resource method services
+     */
+    public HttpVerb getVerb() {
+        return verb;
     }
 
     /**

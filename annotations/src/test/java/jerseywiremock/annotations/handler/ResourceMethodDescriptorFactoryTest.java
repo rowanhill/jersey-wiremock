@@ -30,6 +30,8 @@ public class ResourceMethodDescriptorFactoryTest {
     private ParameterDescriptorsFactory mockParameterDescriptorsFactory;
     @Mock
     private RequestMappingDescriptorFactory mockRequestMappingDescriptorFactory;
+    @Mock
+    private HttpVerbDetector mockHttpVerbDetector;
     @InjectMocks
     private ResourceMethodDescriptorFactory methodDescriptorFactory;
 
