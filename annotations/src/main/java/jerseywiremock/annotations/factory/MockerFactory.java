@@ -17,9 +17,24 @@ import static net.bytebuddy.matcher.ElementMatchers.isAbstract;
 import static net.bytebuddy.matcher.ElementMatchers.isDeclaredBy;
 
 public class MockerFactory {
+    private final MockerTypeChecker mockerTypeChecker;
+
+    MockerFactory(MockerTypeChecker mockerTypeChecker) {
+        this.mockerTypeChecker = mockerTypeChecker;
+    }
+
     public static <T> T wireMockerFor(Class<T> mockerType, WireMockServer wireMockServer, ObjectMapper objectMapper)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException
     {
+        return new MockerFactory(new MockerTypeChecker(new MockerMethodSelector()))
+                .createWireMockerFor(mockerType, wireMockServer, objectMapper);
+    }
+
+    <T> T createWireMockerFor(Class<T> mockerType, WireMockServer wireMockServer, ObjectMapper objectMapper)
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException
+    {
+        mockerTypeChecker.checkReturnTypes(mockerType);
+
         MockerInvocationHandler handler = createHandler();
         ByteBuddy byteBuddy = new ByteBuddy().with(new NamingStrategy.SuffixingRandom("JerseyWireMockGenerated"));
 
@@ -33,11 +48,11 @@ public class MockerFactory {
                 .newInstance(wireMockServer, objectMapper);
     }
 
-    private static MockerInvocationHandler createHandler() {
+    private MockerInvocationHandler createHandler() {
         return new MockerInvocationHandler(new ParameterDescriptorsFactory(), new RequestMappingDescriptorFactory());
     }
 
-    private static <T> ImplementationDefinition<? extends BaseMocker> createImplementationDefinition(
+    private <T> ImplementationDefinition<? extends BaseMocker> createImplementationDefinition(
             Class<T> mockerType,
             ByteBuddy byteBuddy
     ) {
@@ -50,7 +65,7 @@ public class MockerFactory {
         return implementationDefinition;
     }
 
-    private static <T> ImplementationDefinition<? extends BaseMocker> createInterfaceImplementationDefinition(
+    private <T> ImplementationDefinition<? extends BaseMocker> createInterfaceImplementationDefinition(
             Class<T> mockerType,
             ByteBuddy byteBuddy
     ) {
@@ -60,7 +75,7 @@ public class MockerFactory {
                 .method(isDeclaredBy(mockerType));
     }
 
-    private static <T> ImplementationDefinition<? extends BaseMocker> createClassImplementationDefinition(
+    private <T> ImplementationDefinition<? extends BaseMocker> createClassImplementationDefinition(
             Class<T> mockerType,
             ByteBuddy byteBuddy
     ) {
@@ -73,14 +88,14 @@ public class MockerFactory {
                 .method(isDeclaredBy(mockerType).and(isAbstract()));
     }
 
-    private static <T> void checkExtendsBaseMocker(Class<T> mockerType) {
+    private <T> void checkExtendsBaseMocker(Class<T> mockerType) {
         if (!BaseMocker.class.isAssignableFrom(mockerType)) {
             throw new RuntimeException("For an abstract class to be implemented it must subclass BaseMocker. " +
                     mockerType.getSimpleName() + " does not.");
         }
     }
 
-    private static Class<? extends BaseMocker> createClass(
+    private Class<? extends BaseMocker> createClass(
             MockerInvocationHandler handler,
             ImplementationDefinition<? extends BaseMocker> implDef
     ) {

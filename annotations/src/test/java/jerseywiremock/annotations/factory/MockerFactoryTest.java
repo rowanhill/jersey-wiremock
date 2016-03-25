@@ -16,6 +16,7 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -31,6 +32,9 @@ import java.util.Collection;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MockerFactoryTest {
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
+
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
 
@@ -111,6 +115,18 @@ public class MockerFactoryTest {
         assertThat(response.getStatus()).isEqualTo(403);
     }
 
+    @Test
+    public void callingInterfaceMethodWithWrongReturnTypeThrowsException() throws Exception {
+        // given
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // when
+        expectedException.expectMessage("All methods must return request mockers or verifiers");
+        expectedException.expectMessage("stubGetDoubleGivenInt");
+        expectedException.expectMessage("verifyGetDoubleGivenInt");
+        MockerFactory.wireMockerFor(TestBadMockerInterface.class, wireMockRule, objectMapper);
+    }
+
     @WireMockForResource(TestResource.class)
     public interface TestMockerInterface {
         @WireMockStub("getDoubleGivenInt")
@@ -137,6 +153,16 @@ public class MockerFactoryTest {
         );
     }
 
+    @SuppressWarnings("unused")
+    @WireMockForResource(TestResource.class)
+    public interface TestBadMockerInterface {
+        @WireMockStub("getDoubleGivenInt")
+        void stubGetDoubleGivenInt(int input);
+
+        @WireMockVerify("getDoubleGivenInt")
+        int verifyGetDoubleGivenInt(int input);
+    }
+
     @Path("/test")
     public static class TestResource {
         @GET
@@ -155,7 +181,6 @@ public class MockerFactoryTest {
         public Collection<Integer> getIntsByDate(
                 @QueryParam("date") @ParamFormat(DateTimeFormatter.class) DateTimeParam dateParam
         ) {
-            DateTime dateTime = dateParam.get();
             return ImmutableList.of(4,5,6);
         }
     }
