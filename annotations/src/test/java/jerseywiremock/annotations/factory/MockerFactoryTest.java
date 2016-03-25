@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableList;
 import io.dropwizard.jersey.params.DateTimeParam;
 import jerseywiremock.annotations.*;
 import jerseywiremock.core.ParamMatchingStrategy;
-import jerseywiremock.core.stub.GetRequestMocker;
 import jerseywiremock.core.stub.ListRequestMocker;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import jerseywiremock.formatter.ParamFormatter;
@@ -20,12 +19,10 @@ import org.junit.rules.ExpectedException;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.util.Collection;
 
@@ -46,32 +43,6 @@ public class MockerFactoryTest {
         client = new TestClient();
         ObjectMapper objectMapper = new ObjectMapper();
         mocker = MockerFactory.wireMockerFor(TestMockerInterface.class, wireMockRule, objectMapper);
-    }
-
-    @Test
-    public void getWithSimplePathParamCanBeStubbedAndVerified() throws Exception {
-        // given
-        mocker.stubGetDoubleGivenInt(1).andRespondWith(5).stub();
-
-        // when
-        int doubleOne = client.getDoubleGivenInt(1);
-
-        // then
-        assertThat(doubleOne).isEqualTo(5);
-        mocker.verifyGetDoubleGivenInt(1).times(1).verify();
-    }
-
-    @Test
-    public void listWithSimplePathParamCanBeStubbedAndVerified() throws Exception {
-        // given
-        mocker.stubGetListOfInts().andRespondWith(1, 2, 3).stub();
-
-        // when
-        Collection<Integer> listOfInts = client.getListOfInts();
-
-        // then
-        assertThat(listOfInts).containsOnly(1, 2, 3);
-        mocker.verifyGetListOfInts().times(1).verify();
     }
 
     @Test
@@ -104,18 +75,6 @@ public class MockerFactoryTest {
     }
 
     @Test
-    public void requestCanBeStubbedWithArbitraryStatusCodes() throws Exception {
-        // given
-        mocker.stubGetListOfInts().andRespond().withStatusCode(403).withEntities(10, 20).stub();
-
-        // when
-        Response response = client.getResponseForListOfInts();
-
-        // then
-        assertThat(response.getStatus()).isEqualTo(403);
-    }
-
-    @Test
     public void callingInterfaceMethodWithWrongReturnTypeThrowsException() throws Exception {
         // given
         ObjectMapper objectMapper = new ObjectMapper();
@@ -129,18 +88,6 @@ public class MockerFactoryTest {
 
     @WireMockForResource(TestResource.class)
     public interface TestMockerInterface {
-        @WireMockStub("getDoubleGivenInt")
-        GetRequestMocker<Integer> stubGetDoubleGivenInt(int input);
-
-        @WireMockVerify("getDoubleGivenInt")
-        GetRequestVerifier verifyGetDoubleGivenInt(int input);
-
-        @WireMockStub("getListOfInts")
-        ListRequestMocker<Integer> stubGetListOfInts();
-
-        @WireMockVerify("getListOfInts")
-        GetRequestVerifier verifyGetListOfInts();
-
         @WireMockStub("getIntsByDate")
         ListRequestMocker<Integer> stubGetIntsByDate(DateTime dateTime);
 
@@ -166,18 +113,6 @@ public class MockerFactoryTest {
     @Path("/test")
     public static class TestResource {
         @GET
-        @Path("double/{input}")
-        public int getDoubleGivenInt(@PathParam("input") int input) {
-            return 2*input;
-        }
-
-        @GET
-        @Path("list")
-        public Collection<Integer> getListOfInts() {
-            return ImmutableList.of(1,2,3);
-        }
-
-        @GET
         public Collection<Integer> getIntsByDate(
                 @QueryParam("date") @ParamFormat(DateTimeFormatter.class) DateTimeParam dateParam
         ) {
@@ -193,45 +128,6 @@ public class MockerFactoryTest {
 
     public static class TestClient {
         private final Client client = ClientBuilder.newClient().register(new JacksonJaxbJsonProvider());
-
-        public int getDoubleGivenInt(int input) {
-            return client
-                    .target(UriBuilder
-                            .fromResource(TestResource.class)
-                            .path(TestResource.class, "getDoubleGivenInt")
-                            .scheme("http")
-                            .host("localhost")
-                            .port(8080))
-                    .resolveTemplate("input", input)
-                    .request()
-                    .get()
-                    .readEntity(Integer.class);
-        }
-
-        public Collection<Integer> getListOfInts() {
-            return client
-                    .target(UriBuilder
-                            .fromResource(TestResource.class)
-                            .path(TestResource.class, "getListOfInts")
-                            .scheme("http")
-                            .host("localhost")
-                            .port(8080))
-                    .request()
-                    .get()
-                    .readEntity(new GenericType<Collection<Integer>>(){});
-        }
-
-        public Response getResponseForListOfInts() {
-            return client
-                    .target(UriBuilder
-                            .fromResource(TestResource.class)
-                            .path(TestResource.class, "getListOfInts")
-                            .scheme("http")
-                            .host("localhost")
-                            .port(8080))
-                    .request()
-                    .get();
-        }
 
         public Collection<Integer> getIntsByDate(DateTime dateTime) {
             return client
