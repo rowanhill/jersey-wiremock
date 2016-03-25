@@ -44,9 +44,19 @@ public class ResourceMethodDescriptorFactory {
     private String getTargetMethodName(Method method, Class<? extends Annotation> wireMockAnnotationType) {
         String methodName;
         if (wireMockAnnotationType == WireMockStub.class) {
-            methodName = method.getAnnotation(WireMockStub.class).value();
+            WireMockStub annotation = method.getAnnotation(WireMockStub.class);
+            if (annotation == null) {
+                throw new RuntimeException("Expected " + method.getName() +
+                        " to be annotated with @WireMockStub, but it was not");
+            }
+            methodName = annotation.value();
         } else if (wireMockAnnotationType == WireMockVerify.class) {
-            methodName = method.getAnnotation(WireMockVerify.class).value();
+            WireMockVerify annotation = method.getAnnotation(WireMockVerify.class);
+            if (annotation == null) {
+                throw new RuntimeException("Expected " + method.getName() +
+                        " to be annotated with @WireMockVerify, but it was not");
+            }
+            methodName = annotation.value();
         } else {
             throw new RuntimeException("Unexpected annotation: " + wireMockAnnotationType.getSimpleName());
         }
