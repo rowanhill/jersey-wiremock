@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import jerseywiremock.annotations.handler.BaseMocker;
 import jerseywiremock.annotations.handler.MockerInvocationHandler;
+import jerseywiremock.annotations.handler.MockerMethodDescriptorFactory;
 import jerseywiremock.core.RequestMappingDescriptorFactory;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.NamingStrategy;
@@ -49,7 +50,11 @@ public class MockerFactory {
     }
 
     private MockerInvocationHandler createHandler() {
-        return new MockerInvocationHandler(new ParameterDescriptorsFactory(), new RequestMappingDescriptorFactory());
+        ParameterDescriptorsFactory parameterDescriptorsFactory = new ParameterDescriptorsFactory();
+        RequestMappingDescriptorFactory requestMappingDescriptorFactory = new RequestMappingDescriptorFactory();
+        MockerMethodDescriptorFactory mockerMethodDescriptorFactory =
+                new MockerMethodDescriptorFactory(parameterDescriptorsFactory, requestMappingDescriptorFactory);
+        return new MockerInvocationHandler(mockerMethodDescriptorFactory);
     }
 
     private <T> ImplementationDefinition<? extends BaseMocker> createImplementationDefinition(
