@@ -3,6 +3,7 @@ package jerseywiremock.annotations.factory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import jerseywiremock.annotations.handler.BaseMocker;
+import jerseywiremock.annotations.handler.CollectionFactory;
 import jerseywiremock.annotations.handler.MockerInvocationHandler;
 import jerseywiremock.annotations.handler.ResourceMethodDescriptorFactory;
 import jerseywiremock.core.RequestMappingDescriptorFactory;
@@ -54,7 +55,8 @@ public class MockerFactory {
         RequestMappingDescriptorFactory requestMappingDescriptorFactory = new RequestMappingDescriptorFactory();
         ResourceMethodDescriptorFactory resourceMethodDescriptorFactory =
                 new ResourceMethodDescriptorFactory(parameterDescriptorsFactory, requestMappingDescriptorFactory);
-        return new MockerInvocationHandler(resourceMethodDescriptorFactory);
+        CollectionFactory collectionFactory = new CollectionFactory();
+        return new MockerInvocationHandler(resourceMethodDescriptorFactory, collectionFactory);
     }
 
     private <T> ImplementationDefinition<? extends BaseMocker> createImplementationDefinition(

@@ -5,8 +5,8 @@ import jerseywiremock.core.ReflectionHelper;
 import java.lang.reflect.Method;
 import java.util.*;
 
-abstract class CollectionFactory {
-    static <T> Collection<T> createCollection(Class<?> resourceClass, String methodName) {
+public class CollectionFactory {
+    <T> Collection<T> createCollection(Class<?> resourceClass, String methodName) {
         Method method = ReflectionHelper.getMethod(resourceClass, methodName);
 
         Class<?> returnType = method.getReturnType();
@@ -18,7 +18,7 @@ abstract class CollectionFactory {
         }
     }
 
-    private static <T> Collection<T> createCollection(Class<?> returnType) {
+    private <T> Collection<T> createCollection(Class<?> returnType) {
         if (List.class.isAssignableFrom(returnType)) {
             return new ArrayList<>();
         } else if (Set.class.isAssignableFrom(returnType)) {

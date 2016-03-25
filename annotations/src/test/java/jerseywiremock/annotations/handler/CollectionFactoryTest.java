@@ -12,10 +12,12 @@ public class CollectionFactoryTest {
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
+    private CollectionFactory collectionFactory = new CollectionFactory();
+
     @Test
     public void listIsCreatedForMethodWithListReturnType() {
         // when
-        Collection<Object> list = CollectionFactory.createCollection(TestCollectionClass.class, "list");
+        Collection<Object> list = collectionFactory.createCollection(TestCollectionClass.class, "list");
 
         // then
         assertThat(list).isInstanceOf(List.class);
@@ -24,7 +26,7 @@ public class CollectionFactoryTest {
     @Test
     public void setIsCreatedForMethodWithSettReturnType() {
         // when
-        Collection<Object> set = CollectionFactory.createCollection(TestCollectionClass.class, "set");
+        Collection<Object> set = collectionFactory.createCollection(TestCollectionClass.class, "set");
 
         // then
         assertThat(set).isInstanceOf(Set.class);
@@ -33,7 +35,7 @@ public class CollectionFactoryTest {
     @Test
     public void listIsCreatedForMethodWithCollectionReturnType() {
         // when
-        Collection<Object> list = CollectionFactory.createCollection(TestCollectionClass.class, "collection");
+        Collection<Object> list = collectionFactory.createCollection(TestCollectionClass.class, "collection");
 
         // then
         assertThat(list).isInstanceOf(List.class);
@@ -43,14 +45,14 @@ public class CollectionFactoryTest {
     public void exceptionIsThrownForMethodWithUnsupportedCollectionReturnType() {
         // when
         expectedException.expectMessage("Cannot create collection for type Queue");
-        CollectionFactory.createCollection(TestCollectionClass.class, "queue");
+        collectionFactory.createCollection(TestCollectionClass.class, "queue");
     }
 
     @Test
     public void exceptionIsThrownForMethodWithUnsupportedNonCollectionReturnType() {
         // when
         expectedException.expectMessage("does not return Collection type; it returns Map");
-        CollectionFactory.createCollection(TestCollectionClass.class, "map");
+        collectionFactory.createCollection(TestCollectionClass.class, "map");
     }
 
     @SuppressWarnings("unused")

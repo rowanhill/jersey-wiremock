@@ -14,9 +14,14 @@ import java.util.Collection;
 
 public class MockerInvocationHandler {
     private final ResourceMethodDescriptorFactory resourceMethodDescriptorFactory;
+    private final CollectionFactory collectionFactory;
 
-    public MockerInvocationHandler(ResourceMethodDescriptorFactory resourceMethodDescriptorFactory) {
+    public MockerInvocationHandler(
+            ResourceMethodDescriptorFactory resourceMethodDescriptorFactory,
+            CollectionFactory collectionFactory
+    ) {
         this.resourceMethodDescriptorFactory = resourceMethodDescriptorFactory;
+        this.collectionFactory = collectionFactory;
     }
 
     public <T> GetRequestMocker<T> handleStubGet(
@@ -42,7 +47,7 @@ public class MockerInvocationHandler {
         ResourceMethodDescriptor descriptor =
                 resourceMethodDescriptorFactory.constructMethodDescriptor(parameters, method, WireMockStub.class);
         Collection<T> collection =
-                CollectionFactory.createCollection(descriptor.getResourceClass(), descriptor.getMethodName());
+                collectionFactory.createCollection(descriptor.getResourceClass(), descriptor.getMethodName());
         return new ListRequestMocker<>(
                 mocker.wireMockServer,
                 mocker.objectMapper,
