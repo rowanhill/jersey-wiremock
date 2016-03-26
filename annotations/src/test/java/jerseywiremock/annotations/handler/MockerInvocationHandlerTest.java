@@ -12,7 +12,7 @@ import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescripto
 import jerseywiremock.annotations.handler.util.CollectionFactory;
 import jerseywiremock.core.stub.EmptyRequestSingleResponseEntityRequestStubber;
 import jerseywiremock.core.stub.EmptyRequestMultipleResponseEntityRequestStubber;
-import jerseywiremock.core.verify.GetRequestVerifier;
+import jerseywiremock.core.verify.EmptyRequestVerifier;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -118,7 +118,7 @@ public class MockerInvocationHandlerTest {
         stubResourceMethodDescriptorFor(WireMockVerify.class);
 
         // when
-        GetRequestVerifier getRequestVerifier = handler.handleVerifyGetVerb(params, testMocker, method);
+        EmptyRequestVerifier getRequestVerifier = handler.handleVerifyGetVerb(params, testMocker, method);
 
         // then
         assertThat(getRequestVerifier).isNotNull();

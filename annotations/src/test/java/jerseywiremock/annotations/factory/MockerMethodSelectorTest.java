@@ -1,7 +1,7 @@
 package jerseywiremock.annotations.factory;
 
 import jerseywiremock.core.stub.EmptyRequestSingleResponseEntityRequestStubber;
-import jerseywiremock.core.verify.GetRequestVerifier;
+import jerseywiremock.core.verify.EmptyRequestVerifier;
 import org.junit.Test;
 
 import java.lang.reflect.Method;
@@ -37,14 +37,14 @@ public class MockerMethodSelectorTest {
     @SuppressWarnings("unused")
     private interface TestInterface {
         EmptyRequestSingleResponseEntityRequestStubber<Integer> getRequestStubber();
-        GetRequestVerifier getRequestVerifier();
+        EmptyRequestVerifier getRequestVerifier();
     }
 
     @SuppressWarnings("unused")
     private static abstract class TestClass {
         abstract EmptyRequestSingleResponseEntityRequestStubber<Integer> getRequestStubber();
 
-        GetRequestVerifier getRequestVerifier() {
+        EmptyRequestVerifier getRequestVerifier() {
             return null;
         }
     }

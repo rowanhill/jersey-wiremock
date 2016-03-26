@@ -8,7 +8,7 @@ import io.dropwizard.jersey.params.DateTimeParam;
 import jerseywiremock.annotations.*;
 import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy;
 import jerseywiremock.core.stub.EmptyRequestMultipleResponseEntityRequestStubber;
-import jerseywiremock.core.verify.GetRequestVerifier;
+import jerseywiremock.core.verify.EmptyRequestVerifier;
 import jerseywiremock.formatter.ParamFormatter;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
@@ -92,7 +92,7 @@ public class MockerFactoryTest {
         EmptyRequestMultipleResponseEntityRequestStubber<Integer> stubGetIntsByDate(DateTime dateTime);
 
         @WireMockVerify("getIntsByDate")
-        GetRequestVerifier verifyGetIntsByDate(DateTime dateTime);
+        EmptyRequestVerifier verifyGetIntsByDate(DateTime dateTime);
 
         @WireMockStub("getIntsByDate")
         EmptyRequestMultipleResponseEntityRequestStubber<Integer> stubGetIntsByDateContaining(

@@ -9,10 +9,10 @@ import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 
-public class PostRequestVerifier<Entity> extends BaseRequestVerifier<PostRequestVerifier> {
+public class RequestWithEntityVerifier<Entity> extends BaseRequestVerifier<RequestWithEntityVerifier> {
     protected ObjectMapper objectMapper;
 
-    public PostRequestVerifier(
+    public RequestWithEntityVerifier(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
             RequestPatternBuilder patternBuilder
@@ -21,13 +21,13 @@ public class PostRequestVerifier<Entity> extends BaseRequestVerifier<PostRequest
         this.objectMapper = objectMapper;
     }
 
-    public PostRequestVerifier<Entity> withRequestEntity(Entity entity) throws JsonProcessingException {
+    public RequestWithEntityVerifier<Entity> withRequestEntity(Entity entity) throws JsonProcessingException {
         String entityString = objectMapper.writeValueAsString(entity);
         requestPatternBuilder.withRequestBody(equalTo(entityString));
         return this;
     }
 
-    public PostRequestVerifier<Entity> withRequestBody(ValueMatchingStrategy valueMatchingStrategy) {
+    public RequestWithEntityVerifier<Entity> withRequestBody(ValueMatchingStrategy valueMatchingStrategy) {
         requestPatternBuilder.withRequestBody(valueMatchingStrategy);
         return this;
     }

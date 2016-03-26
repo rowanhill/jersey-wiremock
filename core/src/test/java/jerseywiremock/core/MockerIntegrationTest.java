@@ -11,8 +11,8 @@ import com.google.common.collect.ImmutableList;
 import jerseywiremock.core.stub.EmptyRequestSingleResponseEntityRequestStubber;
 import jerseywiremock.core.stub.EmptyRequestMultipleResponseEntityRequestStubber;
 import jerseywiremock.core.stub.RequestAndResponseRequestStubber;
-import jerseywiremock.core.verify.GetRequestVerifier;
-import jerseywiremock.core.verify.PostRequestVerifier;
+import jerseywiremock.core.verify.EmptyRequestVerifier;
+import jerseywiremock.core.verify.RequestWithEntityVerifier;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -152,12 +152,12 @@ public class MockerIntegrationTest {
             return new EmptyRequestSingleResponseEntityRequestStubber<>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)));
         }
 
-        public GetRequestVerifier verifyGetDoubleGivenInt(int input) {
+        public EmptyRequestVerifier verifyGetDoubleGivenInt(int input) {
             String urlPath = UriBuilder.fromResource(TestResource.class)
                     .path(TestResource.class, "getDoubleGivenInt")
                     .build(input)
                     .toString();
-            return new GetRequestVerifier(wireMockServer, getRequestedFor(urlPathEqualTo(urlPath)));
+            return new EmptyRequestVerifier(wireMockServer, getRequestedFor(urlPathEqualTo(urlPath)));
         }
 
         public EmptyRequestMultipleResponseEntityRequestStubber<Integer> stubGetListOfInts() {
@@ -169,12 +169,12 @@ public class MockerIntegrationTest {
             return new EmptyRequestMultipleResponseEntityRequestStubber<>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)), collection);
         }
 
-        public GetRequestVerifier verifyGetListOfInts() {
+        public EmptyRequestVerifier verifyGetListOfInts() {
             String urlPath = UriBuilder.fromResource(TestResource.class)
                     .path(TestResource.class, "getListOfInts")
                     .build()
                     .toString();
-            return new GetRequestVerifier(wireMockServer, getRequestedFor(urlPathEqualTo(urlPath)));
+            return new EmptyRequestVerifier(wireMockServer, getRequestedFor(urlPathEqualTo(urlPath)));
         }
 
         public EmptyRequestMultipleResponseEntityRequestStubber<Integer> stubGetOdds(int lessThan) {
@@ -188,14 +188,14 @@ public class MockerIntegrationTest {
             return new EmptyRequestMultipleResponseEntityRequestStubber<>(wireMockServer, objectMapper, mappingBuilder, collection);
         }
 
-        public GetRequestVerifier verifyGetOdds(int lessThan) {
+        public EmptyRequestVerifier verifyGetOdds(int lessThan) {
             String urlPath = UriBuilder.fromResource(TestResource.class)
                     .path(TestResource.class, "getOdds")
                     .build()
                     .toString();
             RequestPatternBuilder patternBuilder = getRequestedFor(urlPathEqualTo(urlPath))
                     .withQueryParam("lessThan", equalTo(Integer.toString(lessThan)));
-            return new GetRequestVerifier(wireMockServer, patternBuilder);
+            return new EmptyRequestVerifier(wireMockServer, patternBuilder);
         }
 
         public RequestAndResponseRequestStubber<String, Integer> stubPostName() {
@@ -207,13 +207,13 @@ public class MockerIntegrationTest {
             return new RequestAndResponseRequestStubber<>(wireMockServer, objectMapper, mappingBuilder);
         }
 
-        public PostRequestVerifier<String> verifyPostName() {
+        public RequestWithEntityVerifier<String> verifyPostName() {
             String urlPath = UriBuilder.fromResource(TestResource.class)
                     .path(TestResource.class, "postName")
                     .build()
                     .toString();
             RequestPatternBuilder patternBuilder = postRequestedFor(urlPathEqualTo(urlPath));
-            return new PostRequestVerifier<>(wireMockServer, objectMapper, patternBuilder);
+            return new RequestWithEntityVerifier<>(wireMockServer, objectMapper, patternBuilder);
         }
     }
 

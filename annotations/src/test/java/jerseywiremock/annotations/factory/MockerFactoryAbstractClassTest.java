@@ -9,7 +9,7 @@ import jerseywiremock.annotations.WireMockStub;
 import jerseywiremock.annotations.WireMockVerify;
 import jerseywiremock.annotations.handler.BaseMocker;
 import jerseywiremock.core.stub.EmptyRequestSingleResponseEntityRequestStubber;
-import jerseywiremock.core.verify.GetRequestVerifier;
+import jerseywiremock.core.verify.EmptyRequestVerifier;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -93,7 +93,7 @@ public class MockerFactoryAbstractClassTest {
         public abstract EmptyRequestSingleResponseEntityRequestStubber<Integer> stubGetByQuery(int input);
 
         @WireMockVerify("getByQuery")
-        public abstract GetRequestVerifier verifyGetByQuery(int input);
+        public abstract EmptyRequestVerifier verifyGetByQuery(int input);
     }
 
     public static abstract class TestMockerWithoutBase {
