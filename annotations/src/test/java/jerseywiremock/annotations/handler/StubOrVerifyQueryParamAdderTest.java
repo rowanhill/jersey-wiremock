@@ -1,7 +1,10 @@
-package jerseywiremock.core;
+package jerseywiremock.annotations.handler;
 
 import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
 import com.github.tomakehurst.wiremock.matching.ValuePattern;
+import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.QueryParamMatchDescriptor;
+import jerseywiremock.annotations.handler.requestmapping.queryparam.StubOrVerifyQueryParamAdder;
+import jerseywiremock.annotations.handler.requestmapping.queryparam.WireMockQueryParamBuilderWrapper;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,8 +18,8 @@ import java.util.List;
 import static com.github.tomakehurst.wiremock.matching.ValuePattern.containing;
 import static com.github.tomakehurst.wiremock.matching.ValuePattern.equalTo;
 import static com.github.tomakehurst.wiremock.matching.ValuePattern.matches;
-import static jerseywiremock.core.ParamMatchingStrategy.*;
-import static jerseywiremock.core.StubOrVerifyQueryParamAdderTest.ValueMatchingStrategyMatcher.hasValuePattern;
+import static jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy.*;
+import static jerseywiremock.annotations.handler.StubOrVerifyQueryParamAdderTest.ValueMatchingStrategyMatcher.hasValuePattern;
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.verify;

@@ -1,4 +1,6 @@
-package jerseywiremock.core;
+package jerseywiremock.annotations.handler.requestmapping.paramdescriptors;
+
+import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy;
 
 public class QueryParamMatchDescriptor {
     private final String paramName;

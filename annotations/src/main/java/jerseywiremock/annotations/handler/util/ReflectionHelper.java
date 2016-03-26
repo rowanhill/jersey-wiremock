@@ -1,4 +1,4 @@
-package jerseywiremock.core;
+package jerseywiremock.annotations.handler.util;
 
 import java.lang.reflect.Method;
 

@@ -4,7 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import jerseywiremock.annotations.WireMockStub;
 import jerseywiremock.annotations.WireMockVerify;
-import jerseywiremock.core.RequestMappingDescriptor;
+import jerseywiremock.annotations.handler.requestmapping.RequestMappingDescriptor;
+import jerseywiremock.annotations.handler.requestmapping.RequestMappingDescriptorFactory;
+import jerseywiremock.annotations.handler.resourcemethod.HttpVerb;
+import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptor;
+import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
+import jerseywiremock.annotations.handler.util.CollectionFactory;
 import jerseywiremock.core.stub.GetRequestMocker;
 import jerseywiremock.core.stub.ListRequestMocker;
 import jerseywiremock.core.verify.GetRequestVerifier;
@@ -21,6 +26,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -31,6 +38,8 @@ public class MockerInvocationHandlerTest {
 
     @Mock
     private ResourceMethodDescriptorFactory mockResourceMethodDescriptorFactory;
+    @Mock
+    private RequestMappingDescriptorFactory mockRequestMappingDescriptorFactory;
     @Mock
     private CollectionFactory mockCollectionFactory;
     @InjectMocks
@@ -48,17 +57,17 @@ public class MockerInvocationHandlerTest {
         method = TestMocker.class.getDeclaredMethod("method");
 
         mockDescriptor = mock(ResourceMethodDescriptor.class);
-        RequestMappingDescriptor mockMappingDescriptor = mock(RequestMappingDescriptor.class);
-        when(mockMappingDescriptor.getUrlPath()).thenReturn("url");
-        when(mockDescriptor.getRequestMappingDescriptor()).thenReturn(mockMappingDescriptor);
         when(mockDescriptor.getMethodName()).thenReturn("method");
+
+        RequestMappingDescriptor mockMappingDescriptor = mock(RequestMappingDescriptor.class);
+        when(mockRequestMappingDescriptorFactory.createMappingDescriptor(mockDescriptor, method, params))
+                .thenReturn(mockMappingDescriptor);
     }
 
     @Test
     public void handlingStubGetCreatesGetMocker() {
         // given
         stubResourceMethodDescriptorFor(WireMockStub.class);
-        when(mockDescriptor.getVerb()).thenReturn(HttpVerb.GET);
 
         // when
         GetRequestMocker<Object> getRequestMocker = handler.handleStubGet(params, testMocker, method);
@@ -71,10 +80,11 @@ public class MockerInvocationHandlerTest {
     public void handlingStubGetForMethodThatServicesDifferentVerbThrowsException() {
         // given
         stubResourceMethodDescriptorFor(WireMockStub.class);
-        when(mockDescriptor.getVerb()).thenReturn(HttpVerb.POST);
+        RuntimeException rte = new RuntimeException("test");
+        doThrow(rte).when(mockDescriptor).assertVerb(HttpVerb.GET);
 
         // when
-        expectedException.expectMessage("Expected method to be annotated with @GET");
+        expectedException.expect(is(rte));
         handler.handleStubGet(params, testMocker, method);
     }
 
@@ -82,7 +92,6 @@ public class MockerInvocationHandlerTest {
     public void handlingStubListCreatesListMocker() {
         // given
         stubResourceMethodDescriptorFor(WireMockStub.class);
-        when(mockDescriptor.getVerb()).thenReturn(HttpVerb.GET);
 
         // when
         ListRequestMocker<Object> listRequestMocker = handler.handleStubList(params, testMocker, method);
@@ -95,10 +104,11 @@ public class MockerInvocationHandlerTest {
     public void handlingStubListForMethodThatServicesDifferentVerbThrowsException() {
         // given
         stubResourceMethodDescriptorFor(WireMockStub.class);
-        when(mockDescriptor.getVerb()).thenReturn(HttpVerb.POST);
+        RuntimeException rte = new RuntimeException("test");
+        doThrow(rte).when(mockDescriptor).assertVerb(HttpVerb.GET);
 
         // when
-        expectedException.expectMessage("Expected method to be annotated with @GET");
+        expectedException.expect(is(rte));
         handler.handleStubList(params, testMocker, method);
     }
 
@@ -106,7 +116,6 @@ public class MockerInvocationHandlerTest {
     public void handlingVerifyGetVerbCreatesGetVerifier() {
         // given
         stubResourceMethodDescriptorFor(WireMockVerify.class);
-        when(mockDescriptor.getVerb()).thenReturn(HttpVerb.GET);
 
         // when
         GetRequestVerifier getRequestVerifier = handler.handleVerifyGetVerb(params, testMocker, method);
@@ -119,15 +128,16 @@ public class MockerInvocationHandlerTest {
     public void handlingVerifyGerVerbForMethodThatServicesDifferentVerbThrowsException() {
         // given
         stubResourceMethodDescriptorFor(WireMockVerify.class);
-        when(mockDescriptor.getVerb()).thenReturn(HttpVerb.POST);
+        RuntimeException rte = new RuntimeException("test");
+        doThrow(rte).when(mockDescriptor).assertVerb(HttpVerb.GET);
 
         // when
-        expectedException.expectMessage("Expected method to be annotated with @GET");
+        expectedException.expect(is(rte));
         handler.handleVerifyGetVerb(params, testMocker, method);
     }
 
     private void stubResourceMethodDescriptorFor(Class<? extends Annotation> methodAnnotation) {
-        when(mockResourceMethodDescriptorFactory.constructMethodDescriptor(params, method, methodAnnotation))
+        when(mockResourceMethodDescriptorFactory.constructMethodDescriptor(method, methodAnnotation))
                 .thenReturn(mockDescriptor);
     }
 

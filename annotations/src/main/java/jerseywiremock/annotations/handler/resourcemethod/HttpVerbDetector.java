@@ -1,12 +1,11 @@
-package jerseywiremock.annotations.handler;
+package jerseywiremock.annotations.handler.resourcemethod;
 
-import jerseywiremock.core.ReflectionHelper;
+import jerseywiremock.annotations.handler.util.ReflectionHelper;
 
-import javax.ws.rs.GET;
 import java.lang.reflect.Method;
 
 public class HttpVerbDetector {
-    HttpVerb getVerbFromAnnotation(Class<?> resourceClass, String methodName) {
+    public HttpVerb getVerbFromAnnotation(Class<?> resourceClass, String methodName) {
         Method method = ReflectionHelper.getMethod(resourceClass, methodName);
 
         for (HttpVerb verb : HttpVerb.values()) {

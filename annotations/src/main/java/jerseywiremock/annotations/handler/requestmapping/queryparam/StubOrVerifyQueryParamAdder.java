@@ -1,6 +1,8 @@
-package jerseywiremock.core;
+package jerseywiremock.annotations.handler.requestmapping.queryparam;
 
 import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
+import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy;
+import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.QueryParamMatchDescriptor;
 
 import java.util.List;
 

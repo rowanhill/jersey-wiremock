@@ -1,4 +1,4 @@
-package jerseywiremock.core;
+package jerseywiremock.annotations.handler.requestmapping.paramdescriptors;
 
 public enum ParamMatchingStrategy {
     EQUAL_TO,

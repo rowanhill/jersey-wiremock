@@ -1,9 +1,7 @@
-package jerseywiremock.annotations.factory;
+package jerseywiremock.annotations.handler.requestmapping.paramdescriptors;
 
 import jerseywiremock.annotations.ParamFormat;
 import jerseywiremock.annotations.ParamMatchedBy;
-import jerseywiremock.core.ParamMatchingStrategy;
-import jerseywiremock.core.ParameterDescriptors;
 import jerseywiremock.formatter.ParamFormatter;
 import org.junit.Before;
 import org.junit.Rule;
@@ -15,7 +13,7 @@ import javax.ws.rs.QueryParam;
 import java.lang.annotation.Annotation;
 import java.util.Date;
 
-import static jerseywiremock.core.ParamMatchingStrategy.CONTAINING;
+import static jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy.CONTAINING;
 import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.CoreMatchers.isA;
 

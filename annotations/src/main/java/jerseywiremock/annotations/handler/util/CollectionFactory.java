@@ -1,12 +1,10 @@
-package jerseywiremock.annotations.handler;
-
-import jerseywiremock.core.ReflectionHelper;
+package jerseywiremock.annotations.handler.util;
 
 import java.lang.reflect.Method;
 import java.util.*;
 
 public class CollectionFactory {
-    <T> Collection<T> createCollection(Class<?> resourceClass, String methodName) {
+    public <T> Collection<T> createCollection(Class<?> resourceClass, String methodName) {
         Method method = ReflectionHelper.getMethod(resourceClass, methodName);
 
         Class<?> returnType = method.getReturnType();

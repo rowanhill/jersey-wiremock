@@ -1,48 +1,29 @@
-package jerseywiremock.annotations.handler;
+package jerseywiremock.annotations.handler.resourcemethod;
 
 import jerseywiremock.annotations.WireMockForResource;
 import jerseywiremock.annotations.WireMockStub;
 import jerseywiremock.annotations.WireMockVerify;
-import jerseywiremock.annotations.factory.ParameterDescriptorsFactory;
-import jerseywiremock.core.ParameterDescriptors;
-import jerseywiremock.core.RequestMappingDescriptor;
-import jerseywiremock.core.RequestMappingDescriptorFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 public class ResourceMethodDescriptorFactory {
     private final HttpVerbDetector verbDetector;
-    private final ParameterDescriptorsFactory parameterDescriptorsFactory;
-    private final RequestMappingDescriptorFactory requestMappingDescriptorFactory;
 
     public ResourceMethodDescriptorFactory(
-            HttpVerbDetector verbDetector,
-            ParameterDescriptorsFactory parameterDescriptorsFactory,
-            RequestMappingDescriptorFactory requestMappingDescriptorFactory
+            HttpVerbDetector verbDetector
     ) {
         this.verbDetector = verbDetector;
-        this.parameterDescriptorsFactory = parameterDescriptorsFactory;
-        this.requestMappingDescriptorFactory = requestMappingDescriptorFactory;
     }
 
-    ResourceMethodDescriptor constructMethodDescriptor(
-            Object[] parameters,
+    public ResourceMethodDescriptor constructMethodDescriptor(
             Method method,
             Class<? extends Annotation> wireMockAnnotationType
     ) {
         Class<?> resourceClass = method.getDeclaringClass().getAnnotation(WireMockForResource.class).value();
         String targetMethodName = getTargetMethodName(method, wireMockAnnotationType);
-        Annotation[][] mockerMethodParameterAnnotations = method.getParameterAnnotations();
-        ParameterDescriptors parameterDescriptors = parameterDescriptorsFactory.createParameterDescriptors(
-                parameters,
-                mockerMethodParameterAnnotations,
-                resourceClass,
-                targetMethodName);
-        RequestMappingDescriptor mappingDescriptor = requestMappingDescriptorFactory
-                .createMappingDescriptor(resourceClass, targetMethodName, parameterDescriptors);
         HttpVerb verb = verbDetector.getVerbFromAnnotation(resourceClass, targetMethodName);
-        return new ResourceMethodDescriptor(resourceClass, targetMethodName, verb, mappingDescriptor);
+        return new ResourceMethodDescriptor(resourceClass, targetMethodName, verb);
     }
 
     private String getTargetMethodName(Method method, Class<? extends Annotation> wireMockAnnotationType) {

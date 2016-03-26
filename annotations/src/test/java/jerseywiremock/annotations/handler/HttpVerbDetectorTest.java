@@ -1,5 +1,7 @@
 package jerseywiremock.annotations.handler;
 
+import jerseywiremock.annotations.handler.resourcemethod.HttpVerb;
+import jerseywiremock.annotations.handler.resourcemethod.HttpVerbDetector;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

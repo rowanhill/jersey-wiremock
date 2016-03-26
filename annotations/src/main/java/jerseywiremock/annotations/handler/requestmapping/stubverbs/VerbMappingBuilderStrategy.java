@@ -1,4 +1,4 @@
-package jerseywiremock.core.stub.verbs;
+package jerseywiremock.annotations.handler.requestmapping.stubverbs;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.UrlMatchingStrategy;

@@ -1,4 +1,4 @@
-package jerseywiremock.core;
+package jerseywiremock.annotations.handler.util;
 
 import org.junit.Rule;
 import org.junit.Test;

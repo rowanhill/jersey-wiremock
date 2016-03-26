@@ -1,11 +1,8 @@
-package jerseywiremock.annotations.factory;
+package jerseywiremock.annotations.handler.requestmapping.paramdescriptors;
 
 import jerseywiremock.annotations.ParamFormat;
 import jerseywiremock.annotations.ParamMatchedBy;
-import jerseywiremock.core.ParamMatchingStrategy;
-import jerseywiremock.core.ParameterDescriptors;
-import jerseywiremock.core.QueryParamMatchDescriptor;
-import jerseywiremock.core.ReflectionHelper;
+import jerseywiremock.annotations.handler.util.ReflectionHelper;
 import jerseywiremock.formatter.ParamFormatter;
 
 import javax.ws.rs.PathParam;
@@ -105,7 +102,7 @@ public class ParameterDescriptorsFactory {
             Object[] parameters,
             LinkedList<ParameterDescriptor> parameterDescriptors
     ) {
-        Map<String, String> pathParms = new HashMap<>();
+        Map<String, String> pathParams = new HashMap<>();
         List<QueryParamMatchDescriptor> queryParamMatchDescriptors = new LinkedList<>();
 
         for (int i = 0; i < parameterDescriptors.size(); i++) {
@@ -114,7 +111,7 @@ public class ParameterDescriptorsFactory {
 
             if (parameterDescriptor.paramType == PathParam.class) {
                 String formattedValue = getFormattedParamValue(rawParamValue, parameterDescriptor.formatterClass);
-                pathParms.put(parameterDescriptor.paramName, formattedValue);
+                pathParams.put(parameterDescriptor.paramName, formattedValue);
             } else { // QueryParam
                 String stringValue;
                 if (rawParamValue instanceof String) {
@@ -130,7 +127,7 @@ public class ParameterDescriptorsFactory {
             }
         }
 
-        return new ParameterDescriptors(pathParms, queryParamMatchDescriptors);
+        return new ParameterDescriptors(pathParams, queryParamMatchDescriptors);
     }
 
     private String getFormattedParamValue(Object rawParamValue, Class<? extends ParamFormatter> formatterClass) {

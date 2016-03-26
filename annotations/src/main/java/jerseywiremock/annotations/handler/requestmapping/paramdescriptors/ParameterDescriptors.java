@@ -1,4 +1,4 @@
-package jerseywiremock.core;
+package jerseywiremock.annotations.handler.requestmapping.paramdescriptors;
 
 import java.util.List;
 import java.util.Map;
@@ -7,7 +7,7 @@ public class ParameterDescriptors {
     private final Map<String, String> pathParams;
     private final List<QueryParamMatchDescriptor> queryParamMatchDescriptors;
 
-    public ParameterDescriptors(
+    ParameterDescriptors(
             Map<String, String> pathParams,
             List<QueryParamMatchDescriptor> queryParamMatchDescriptors
     ) {

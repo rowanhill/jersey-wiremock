@@ -3,10 +3,11 @@ package jerseywiremock.annotations.handler;
 import jerseywiremock.annotations.WireMockForResource;
 import jerseywiremock.annotations.WireMockStub;
 import jerseywiremock.annotations.WireMockVerify;
-import jerseywiremock.annotations.factory.ParameterDescriptorsFactory;
-import jerseywiremock.core.ParameterDescriptors;
-import jerseywiremock.core.RequestMappingDescriptor;
-import jerseywiremock.core.RequestMappingDescriptorFactory;
+import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParameterDescriptorsFactory;
+import jerseywiremock.annotations.handler.requestmapping.RequestMappingDescriptorFactory;
+import jerseywiremock.annotations.handler.resourcemethod.HttpVerbDetector;
+import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptor;
+import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -15,11 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.lang.annotation.Annotation;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ResourceMethodDescriptorFactoryTest {
@@ -39,7 +36,6 @@ public class ResourceMethodDescriptorFactoryTest {
     public void resourceClassIsTakenFromWireMockForResourceAnnotation() throws Exception {
         // when
         ResourceMethodDescriptor descriptor = methodDescriptorFactory.constructMethodDescriptor(
-                new Object[]{},
                 TestMocker.class.getMethod("stub"),
                 WireMockStub.class);
 
@@ -51,7 +47,6 @@ public class ResourceMethodDescriptorFactoryTest {
     public void methodNameIsTakenFromWireMockStubAnnotation() throws Exception {
         // when
         ResourceMethodDescriptor descriptor = methodDescriptorFactory.constructMethodDescriptor(
-                new Object[]{},
                 TestMocker.class.getMethod("stub"),
                 WireMockStub.class);
 
@@ -63,7 +58,6 @@ public class ResourceMethodDescriptorFactoryTest {
     public void methodNameIsTakenFromWireMockVerifyAnnotation() throws Exception {
         // when
         ResourceMethodDescriptor descriptor = methodDescriptorFactory.constructMethodDescriptor(
-                new Object[]{},
                 TestMocker.class.getMethod("verify"),
                 WireMockVerify.class);
 
@@ -72,33 +66,10 @@ public class ResourceMethodDescriptorFactoryTest {
     }
 
     @Test
-    public void mappingDescriptorIsDerivedFromInjectedFactory() throws Exception {
-        // given
-        ParameterDescriptors mockParameterDescriptors = mock(ParameterDescriptors.class);
-        when(mockParameterDescriptorsFactory
-                .createParameterDescriptors(new Object[]{}, new Annotation[][]{}, TestResource.class, "resourceMethod"))
-                .thenReturn(mockParameterDescriptors);
-        RequestMappingDescriptor mockMappingDescriptor = mock(RequestMappingDescriptor.class);
-        when(mockRequestMappingDescriptorFactory
-                .createMappingDescriptor(TestResource.class, "resourceMethod", mockParameterDescriptors))
-                .thenReturn(mockMappingDescriptor);
-
-        // when
-        ResourceMethodDescriptor descriptor = methodDescriptorFactory.constructMethodDescriptor(
-                new Object[]{},
-                TestMocker.class.getMethod("stub"),
-                WireMockStub.class);
-
-        // then
-        assertThat(descriptor.getRequestMappingDescriptor()).isEqualTo(mockMappingDescriptor);
-    }
-
-    @Test
     public void exceptionIsThrownIfMockerMethodIsMissingExpectedWireMockStubAnnotation() throws Exception {
         // when
         expectedException.expectMessage("Expected verify to be annotated with @WireMockStub, but it was not");
         methodDescriptorFactory.constructMethodDescriptor(
-                new Object[]{},
                 TestMocker.class.getMethod("verify"),
                 WireMockStub.class);
     }
@@ -108,7 +79,6 @@ public class ResourceMethodDescriptorFactoryTest {
         // when
         expectedException.expectMessage("Expected stub to be annotated with @WireMockVerify, but it was not");
         methodDescriptorFactory.constructMethodDescriptor(
-                new Object[]{},
                 TestMocker.class.getMethod("stub"),
                 WireMockVerify.class);
     }
@@ -117,7 +87,6 @@ public class ResourceMethodDescriptorFactoryTest {
     public void exceptionIsThrownIfUnexpectedMethodAnnotationIsGiven() throws Exception {
         expectedException.expectMessage("Unexpected annotation: WireMockForResource");
         methodDescriptorFactory.constructMethodDescriptor(
-                new Object[]{},
                 TestMocker.class.getMethod("stub"),
                 WireMockForResource.class);
     }

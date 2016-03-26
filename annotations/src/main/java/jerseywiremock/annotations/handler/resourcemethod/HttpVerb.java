@@ -1,8 +1,8 @@
-package jerseywiremock.annotations.handler;
+package jerseywiremock.annotations.handler.resourcemethod;
 
 import java.lang.annotation.Annotation;
 
-enum HttpVerb {
+public enum HttpVerb {
     GET(javax.ws.rs.GET.class),
     POST(javax.ws.rs.POST.class);
 
@@ -12,7 +12,7 @@ enum HttpVerb {
         this.annotation = annotation;
     }
 
-    public Class<? extends Annotation> getAnnotation() {
+    Class<? extends Annotation> getAnnotation() {
         return annotation;
     }
 }

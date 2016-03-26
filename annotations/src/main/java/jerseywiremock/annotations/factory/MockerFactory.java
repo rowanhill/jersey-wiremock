@@ -2,8 +2,13 @@ package jerseywiremock.annotations.factory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
-import jerseywiremock.annotations.handler.*;
-import jerseywiremock.core.RequestMappingDescriptorFactory;
+import jerseywiremock.annotations.handler.BaseMocker;
+import jerseywiremock.annotations.handler.MockerInvocationHandler;
+import jerseywiremock.annotations.handler.requestmapping.RequestMappingDescriptorFactory;
+import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParameterDescriptorsFactory;
+import jerseywiremock.annotations.handler.resourcemethod.HttpVerbDetector;
+import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
+import jerseywiremock.annotations.handler.util.CollectionFactory;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.NamingStrategy;
 import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ImplementationDefinition;
@@ -49,14 +54,17 @@ public class MockerFactory {
 
     private MockerInvocationHandler createHandler() {
         ParameterDescriptorsFactory parameterDescriptorsFactory = new ParameterDescriptorsFactory();
-        RequestMappingDescriptorFactory requestMappingDescriptorFactory = new RequestMappingDescriptorFactory();
+        RequestMappingDescriptorFactory requestMappingDescriptorFactory =
+                new RequestMappingDescriptorFactory(parameterDescriptorsFactory);
         HttpVerbDetector verbDetector = new HttpVerbDetector();
-        ResourceMethodDescriptorFactory resourceMethodDescriptorFactory = new ResourceMethodDescriptorFactory(
-                verbDetector,
-                parameterDescriptorsFactory,
-                requestMappingDescriptorFactory);
+        ResourceMethodDescriptorFactory resourceMethodDescriptorFactory =
+                new ResourceMethodDescriptorFactory(verbDetector);
         CollectionFactory collectionFactory = new CollectionFactory();
-        return new MockerInvocationHandler(resourceMethodDescriptorFactory, collectionFactory);
+
+        return new MockerInvocationHandler(
+                resourceMethodDescriptorFactory,
+                requestMappingDescriptorFactory,
+                collectionFactory);
     }
 
     private <T> ImplementationDefinition<? extends BaseMocker> createImplementationDefinition(

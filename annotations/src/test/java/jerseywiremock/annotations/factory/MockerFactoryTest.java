@@ -6,7 +6,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableList;
 import io.dropwizard.jersey.params.DateTimeParam;
 import jerseywiremock.annotations.*;
-import jerseywiremock.core.ParamMatchingStrategy;
+import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy;
 import jerseywiremock.core.stub.ListRequestMocker;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import jerseywiremock.formatter.ParamFormatter;

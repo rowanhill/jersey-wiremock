@@ -1,8 +1,9 @@
-package jerseywiremock.core;
+package jerseywiremock.annotations.handler;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
+import jerseywiremock.annotations.handler.requestmapping.queryparam.WireMockQueryParamBuilderWrapper;
 import org.junit.Test;
 
 import static org.mockito.Mockito.mock;

@@ -2,12 +2,6 @@ package jerseywiremock.core.verify;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
-import com.github.tomakehurst.wiremock.client.UrlMatchingStrategy;
-import jerseywiremock.core.RequestMappingDescriptor;
-import jerseywiremock.core.StubOrVerifyQueryParamAdder;
-import jerseywiremock.core.WireMockQueryParamBuilderWrapper;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 public abstract class BaseRequestVerifyBuilder<Self extends BaseRequestVerifyBuilder> {
     private final WireMockServer wireMockServer;
@@ -18,14 +12,6 @@ public abstract class BaseRequestVerifyBuilder<Self extends BaseRequestVerifyBui
     public BaseRequestVerifyBuilder(WireMockServer wireMockServer, RequestPatternBuilder patternBuilder) {
         this.wireMockServer = wireMockServer;
         this.requestPatternBuilder = patternBuilder;
-    }
-
-    public BaseRequestVerifyBuilder(
-            WireMockServer wireMockServer,
-            VerbRequestedForStrategy verbRequestedForStrategy,
-            RequestMappingDescriptor mappingDescriptor
-    ) {
-        this(wireMockServer, createRequestPatternBuilder(verbRequestedForStrategy, mappingDescriptor));
     }
 
     public Self times(int numTimes) {
@@ -40,17 +26,5 @@ public abstract class BaseRequestVerifyBuilder<Self extends BaseRequestVerifyBui
         } else {
             wireMockServer.verify(requestPatternBuilder);
         }
-    }
-
-    private static RequestPatternBuilder createRequestPatternBuilder(
-            VerbRequestedForStrategy verbRequestedForStrategy,
-            RequestMappingDescriptor mappingDescriptor
-    ) {
-        UrlMatchingStrategy urlMatchingStrategy = urlPathEqualTo(mappingDescriptor.getUrlPath());
-        RequestPatternBuilder patternBuilder = verbRequestedForStrategy.verbRequestedFor(urlMatchingStrategy);
-        StubOrVerifyQueryParamAdder queryParamAdder =
-                new StubOrVerifyQueryParamAdder(new WireMockQueryParamBuilderWrapper(patternBuilder));
-        queryParamAdder.addQueryParameters(mappingDescriptor.getQueryParamMatchDescriptors());
-        return patternBuilder;
     }
 }

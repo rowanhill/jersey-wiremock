@@ -1,5 +1,6 @@
-package jerseywiremock.annotations.handler;
+package jerseywiremock.annotations.handler.util;
 
+import jerseywiremock.annotations.handler.util.CollectionFactory;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

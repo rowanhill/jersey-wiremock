@@ -1,6 +1,6 @@
 package jerseywiremock.annotations;
 
-import jerseywiremock.core.ParamMatchingStrategy;
+import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
