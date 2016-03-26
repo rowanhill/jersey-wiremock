@@ -40,11 +40,11 @@ public class ParameterDescriptorsFactory {
 
         int mockerMethodParamIndex = 0;
         for (Annotation[] targetSingleParamAnnotations : targetMethodParameterAnnotations) {
-            if (!includesQueryOrPathParams(targetSingleParamAnnotations)) {
+            if (!isQueryOrPathOrUnannotated(targetSingleParamAnnotations)) {
                 continue;
             }
+            // TODO: Address mockerMethodParamIndex being out of bounds - means mocker method has too few params
             Annotation[] mockerSingleParamAnnotations = mockerMethodParameterAnnotations[mockerMethodParamIndex];
-
 
             ParameterDescriptor parameterDescriptor =
                     getParameterDescriptor(targetSingleParamAnnotations, mockerSingleParamAnnotations);
@@ -53,6 +53,10 @@ public class ParameterDescriptorsFactory {
             mockerMethodParamIndex++;
         }
         return parameterDescriptors;
+    }
+
+    private boolean isQueryOrPathOrUnannotated(Annotation[] annotations) {
+        return includesQueryOrPathParams(annotations) || !includesJaxRsAnnotation(annotations);
     }
 
     private boolean includesQueryOrPathParams(Annotation[] annotations) {
@@ -64,38 +68,70 @@ public class ParameterDescriptorsFactory {
         return false;
     }
 
+    private boolean includesJaxRsAnnotation(Annotation[] annotations) {
+        for (Annotation annotation : annotations) {
+            if (annotation.annotationType().getPackage().getName().startsWith("javax.ws.rs")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private ParameterDescriptor getParameterDescriptor(
             Annotation[] targetParamAnnotations,
             Annotation[] mockerParamAnnotations
     ) {
-        String paramName = null;
-        Class<? extends ParamFormatter> formatter = null;
-        Class<? extends Annotation> paramType = null;
-        for (Annotation parameterAnnotation : targetParamAnnotations) {
-            if (parameterAnnotation instanceof QueryParam) {
-                paramName = ((QueryParam) parameterAnnotation).value();
-                paramType = QueryParam.class;
-            } else if (parameterAnnotation instanceof PathParam) {
-                paramName = ((PathParam) parameterAnnotation).value();
-                paramType = PathParam.class;
-            } else if (parameterAnnotation instanceof ParamFormat) {
-                formatter = ((ParamFormat) parameterAnnotation).value();
-            }
-        }
+        String paramName = getParamName(targetParamAnnotations);
+        Class<? extends ParamFormatter> formatter = getParamFormatter(targetParamAnnotations);
+        ParamType paramType = getParamType(targetParamAnnotations);
 
-        // Resource method params with @QueryParam can have their equivalent mocker method param annotated with
-        // @ParamMatchedBy to specify a WireMock value matching strategy. If @ParamMatchedBy is absent, this defaults
-        // to equality.
-        ParamMatchingStrategy matchingStrategy = ParamMatchingStrategy.EQUAL_TO;
-        if (paramType == QueryParam.class) {
-            for (Annotation parameterAnnotation : mockerParamAnnotations) {
-                if (parameterAnnotation instanceof ParamMatchedBy) {
-                    matchingStrategy = ((ParamMatchedBy) parameterAnnotation).value();
-                }
-            }
+        // Param matching strategies do not make sense for path params, so are ignored
+        ParamMatchingStrategy matchingStrategy = null;
+        if (paramType == ParamType.QUERY || paramType == ParamType.ENTITY) {
+            matchingStrategy = getParamMatchingStrategy(mockerParamAnnotations);
         }
 
         return new ParameterDescriptor(paramType, paramName, formatter, matchingStrategy);
+    }
+
+    private String getParamName(Annotation[] annotations) {
+        for (Annotation annotation : annotations) {
+            if (annotation instanceof QueryParam) {
+                return ((QueryParam) annotation).value();
+            } else if (annotation instanceof PathParam) {
+                return ((PathParam) annotation).value();
+            }
+        }
+        return null;
+    }
+
+    private Class<? extends ParamFormatter> getParamFormatter(Annotation[] annotations) {
+        for (Annotation annotation : annotations) {
+            if (annotation instanceof ParamFormat) {
+                return ((ParamFormat) annotation).value();
+            }
+        }
+        return null;
+    }
+
+    private ParamType getParamType(Annotation[] annotations) {
+        for (Annotation annotation : annotations) {
+            if (annotation instanceof QueryParam) {
+                return ParamType.QUERY;
+            } else if (annotation instanceof PathParam) {
+                return ParamType.PATH;
+            }
+        }
+        return ParamType.ENTITY;
+    }
+
+    private ParamMatchingStrategy getParamMatchingStrategy(Annotation[] annotations) {
+        for (Annotation parameterAnnotation : annotations) {
+            if (parameterAnnotation instanceof ParamMatchedBy) {
+                return ((ParamMatchedBy) parameterAnnotation).value();
+            }
+        }
+        return ParamMatchingStrategy.EQUAL_TO;
     }
 
     private ParameterDescriptors buildParameterDescriptorsObject(
@@ -104,15 +140,16 @@ public class ParameterDescriptorsFactory {
     ) {
         Map<String, String> pathParams = new HashMap<>();
         List<QueryParamMatchDescriptor> queryParamMatchDescriptors = new LinkedList<>();
+        ValueMatchDescriptor requestBodyMatchDescriptor = null;
 
         for (int i = 0; i < parameterDescriptors.size(); i++) {
             ParameterDescriptor parameterDescriptor = parameterDescriptors.get(i);
             Object rawParamValue = parameters[i];
 
-            if (parameterDescriptor.paramType == PathParam.class) {
+            if (parameterDescriptor.paramType == ParamType.PATH) {
                 String formattedValue = getFormattedParamValue(rawParamValue, parameterDescriptor.formatterClass);
                 pathParams.put(parameterDescriptor.paramName, formattedValue);
-            } else { // QueryParam
+            } else if (parameterDescriptor.paramType == ParamType.QUERY) {
                 String stringValue;
                 if (rawParamValue instanceof String) {
                     stringValue = (String) rawParamValue;
@@ -124,10 +161,15 @@ public class ParameterDescriptorsFactory {
                         stringValue,
                         parameterDescriptor.matchingStrategy);
                 queryParamMatchDescriptors.add(queryParamMatchDescriptor);
+            } else { // Request entity
+                String formattedValue = getFormattedParamValue(rawParamValue, parameterDescriptor.formatterClass);
+                requestBodyMatchDescriptor = new ValueMatchDescriptor(
+                        formattedValue,
+                        parameterDescriptor.matchingStrategy);
             }
         }
 
-        return new ParameterDescriptors(pathParams, queryParamMatchDescriptors);
+        return new ParameterDescriptors(pathParams, queryParamMatchDescriptors, requestBodyMatchDescriptor);
     }
 
     private String getFormattedParamValue(Object rawParamValue, Class<? extends ParamFormatter> formatterClass) {
@@ -150,14 +192,20 @@ public class ParameterDescriptorsFactory {
         return formattedValue;
     }
 
+    private enum ParamType {
+        PATH,
+        QUERY,
+        ENTITY
+    }
+
     private static class ParameterDescriptor {
-        private final Class<? extends Annotation> paramType;
+        private final ParamType paramType;
         private final String paramName;
         private final Class<? extends ParamFormatter> formatterClass;
         private final ParamMatchingStrategy matchingStrategy;
 
         public ParameterDescriptor(
-                Class<? extends Annotation> paramType,
+                ParamType paramType,
                 String paramName,
                 Class<? extends ParamFormatter> formatterClass,
                 ParamMatchingStrategy matchingStrategy

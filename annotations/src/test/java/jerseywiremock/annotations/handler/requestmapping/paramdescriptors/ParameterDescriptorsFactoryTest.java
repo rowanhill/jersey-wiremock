@@ -10,10 +10,12 @@ import org.junit.rules.ExpectedException;
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import java.lang.annotation.Annotation;
 import java.util.Date;
 
 import static jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy.CONTAINING;
+import static jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy.EQUAL_TO;
 import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.CoreMatchers.isA;
 
@@ -69,7 +71,7 @@ public class ParameterDescriptorsFactoryTest {
         assertThat(descriptors.getPathParams()).isEmpty();
         assertThat(descriptors.getQueryParamMatchDescriptors())
                 .extracting("paramName", "value", "matchingStrategy")
-                .containsOnly(tuple("one", "val1", ParamMatchingStrategy.EQUAL_TO));
+                .containsOnly(tuple("one", "val1", EQUAL_TO));
     }
 
     @Test
@@ -83,8 +85,8 @@ public class ParameterDescriptorsFactoryTest {
         assertThat(descriptors.getQueryParamMatchDescriptors())
                 .extracting("paramName", "value", "matchingStrategy")
                 .containsOnly(
-                        tuple("one", "val1", ParamMatchingStrategy.EQUAL_TO),
-                        tuple("two", "val2", ParamMatchingStrategy.EQUAL_TO));
+                        tuple("one", "val1", EQUAL_TO),
+                        tuple("two", "val2", EQUAL_TO));
     }
 
     @Test
@@ -97,7 +99,7 @@ public class ParameterDescriptorsFactoryTest {
         assertThat(descriptors.getPathParams()).containsOnly(entry("path", "val1"));
         assertThat(descriptors.getQueryParamMatchDescriptors())
                 .extracting("paramName", "value", "matchingStrategy")
-                .containsOnly(tuple("query", "val2", ParamMatchingStrategy.EQUAL_TO));
+                .containsOnly(tuple("query", "val2", EQUAL_TO));
     }
 
     @Test
@@ -108,9 +110,21 @@ public class ParameterDescriptorsFactoryTest {
     }
 
     @Test
-    public void paramsDescriptorsForMethodWithUnimportantParamsIgnoreUnimportantParams() throws Exception {
+    public void paramsDescriptorsForMethodWithUnannotatedParamsHasEntityParam() throws Exception {
         // when
-        ParameterDescriptors descriptors = createDescriptors(mockerNoParamsAnnotations(), params(0), "noImportantParams");
+        ParameterDescriptors descriptors = createDescriptors(mockerOneParamAnnotations(), params(1), "unannotatedParams");
+
+        // then
+        assertThat(descriptors.getPathParams()).isEmpty();
+        assertThat(descriptors.getQueryParamMatchDescriptors()).isEmpty();
+        assertThat(descriptors.getRequestBodyMatchDescriptor().getValue()).isEqualTo("val1");
+        assertThat(descriptors.getRequestBodyMatchDescriptor().getMatchingStrategy()).isEqualTo(EQUAL_TO);
+    }
+
+    @Test
+    public void paramsDescriptorsForMethodWithUnsupportedParamsIgnoreUnimportantParams() throws Exception {
+        // when
+        ParameterDescriptors descriptors = createDescriptors(mockerNoParamsAnnotations(), params(0), "noSupportedParams");
 
         // then
         assertThat(descriptors.getPathParams()).isEmpty();
@@ -138,7 +152,7 @@ public class ParameterDescriptorsFactoryTest {
         assertThat(descriptors.getPathParams()).isEmpty();
         assertThat(descriptors.getQueryParamMatchDescriptors())
                 .extracting("paramName", "value", "matchingStrategy")
-                .containsOnly(tuple("one", "formatted", ParamMatchingStrategy.EQUAL_TO));
+                .containsOnly(tuple("one", "formatted", EQUAL_TO));
     }
 
     @Test
@@ -254,7 +268,9 @@ public class ParameterDescriptorsFactoryTest {
 
         void mixedPathAndQueryParams(@PathParam("path") String path, @QueryParam("query") String query) {}
 
-        void noImportantParams(String notPathOrQuery) {}
+        void unannotatedParams(String unannotated) {}
+
+        void noSupportedParams(@Context String notPathOrQuery) {}
 
         void formattedPathParam(@ParamFormat(StaticFormatter.class) @PathParam("one") Date date) {}
         void formattedQueryParam(@ParamFormat(StaticFormatter.class) @QueryParam("one") Date date) {}

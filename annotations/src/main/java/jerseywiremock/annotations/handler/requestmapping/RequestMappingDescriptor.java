@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.client.UrlMatchingStrategy;
 import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.QueryParamMatchDescriptor;
+import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ValueMatchDescriptor;
 import jerseywiremock.annotations.handler.requestmapping.queryparam.StubOrVerifyQueryParamAdder;
 import jerseywiremock.annotations.handler.requestmapping.queryparam.WireMockQueryParamBuilderWrapper;
 import jerseywiremock.annotations.handler.requestmapping.stubverbs.VerbMappingBuilderStrategy;
@@ -16,10 +17,16 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 public class RequestMappingDescriptor {
     private final String urlPath;
     private final List<QueryParamMatchDescriptor> queryParamMatchDescriptors;
+    private final ValueMatchDescriptor requestBodyMatchDescriptor;
 
-    public RequestMappingDescriptor(String urlPath, List<QueryParamMatchDescriptor> queryParamMatchDescriptors) {
+    public RequestMappingDescriptor(
+            String urlPath,
+            List<QueryParamMatchDescriptor> queryParamMatchDescriptors,
+            ValueMatchDescriptor requestBodyMatchDescriptor
+    ) {
         this.urlPath = urlPath;
         this.queryParamMatchDescriptors = queryParamMatchDescriptors;
+        this.requestBodyMatchDescriptor = requestBodyMatchDescriptor;
     }
 
     public MappingBuilder toMappingBuilder(VerbMappingBuilderStrategy verbMappingBuilderStrategy) {
@@ -28,6 +35,9 @@ public class RequestMappingDescriptor {
         StubOrVerifyQueryParamAdder queryParamAdder =
                 new StubOrVerifyQueryParamAdder(new WireMockQueryParamBuilderWrapper(mappingBuilder));
         queryParamAdder.addQueryParameters(queryParamMatchDescriptors);
+        if (requestBodyMatchDescriptor != null) {
+            mappingBuilder.withRequestBody(requestBodyMatchDescriptor.toValueMatchingStrategy());
+        }
         return mappingBuilder;
     }
 
@@ -37,6 +47,9 @@ public class RequestMappingDescriptor {
         StubOrVerifyQueryParamAdder queryParamAdder =
                 new StubOrVerifyQueryParamAdder(new WireMockQueryParamBuilderWrapper(patternBuilder));
         queryParamAdder.addQueryParameters(queryParamMatchDescriptors);
+        if (requestBodyMatchDescriptor != null) {
+            patternBuilder.withRequestBody(requestBodyMatchDescriptor.toValueMatchingStrategy());
+        }
         return patternBuilder;
     }
 }

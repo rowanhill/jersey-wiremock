@@ -12,7 +12,9 @@ import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescripto
 import jerseywiremock.annotations.handler.util.CollectionFactory;
 import jerseywiremock.core.stub.GetListRequestStubber;
 import jerseywiremock.core.stub.GetSingleRequestStubber;
+import jerseywiremock.core.stub.PostRequestStubber;
 import jerseywiremock.core.verify.GetRequestVerifier;
+import jerseywiremock.core.verify.PostRequestVerifier;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -134,11 +136,38 @@ public class MockerInvocationHandlerTest {
         handler.handleVerifyGetVerb(params, testMocker, method);
     }
 
+    @Test
+    public void handlingStubPostCreatesPostRequestStubber() {
+        // given
+        stubResourceMethodDescriptorFor(WireMockStub.class);
+
+        // when
+        PostRequestStubber<Object, Object> stubber =
+                handler.handleStubPost(params, testMocker, method);
+
+        // then
+        assertThat(stubber).isNotNull();
+    }
+
+    @Test
+    public void handlingVerifyPostCreatesPostRequestVerifier() {
+        // given
+        stubResourceMethodDescriptorFor(WireMockVerify.class);
+
+        // when
+        PostRequestVerifier<Object> verifier =
+                handler.handleVerifyPostVerb(params, testMocker, method);
+
+        // then
+        assertThat(verifier).isNotNull();
+    }
+
     private void stubResourceMethodDescriptorFor(Class<? extends Annotation> methodAnnotation) {
         when(mockResourceMethodDescriptorFactory.constructMethodDescriptor(method, methodAnnotation))
                 .thenReturn(mockDescriptor);
     }
 
+    @SuppressWarnings("unused")
     private static class TestMocker extends BaseMocker {
         private TestMocker(WireMockServer wireMockServer, ObjectMapper objectMapper) {
             super(wireMockServer, objectMapper);

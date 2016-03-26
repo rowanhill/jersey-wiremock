@@ -1,16 +1,19 @@
 package jerseywiremock.annotations.factory;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableList;
 import io.dropwizard.jersey.params.DateTimeParam;
 import jerseywiremock.annotations.*;
-import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy;
 import jerseywiremock.core.stub.GetListRequestStubber;
 import jerseywiremock.core.stub.GetSingleRequestStubber;
+import jerseywiremock.core.stub.PostRequestStubber;
 import jerseywiremock.core.verify.GetRequestVerifier;
+import jerseywiremock.core.verify.PostRequestVerifier;
 import jerseywiremock.formatter.ParamFormatter;
+import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.junit.Before;
@@ -19,15 +22,19 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.UriBuilder;
 import java.util.Collection;
 
+import static jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy.CONTAINING;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class MockerFactoryTest {
     @Rule
@@ -88,6 +95,49 @@ public class MockerFactoryTest {
     }
 
     @Test
+    public void postRequestWithBodyCanBeStubbedAndVerified() throws Exception {
+        // given
+        mocker.stubPostString("req").andRespondWith(new StringWithId(1, "req")).stub();
+
+        // when
+        StringWithId response = client.postString("req");
+
+        // then
+        assertThat(response).isEqualToComparingFieldByField(new StringWithId(1, "req"));
+        mocker.verifyPostString("req");
+    }
+
+    @Test
+    public void postRequestWithBodyIsNotMatchedIfWrongRequestBodyIsGiven() throws Exception {
+        // given
+        mocker.stubPostString("expected").andRespondWith(null).stub();
+
+        // when
+        try {
+            client.postString("wrong");
+            fail("Expected MessageBodyProviderNotFoundException when POSTing a string not matched");
+        } catch (MessageBodyProviderNotFoundException ignored) {
+            // This exception is required - WireMock will return HTML in the 404, which the client can't parse
+        }
+
+        // then
+        mocker.verifyPostString("expected").times(0).verify();
+    }
+
+    @Test
+    public void postRequestWithRequestBodyMatchedByContainingCanBeStubbedAndVerified() throws Exception {
+        // given
+        mocker.stubPostStringContaining("quest").andRespondWith(new StringWithId(1, "req")).stub();
+
+        // when
+        StringWithId response = client.postString("Request string");
+
+        // then
+        assertThat(response).isEqualToComparingFieldByField(new StringWithId(1, "req"));
+            mocker.verifyPostStringContaining("quest");
+    }
+
+    @Test
     public void callingInterfaceMethodWithWrongReturnTypeThrowsException() throws Exception {
         // given
         ObjectMapper objectMapper = new ObjectMapper();
@@ -111,9 +161,36 @@ public class MockerFactoryTest {
         GetRequestVerifier verifyGetIntsByDate(DateTime dateTime);
 
         @WireMockStub("getIntsByDate")
-        GetListRequestStubber<Integer> stubGetIntsByDateContaining(
-                @ParamMatchedBy(ParamMatchingStrategy.CONTAINING) String dateSubstring
-        );
+        GetListRequestStubber<Integer> stubGetIntsByDateContaining(@ParamMatchedBy(CONTAINING) String dateSubstring);
+
+        @WireMockStub("postString")
+        PostRequestStubber<String, StringWithId> stubPostString(String req);
+
+        @WireMockVerify("postString")
+        PostRequestVerifier<String> verifyPostString(String req);
+
+        @WireMockStub("postString")
+        PostRequestStubber<String, StringWithId> stubPostStringContaining(@ParamMatchedBy(CONTAINING) String req);
+
+        @WireMockVerify("postString")
+        PostRequestVerifier<String> verifyPostStringContaining(@ParamMatchedBy(CONTAINING) String req);
+    }
+
+    public static class StringWithId {
+        @JsonProperty
+        public int id;
+        @JsonProperty
+        public String string;
+
+        @SuppressWarnings("unused")
+        public StringWithId() {
+            // Jackson
+        }
+
+        public StringWithId(int id, String string) {
+            this.id = id;
+            this.string = string;
+        }
     }
 
     @SuppressWarnings("unused")
@@ -139,6 +216,12 @@ public class MockerFactoryTest {
                 @QueryParam("date") @ParamFormat(DateTimeFormatter.class) DateTimeParam dateParam
         ) {
             return ImmutableList.of(4,5,6);
+        }
+
+        @POST
+        @Path("string")
+        public String postString(String entity) {
+            return entity;
         }
     }
 
@@ -175,6 +258,19 @@ public class MockerFactoryTest {
                     .request()
                     .get()
                     .readEntity(new GenericType<Collection<Integer>>(){});
+        }
+
+        public StringWithId postString(String req) {
+            return client
+                    .target(UriBuilder
+                            .fromResource(TestResource.class)
+                            .path(TestResource.class, "postString")
+                            .scheme("http")
+                            .host("localhost")
+                            .port(8080))
+                    .request()
+                    .post(Entity.json(req))
+                    .readEntity(StringWithId.class);
         }
     }
 }

@@ -41,6 +41,9 @@ public class RequestMappingDescriptorFactory {
         }
         String urlPath = uriBuilder.buildFromMap(paramDescriptors.getPathParams()).toString();
 
-        return new RequestMappingDescriptor(urlPath, paramDescriptors.getQueryParamMatchDescriptors());
+        return new RequestMappingDescriptor(
+                urlPath,
+                paramDescriptors.getQueryParamMatchDescriptors(),
+                paramDescriptors.getRequestBodyMatchDescriptor());
     }
 }
