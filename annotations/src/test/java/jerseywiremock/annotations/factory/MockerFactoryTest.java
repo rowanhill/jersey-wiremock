@@ -8,6 +8,7 @@ import io.dropwizard.jersey.params.DateTimeParam;
 import jerseywiremock.annotations.*;
 import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy;
 import jerseywiremock.core.stub.EmptyRequestCollectionResponseRequestStubber;
+import jerseywiremock.core.stub.EmptyRequestSimpleResponseRequestStubber;
 import jerseywiremock.core.verify.EmptyRequestVerifier;
 import jerseywiremock.formatter.ParamFormatter;
 import org.joda.time.DateTime;
@@ -43,6 +44,18 @@ public class MockerFactoryTest {
         client = new TestClient();
         ObjectMapper objectMapper = new ObjectMapper();
         mocker = MockerFactory.wireMockerFor(TestMockerInterface.class, wireMockRule, objectMapper);
+    }
+
+    @Test
+    public void getWithSimpleResponseCanBeStubbed() throws Exception {
+        // given
+        mocker.stubGetInt().andRespondWith(1).stub();
+
+        // when
+        int returnedInt = client.getInt();
+
+        // then
+        assertThat(returnedInt).isEqualTo(1);
     }
 
     @Test
@@ -88,6 +101,9 @@ public class MockerFactoryTest {
 
     @WireMockForResource(TestResource.class)
     public interface TestMockerInterface {
+        @WireMockStub("getInt")
+        EmptyRequestSimpleResponseRequestStubber<Integer> stubGetInt();
+
         @WireMockStub("getIntsByDate")
         EmptyRequestCollectionResponseRequestStubber<Integer> stubGetIntsByDate(DateTime dateTime);
 
@@ -113,6 +129,12 @@ public class MockerFactoryTest {
     @Path("/test")
     public static class TestResource {
         @GET
+        @Path("simple")
+        public int getInt() {
+            return 1;
+        }
+
+        @GET
         public Collection<Integer> getIntsByDate(
                 @QueryParam("date") @ParamFormat(DateTimeFormatter.class) DateTimeParam dateParam
         ) {
@@ -128,6 +150,19 @@ public class MockerFactoryTest {
 
     public static class TestClient {
         private final Client client = ClientBuilder.newClient().register(new JacksonJaxbJsonProvider());
+
+        public int getInt() {
+            return client
+                    .target(UriBuilder
+                            .fromResource(TestResource.class)
+                            .path(TestResource.class, "getInt")
+                            .scheme("http")
+                            .host("localhost")
+                            .port(8080))
+                    .request()
+                    .get()
+                    .readEntity(Integer.class);
+        }
 
         public Collection<Integer> getIntsByDate(DateTime dateTime) {
             return client
