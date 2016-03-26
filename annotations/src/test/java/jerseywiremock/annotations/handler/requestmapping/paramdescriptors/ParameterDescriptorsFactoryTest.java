@@ -1,5 +1,6 @@
 package jerseywiremock.annotations.handler.requestmapping.paramdescriptors;
 
+import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
 import jerseywiremock.annotations.ParamFormat;
 import jerseywiremock.annotations.ParamMatchedBy;
 import jerseywiremock.formatter.ParamFormatter;
@@ -7,6 +8,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
@@ -16,18 +21,30 @@ import java.util.Date;
 
 import static jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy.CONTAINING;
 import static jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy.EQUAL_TO;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.hamcrest.CoreMatchers.isA;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class ParameterDescriptorsFactoryTest {
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
+    @Mock
+    private ValueMatchingStrategyFactory mockStrategyFactory;
+    @InjectMocks
     private ParameterDescriptorsFactory factory;
+
+    private ValueMatchingStrategy matchingStrategy = new ValueMatchingStrategy();
 
     @Before
     public void setUp() {
-        factory = new ParameterDescriptorsFactory();
+        when(mockStrategyFactory.toValueMatchingStrategy(any(ParamMatchingStrategy.class), anyString()))
+                .thenReturn(matchingStrategy);
     }
 
     @Test
@@ -37,7 +54,8 @@ public class ParameterDescriptorsFactoryTest {
 
         // then
         assertThat(descriptors.getPathParams()).isEmpty();
-        assertThat(descriptors.getQueryParamMatchDescriptors()).isEmpty();
+        assertThat(descriptors.getQueryParamMatchingStrategies()).isEmpty();
+        assertThat(descriptors.getRequestBodyMatchingStrategy()).isNull();
     }
 
     @Test
@@ -47,7 +65,8 @@ public class ParameterDescriptorsFactoryTest {
 
         // then
         assertThat(descriptors.getPathParams()).containsOnly(entry("one", "val1"));
-        assertThat(descriptors.getQueryParamMatchDescriptors()).isEmpty();
+        assertThat(descriptors.getQueryParamMatchingStrategies()).isEmpty();
+        assertThat(descriptors.getRequestBodyMatchingStrategy()).isNull();
     }
 
     @Test
@@ -58,7 +77,8 @@ public class ParameterDescriptorsFactoryTest {
 
         // then
         assertThat(descriptors.getPathParams()).containsOnly(entry("one", "val1"), entry("two", "val2"));
-        assertThat(descriptors.getQueryParamMatchDescriptors()).isEmpty();
+        assertThat(descriptors.getQueryParamMatchingStrategies()).isEmpty();
+        assertThat(descriptors.getRequestBodyMatchingStrategy()).isNull();
     }
 
     @Test
@@ -69,9 +89,8 @@ public class ParameterDescriptorsFactoryTest {
 
         // then
         assertThat(descriptors.getPathParams()).isEmpty();
-        assertThat(descriptors.getQueryParamMatchDescriptors())
-                .extracting("paramName", "value", "matchingStrategy")
-                .containsOnly(tuple("one", "val1", EQUAL_TO));
+        assertThat(descriptors.getQueryParamMatchingStrategies()).containsOnly(entry("one", matchingStrategy));
+        assertThat(descriptors.getRequestBodyMatchingStrategy()).isNull();
     }
 
     @Test
@@ -82,11 +101,10 @@ public class ParameterDescriptorsFactoryTest {
 
         // then
         assertThat(descriptors.getPathParams()).isEmpty();
-        assertThat(descriptors.getQueryParamMatchDescriptors())
-                .extracting("paramName", "value", "matchingStrategy")
-                .containsOnly(
-                        tuple("one", "val1", EQUAL_TO),
-                        tuple("two", "val2", EQUAL_TO));
+        assertThat(descriptors.getQueryParamMatchingStrategies()).containsOnly(
+                entry("one", matchingStrategy),
+                entry("two", matchingStrategy)
+        );
     }
 
     @Test
@@ -97,9 +115,8 @@ public class ParameterDescriptorsFactoryTest {
 
         // then
         assertThat(descriptors.getPathParams()).containsOnly(entry("path", "val1"));
-        assertThat(descriptors.getQueryParamMatchDescriptors())
-                .extracting("paramName", "value", "matchingStrategy")
-                .containsOnly(tuple("query", "val2", EQUAL_TO));
+            assertThat(descriptors.getQueryParamMatchingStrategies()).containsOnly(entry("query", matchingStrategy));
+        assertThat(descriptors.getRequestBodyMatchingStrategy()).isNull();
     }
 
     @Test
@@ -116,9 +133,8 @@ public class ParameterDescriptorsFactoryTest {
 
         // then
         assertThat(descriptors.getPathParams()).isEmpty();
-        assertThat(descriptors.getQueryParamMatchDescriptors()).isEmpty();
-        assertThat(descriptors.getRequestBodyMatchDescriptor().getValue()).isEqualTo("val1");
-        assertThat(descriptors.getRequestBodyMatchDescriptor().getMatchingStrategy()).isEqualTo(EQUAL_TO);
+        assertThat(descriptors.getQueryParamMatchingStrategies()).isEmpty();
+        assertThat(descriptors.getRequestBodyMatchingStrategy()).isEqualTo(matchingStrategy);
     }
 
     @Test
@@ -128,7 +144,8 @@ public class ParameterDescriptorsFactoryTest {
 
         // then
         assertThat(descriptors.getPathParams()).isEmpty();
-        assertThat(descriptors.getQueryParamMatchDescriptors()).isEmpty();
+        assertThat(descriptors.getQueryParamMatchingStrategies()).isEmpty();
+        assertThat(descriptors.getRequestBodyMatchingStrategy()).isNull();
     }
 
     @Test
@@ -139,7 +156,8 @@ public class ParameterDescriptorsFactoryTest {
 
         // then
         assertThat(descriptors.getPathParams()).containsOnly(entry("one", "formatted"));
-        assertThat(descriptors.getQueryParamMatchDescriptors()).isEmpty();
+        assertThat(descriptors.getQueryParamMatchingStrategies()).isEmpty();
+        assertThat(descriptors.getRequestBodyMatchingStrategy()).isNull();
     }
 
     @Test
@@ -149,10 +167,10 @@ public class ParameterDescriptorsFactoryTest {
                 createDescriptors(mockerOneParamAnnotations(), new Date[]{null}, "formattedQueryParam");
 
         // then
+        verify(mockStrategyFactory).toValueMatchingStrategy(EQUAL_TO, "formatted");
         assertThat(descriptors.getPathParams()).isEmpty();
-        assertThat(descriptors.getQueryParamMatchDescriptors())
-                .extracting("paramName", "value", "matchingStrategy")
-                .containsOnly(tuple("one", "formatted", EQUAL_TO));
+        assertThat(descriptors.getQueryParamMatchingStrategies()).containsOnly(entry("one", matchingStrategy));
+        assertThat(descriptors.getRequestBodyMatchingStrategy()).isNull();
     }
 
     @Test
@@ -162,10 +180,10 @@ public class ParameterDescriptorsFactoryTest {
                 createDescriptors(mockerContainingParamAnnotations(), params(1), "oneQueryParam");
 
         // then
+        verify(mockStrategyFactory).toValueMatchingStrategy(CONTAINING, "val1");
         assertThat(descriptors.getPathParams()).isEmpty();
-        assertThat(descriptors.getQueryParamMatchDescriptors())
-                .extracting("paramName", "value", "matchingStrategy")
-                .containsOnly(tuple("one", "val1", ParamMatchingStrategy.CONTAINING));
+        assertThat(descriptors.getQueryParamMatchingStrategies()).containsOnly(entry("one", matchingStrategy));
+        assertThat(descriptors.getRequestBodyMatchingStrategy()).isNull();
     }
 
     @Test
@@ -176,7 +194,8 @@ public class ParameterDescriptorsFactoryTest {
 
         // then
         assertThat(descriptors.getPathParams()).containsOnly(entry("one", "val1"));
-        assertThat(descriptors.getQueryParamMatchDescriptors()).isEmpty();
+        assertThat(descriptors.getQueryParamMatchingStrategies()).isEmpty();
+        assertThat(descriptors.getRequestBodyMatchingStrategy()).isNull();
     }
 
     @Test
@@ -186,10 +205,10 @@ public class ParameterDescriptorsFactoryTest {
                 createDescriptors(mockerContainingParamAnnotations(), new Date[]{null}, "formattedQueryParam");
 
         // then
+        verify(mockStrategyFactory).toValueMatchingStrategy(CONTAINING, "formatted");
         assertThat(descriptors.getPathParams()).isEmpty();
-        assertThat(descriptors.getQueryParamMatchDescriptors())
-                .extracting("paramName", "value", "matchingStrategy")
-                .containsOnly(tuple("one", "formatted", ParamMatchingStrategy.CONTAINING));
+        assertThat(descriptors.getQueryParamMatchingStrategies()).containsOnly(entry("one", matchingStrategy));
+        assertThat(descriptors.getRequestBodyMatchingStrategy()).isNull();
     }
 
     @Test

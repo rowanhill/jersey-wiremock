@@ -6,6 +6,7 @@ import jerseywiremock.annotations.handler.BaseMocker;
 import jerseywiremock.annotations.handler.MockerInvocationHandler;
 import jerseywiremock.annotations.handler.requestmapping.RequestMappingDescriptorFactory;
 import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParameterDescriptorsFactory;
+import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ValueMatchingStrategyFactory;
 import jerseywiremock.annotations.handler.resourcemethod.HttpVerbDetector;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
 import jerseywiremock.annotations.handler.util.CollectionFactory;
@@ -53,7 +54,8 @@ public class MockerFactory {
     }
 
     private MockerInvocationHandler createHandler() {
-        ParameterDescriptorsFactory parameterDescriptorsFactory = new ParameterDescriptorsFactory();
+        ValueMatchingStrategyFactory valueMatchingStrategyFactory = new ValueMatchingStrategyFactory();
+        ParameterDescriptorsFactory parameterDescriptorsFactory = new ParameterDescriptorsFactory(valueMatchingStrategyFactory);
         RequestMappingDescriptorFactory requestMappingDescriptorFactory =
                 new RequestMappingDescriptorFactory(parameterDescriptorsFactory);
         HttpVerbDetector verbDetector = new HttpVerbDetector();

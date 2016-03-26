@@ -1,5 +1,6 @@
 package jerseywiremock.annotations.handler.requestmapping.paramdescriptors;
 
+import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
 import jerseywiremock.annotations.ParamFormat;
 import jerseywiremock.annotations.ParamMatchedBy;
 import jerseywiremock.annotations.handler.util.ReflectionHelper;
@@ -12,6 +13,12 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 public class ParameterDescriptorsFactory {
+    private final ValueMatchingStrategyFactory valueMatchingStrategyFactory;
+
+    public ParameterDescriptorsFactory(ValueMatchingStrategyFactory valueMatchingStrategyFactory) {
+        this.valueMatchingStrategyFactory = valueMatchingStrategyFactory;
+    }
+
     public ParameterDescriptors createParameterDescriptors(
             Object[] parameters,
             Annotation[][] mockerMethodParameterAnnotations,
@@ -139,8 +146,8 @@ public class ParameterDescriptorsFactory {
             LinkedList<ParameterDescriptor> parameterDescriptors
     ) {
         Map<String, String> pathParams = new HashMap<>();
-        List<QueryParamMatchDescriptor> queryParamMatchDescriptors = new LinkedList<>();
-        ValueMatchDescriptor requestBodyMatchDescriptor = null;
+        Map<String, ValueMatchingStrategy> queryParamMatchingStrategies = new HashMap<>();
+        ValueMatchingStrategy requestBodyMatchingStrategy = null;
 
         for (int i = 0; i < parameterDescriptors.size(); i++) {
             ParameterDescriptor parameterDescriptor = parameterDescriptors.get(i);
@@ -156,20 +163,17 @@ public class ParameterDescriptorsFactory {
                 } else {
                     stringValue = getFormattedParamValue(rawParamValue, parameterDescriptor.formatterClass);
                 }
-                QueryParamMatchDescriptor queryParamMatchDescriptor = new QueryParamMatchDescriptor(
-                        parameterDescriptor.paramName,
-                        stringValue,
-                        parameterDescriptor.matchingStrategy);
-                queryParamMatchDescriptors.add(queryParamMatchDescriptor);
+                ValueMatchingStrategy valueMatchingStrategy = valueMatchingStrategyFactory
+                        .toValueMatchingStrategy(parameterDescriptor.matchingStrategy, stringValue);
+                queryParamMatchingStrategies.put(parameterDescriptor.paramName, valueMatchingStrategy);
             } else { // Request entity
                 String formattedValue = getFormattedParamValue(rawParamValue, parameterDescriptor.formatterClass);
-                requestBodyMatchDescriptor = new ValueMatchDescriptor(
-                        formattedValue,
-                        parameterDescriptor.matchingStrategy);
+                requestBodyMatchingStrategy = valueMatchingStrategyFactory
+                        .toValueMatchingStrategy(parameterDescriptor.matchingStrategy, formattedValue);
             }
         }
 
-        return new ParameterDescriptors(pathParams, queryParamMatchDescriptors, requestBodyMatchDescriptor);
+        return new ParameterDescriptors(pathParams, queryParamMatchingStrategies, requestBodyMatchingStrategy);
     }
 
     private String getFormattedParamValue(Object rawParamValue, Class<? extends ParamFormatter> formatterClass) {

@@ -3,40 +3,37 @@ package jerseywiremock.annotations.handler.requestmapping;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.client.UrlMatchingStrategy;
-import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.QueryParamMatchDescriptor;
-import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ValueMatchDescriptor;
-import jerseywiremock.annotations.handler.requestmapping.queryparam.StubOrVerifyQueryParamAdder;
-import jerseywiremock.annotations.handler.requestmapping.queryparam.WireMockQueryParamBuilderWrapper;
+import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
 import jerseywiremock.annotations.handler.requestmapping.stubverbs.VerbMappingBuilderStrategy;
 import jerseywiremock.annotations.handler.requestmapping.verifyverbs.VerbRequestedForStrategy;
 
-import java.util.List;
+import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 public class RequestMappingDescriptor {
     private final String urlPath;
-    private final List<QueryParamMatchDescriptor> queryParamMatchDescriptors;
-    private final ValueMatchDescriptor requestBodyMatchDescriptor;
+    private final Map<String, ValueMatchingStrategy> queryParamMatchingStrategies;
+    private final ValueMatchingStrategy requestBodyMatchingStrategy;
 
     public RequestMappingDescriptor(
             String urlPath,
-            List<QueryParamMatchDescriptor> queryParamMatchDescriptors,
-            ValueMatchDescriptor requestBodyMatchDescriptor
+            Map<String, ValueMatchingStrategy> queryParamMatchingStrategies,
+            ValueMatchingStrategy requestBodyMatchingStrategy
     ) {
         this.urlPath = urlPath;
-        this.queryParamMatchDescriptors = queryParamMatchDescriptors;
-        this.requestBodyMatchDescriptor = requestBodyMatchDescriptor;
+        this.queryParamMatchingStrategies = queryParamMatchingStrategies;
+        this.requestBodyMatchingStrategy = requestBodyMatchingStrategy;
     }
 
     public MappingBuilder toMappingBuilder(VerbMappingBuilderStrategy verbMappingBuilderStrategy) {
         UrlMatchingStrategy urlMatchingStrategy = urlPathEqualTo(urlPath);
         MappingBuilder mappingBuilder = verbMappingBuilderStrategy.verb(urlMatchingStrategy);
-        StubOrVerifyQueryParamAdder queryParamAdder =
-                new StubOrVerifyQueryParamAdder(new WireMockQueryParamBuilderWrapper(mappingBuilder));
-        queryParamAdder.addQueryParameters(queryParamMatchDescriptors);
-        if (requestBodyMatchDescriptor != null) {
-            mappingBuilder.withRequestBody(requestBodyMatchDescriptor.toValueMatchingStrategy());
+        for (Map.Entry<String, ValueMatchingStrategy> entry : queryParamMatchingStrategies.entrySet()) {
+            mappingBuilder.withQueryParam(entry.getKey(), entry.getValue());
+        }
+        if (requestBodyMatchingStrategy != null) {
+            mappingBuilder.withRequestBody(requestBodyMatchingStrategy);
         }
         return mappingBuilder;
     }
@@ -44,11 +41,11 @@ public class RequestMappingDescriptor {
     public RequestPatternBuilder toRequestPatternBuilder(VerbRequestedForStrategy verbRequestedForStrategy) {
         UrlMatchingStrategy urlMatchingStrategy = urlPathEqualTo(urlPath);
         RequestPatternBuilder patternBuilder = verbRequestedForStrategy.verbRequestedFor(urlMatchingStrategy);
-        StubOrVerifyQueryParamAdder queryParamAdder =
-                new StubOrVerifyQueryParamAdder(new WireMockQueryParamBuilderWrapper(patternBuilder));
-        queryParamAdder.addQueryParameters(queryParamMatchDescriptors);
-        if (requestBodyMatchDescriptor != null) {
-            patternBuilder.withRequestBody(requestBodyMatchDescriptor.toValueMatchingStrategy());
+        for (Map.Entry<String, ValueMatchingStrategy> entry : queryParamMatchingStrategies.entrySet()) {
+            patternBuilder.withQueryParam(entry.getKey(), entry.getValue());
+        }
+        if (requestBodyMatchingStrategy != null) {
+            patternBuilder.withRequestBody(requestBodyMatchingStrategy);
         }
         return patternBuilder;
     }

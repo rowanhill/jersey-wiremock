@@ -1,33 +1,34 @@
 package jerseywiremock.annotations.handler.requestmapping.paramdescriptors;
 
-import java.util.List;
+import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
+
 import java.util.Map;
 
 // TODO: Commonise with RequestMappingDescriptor, or name better - only difference is pathParms are built into URL string
 public class ParameterDescriptors {
     private final Map<String, String> pathParams;
-    private final List<QueryParamMatchDescriptor> queryParamMatchDescriptors;
-    private final ValueMatchDescriptor requestBodyMatchDescriptor;
+    private final Map<String, ValueMatchingStrategy> queryParamMatchingStrategies;
+    private final ValueMatchingStrategy requestBodyMatchingStrategy;
 
     ParameterDescriptors(
             Map<String, String> pathParams,
-            List<QueryParamMatchDescriptor> queryParamMatchDescriptors,
-            ValueMatchDescriptor requestBodyMatchDescriptor
+            Map<String, ValueMatchingStrategy> queryParamMatchingStrategies,
+            ValueMatchingStrategy requestBodyMatchingStrategy
     ) {
         this.pathParams = pathParams;
-        this.queryParamMatchDescriptors = queryParamMatchDescriptors;
-        this.requestBodyMatchDescriptor = requestBodyMatchDescriptor;
+        this.queryParamMatchingStrategies = queryParamMatchingStrategies;
+        this.requestBodyMatchingStrategy = requestBodyMatchingStrategy;
     }
 
     public Map<String, String> getPathParams() {
         return pathParams;
     }
 
-    public List<QueryParamMatchDescriptor> getQueryParamMatchDescriptors() {
-        return queryParamMatchDescriptors;
+    public Map<String, ValueMatchingStrategy> getQueryParamMatchingStrategies() {
+        return queryParamMatchingStrategies;
     }
 
-    public ValueMatchDescriptor getRequestBodyMatchDescriptor() {
-        return requestBodyMatchDescriptor;
+    public ValueMatchingStrategy getRequestBodyMatchingStrategy() {
+        return requestBodyMatchingStrategy;
     }
 }

@@ -43,7 +43,7 @@ public class RequestMappingDescriptorFactory {
 
         return new RequestMappingDescriptor(
                 urlPath,
-                paramDescriptors.getQueryParamMatchDescriptors(),
-                paramDescriptors.getRequestBodyMatchDescriptor());
+                paramDescriptors.getQueryParamMatchingStrategies(),
+                paramDescriptors.getRequestBodyMatchingStrategy());
     }
 }
