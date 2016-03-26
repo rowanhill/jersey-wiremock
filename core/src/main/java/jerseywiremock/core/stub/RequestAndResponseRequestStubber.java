@@ -30,11 +30,11 @@ public class RequestAndResponseRequestStubber<RequestEntity, ResponseEntity> ext
         return this;
     }
 
-    public SingleEntityResponseStubber<ResponseEntity> andRespond() {
-        return new SingleEntityResponseStubber<>(wireMockServer, objectMapper, mappingBuilder);
+    public SimpleEntityResponseStubber<ResponseEntity> andRespond() {
+        return new SimpleEntityResponseStubber<>(wireMockServer, objectMapper, mappingBuilder);
     }
 
-    public SingleEntityResponseStubber<ResponseEntity> andRespondWith(ResponseEntity responseEntity) {
+    public SimpleEntityResponseStubber<ResponseEntity> andRespondWith(ResponseEntity responseEntity) {
         return andRespond().withEntity(responseEntity);
     }
 }

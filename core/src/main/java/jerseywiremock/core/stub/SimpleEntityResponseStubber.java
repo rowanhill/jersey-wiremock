@@ -6,10 +6,10 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 
-public class SingleEntityResponseStubber<Entity> extends BaseResponseStubber<SingleEntityResponseStubber<Entity>> {
+public class SimpleEntityResponseStubber<Entity> extends BaseResponseStubber<SimpleEntityResponseStubber<Entity>> {
     private Entity entity;
 
-    public SingleEntityResponseStubber(
+    public SimpleEntityResponseStubber(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
             MappingBuilder mappingBuilder
@@ -17,7 +17,7 @@ public class SingleEntityResponseStubber<Entity> extends BaseResponseStubber<Sin
         super(wireMockServer, objectMapper, mappingBuilder);
     }
 
-    public SingleEntityResponseStubber<Entity> withEntity(Entity entity) {
+    public SimpleEntityResponseStubber<Entity> withEntity(Entity entity) {
         this.entity = entity;
         return this;
     }
