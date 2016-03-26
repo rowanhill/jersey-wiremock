@@ -3,13 +3,13 @@ package jerseywiremock.core.verify;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 
-public abstract class BaseRequestVerifyBuilder<Self extends BaseRequestVerifyBuilder> {
+public abstract class BaseRequestVerifier<Self extends BaseRequestVerifier> {
     private final WireMockServer wireMockServer;
     private final RequestPatternBuilder requestPatternBuilder;
 
     private Integer numOfTimes;
 
-    public BaseRequestVerifyBuilder(WireMockServer wireMockServer, RequestPatternBuilder patternBuilder) {
+    public BaseRequestVerifier(WireMockServer wireMockServer, RequestPatternBuilder patternBuilder) {
         this.wireMockServer = wireMockServer;
         this.requestPatternBuilder = patternBuilder;
     }

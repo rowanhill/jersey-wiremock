@@ -1,7 +1,7 @@
 package jerseywiremock.annotations.factory;
 
 import jerseywiremock.core.stub.BaseRequestStubber;
-import jerseywiremock.core.verify.BaseRequestVerifyBuilder;
+import jerseywiremock.core.verify.BaseRequestVerifier;
 
 import java.lang.reflect.Method;
 import java.util.LinkedList;
@@ -40,7 +40,7 @@ class MockerTypeChecker {
     }
 
     private boolean isVerifier(Class<?> returnType) {
-        return BaseRequestVerifyBuilder.class.isAssignableFrom(returnType);
+        return BaseRequestVerifier.class.isAssignableFrom(returnType);
     }
 
     private void throwExceptionFor(List<Method> badMethods) {
