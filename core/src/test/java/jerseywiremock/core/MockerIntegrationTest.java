@@ -8,9 +8,11 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableList;
-import jerseywiremock.core.stub.*;
-import jerseywiremock.core.verify.EmptyRequestVerifier;
-import jerseywiremock.core.verify.RequestWithEntityVerifier;
+import jerseywiremock.core.stub.GetListRequestStubber;
+import jerseywiremock.core.stub.GetSingleRequestStubber;
+import jerseywiremock.core.stub.PostRequestStubber;
+import jerseywiremock.core.verify.GetRequestVerifier;
+import jerseywiremock.core.verify.PostRequestVerifier;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -150,12 +152,12 @@ public class MockerIntegrationTest {
             return new GetSingleRequestStubber<>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)));
         }
 
-        public EmptyRequestVerifier verifyGetDoubleGivenInt(int input) {
+        public GetRequestVerifier verifyGetDoubleGivenInt(int input) {
             String urlPath = UriBuilder.fromResource(TestResource.class)
                     .path(TestResource.class, "getDoubleGivenInt")
                     .build(input)
                     .toString();
-            return new EmptyRequestVerifier(wireMockServer, getRequestedFor(urlPathEqualTo(urlPath)));
+            return new GetRequestVerifier(wireMockServer, getRequestedFor(urlPathEqualTo(urlPath)));
         }
 
         public GetListRequestStubber<Integer> stubGetListOfInts() {
@@ -167,12 +169,12 @@ public class MockerIntegrationTest {
             return new GetListRequestStubber<>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)), collection);
         }
 
-        public EmptyRequestVerifier verifyGetListOfInts() {
+        public GetRequestVerifier verifyGetListOfInts() {
             String urlPath = UriBuilder.fromResource(TestResource.class)
                     .path(TestResource.class, "getListOfInts")
                     .build()
                     .toString();
-            return new EmptyRequestVerifier(wireMockServer, getRequestedFor(urlPathEqualTo(urlPath)));
+            return new GetRequestVerifier(wireMockServer, getRequestedFor(urlPathEqualTo(urlPath)));
         }
 
         public GetListRequestStubber<Integer> stubGetOdds(int lessThan) {
@@ -186,14 +188,14 @@ public class MockerIntegrationTest {
             return new GetListRequestStubber<>(wireMockServer, objectMapper, mappingBuilder, collection);
         }
 
-        public EmptyRequestVerifier verifyGetOdds(int lessThan) {
+        public GetRequestVerifier verifyGetOdds(int lessThan) {
             String urlPath = UriBuilder.fromResource(TestResource.class)
                     .path(TestResource.class, "getOdds")
                     .build()
                     .toString();
             RequestPatternBuilder patternBuilder = getRequestedFor(urlPathEqualTo(urlPath))
                     .withQueryParam("lessThan", equalTo(Integer.toString(lessThan)));
-            return new EmptyRequestVerifier(wireMockServer, patternBuilder);
+            return new GetRequestVerifier(wireMockServer, patternBuilder);
         }
 
         public PostRequestStubber<String, Integer> stubPostName() {
@@ -205,13 +207,13 @@ public class MockerIntegrationTest {
             return new PostRequestStubber<>(wireMockServer, objectMapper, mappingBuilder);
         }
 
-        public RequestWithEntityVerifier<String> verifyPostName() {
+        public PostRequestVerifier<String> verifyPostName() {
             String urlPath = UriBuilder.fromResource(TestResource.class)
                     .path(TestResource.class, "postName")
                     .build()
                     .toString();
             RequestPatternBuilder patternBuilder = postRequestedFor(urlPathEqualTo(urlPath));
-            return new RequestWithEntityVerifier<>(wireMockServer, objectMapper, patternBuilder);
+            return new PostRequestVerifier<>(wireMockServer, objectMapper, patternBuilder);
         }
     }
 

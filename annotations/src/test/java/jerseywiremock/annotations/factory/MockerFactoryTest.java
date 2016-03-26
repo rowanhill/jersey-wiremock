@@ -9,7 +9,7 @@ import jerseywiremock.annotations.*;
 import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy;
 import jerseywiremock.core.stub.GetListRequestStubber;
 import jerseywiremock.core.stub.GetSingleRequestStubber;
-import jerseywiremock.core.verify.EmptyRequestVerifier;
+import jerseywiremock.core.verify.GetRequestVerifier;
 import jerseywiremock.formatter.ParamFormatter;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
@@ -108,7 +108,7 @@ public class MockerFactoryTest {
         GetListRequestStubber<Integer> stubGetIntsByDate(DateTime dateTime);
 
         @WireMockVerify("getIntsByDate")
-        EmptyRequestVerifier verifyGetIntsByDate(DateTime dateTime);
+        GetRequestVerifier verifyGetIntsByDate(DateTime dateTime);
 
         @WireMockStub("getIntsByDate")
         GetListRequestStubber<Integer> stubGetIntsByDateContaining(

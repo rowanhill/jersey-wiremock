@@ -14,7 +14,7 @@ import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescripto
 import jerseywiremock.annotations.handler.util.CollectionFactory;
 import jerseywiremock.core.stub.GetListRequestStubber;
 import jerseywiremock.core.stub.GetSingleRequestStubber;
-import jerseywiremock.core.verify.EmptyRequestVerifier;
+import jerseywiremock.core.verify.GetRequestVerifier;
 import net.bytebuddy.implementation.bind.annotation.AllArguments;
 import net.bytebuddy.implementation.bind.annotation.Origin;
 import net.bytebuddy.implementation.bind.annotation.This;
@@ -74,7 +74,7 @@ public class MockerInvocationHandler {
                 collection);
     }
 
-    public EmptyRequestVerifier handleVerifyGetVerb(
+    public GetRequestVerifier handleVerifyGetVerb(
             @AllArguments Object[] parameters,
             @This BaseMocker mocker,
             @Origin Method method
@@ -86,6 +86,6 @@ public class MockerInvocationHandler {
                 .createMappingDescriptor(descriptor, method, parameters);
         RequestPatternBuilder requestPatternBuilder = mappingDescriptor
                 .toRequestPatternBuilder(new GetRequestedForStrategy());
-        return new EmptyRequestVerifier(mocker.wireMockServer, requestPatternBuilder);
+        return new GetRequestVerifier(mocker.wireMockServer, requestPatternBuilder);
     }
 }

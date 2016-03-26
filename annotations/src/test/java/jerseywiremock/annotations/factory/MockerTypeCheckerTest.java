@@ -1,9 +1,8 @@
 package jerseywiremock.annotations.factory;
 
 import com.google.common.collect.ImmutableList;
-import jerseywiremock.core.stub.EmptyRequestSimpleResponseRequestStubber;
 import jerseywiremock.core.stub.GetSingleRequestStubber;
-import jerseywiremock.core.verify.EmptyRequestVerifier;
+import jerseywiremock.core.verify.GetRequestVerifier;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -65,6 +64,6 @@ public class MockerTypeCheckerTest {
         int returnsInt();
         String returnsString();
         GetSingleRequestStubber<Integer> returnsStubber();
-        EmptyRequestVerifier returnsVerifier();
+        GetRequestVerifier returnsVerifier();
     }
 }
