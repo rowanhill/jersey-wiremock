@@ -1,13 +1,13 @@
 package jerseywiremock.annotations.factory;
 
-import jerseywiremock.core.stub.EmptyRequestSimpleResponseRequestStubber;
+import jerseywiremock.core.stub.GetSingleRequestStubber;
 import jerseywiremock.core.verify.EmptyRequestVerifier;
 import org.junit.Test;
 
 import java.lang.reflect.Method;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MockerMethodSelectorTest {
     @Test
@@ -36,13 +36,13 @@ public class MockerMethodSelectorTest {
 
     @SuppressWarnings("unused")
     private interface TestInterface {
-        EmptyRequestSimpleResponseRequestStubber<Integer> getRequestStubber();
+        GetSingleRequestStubber<Integer> getRequestStubber();
         EmptyRequestVerifier getRequestVerifier();
     }
 
     @SuppressWarnings("unused")
     private static abstract class TestClass {
-        abstract EmptyRequestSimpleResponseRequestStubber<Integer> getRequestStubber();
+        abstract GetSingleRequestStubber<Integer> getRequestStubber();
 
         EmptyRequestVerifier getRequestVerifier() {
             return null;

@@ -6,15 +6,15 @@ import jerseywiremock.annotations.WireMockStub;
 import jerseywiremock.annotations.WireMockVerify;
 import jerseywiremock.annotations.handler.requestmapping.RequestMappingDescriptor;
 import jerseywiremock.annotations.handler.requestmapping.RequestMappingDescriptorFactory;
+import jerseywiremock.annotations.handler.requestmapping.stubverbs.GetMappingBuilderStrategy;
+import jerseywiremock.annotations.handler.requestmapping.verifyverbs.GetRequestedForStrategy;
 import jerseywiremock.annotations.handler.resourcemethod.HttpVerb;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptor;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
 import jerseywiremock.annotations.handler.util.CollectionFactory;
-import jerseywiremock.core.stub.EmptyRequestSimpleResponseRequestStubber;
-import jerseywiremock.core.stub.EmptyRequestCollectionResponseRequestStubber;
-import jerseywiremock.annotations.handler.requestmapping.stubverbs.GetMappingBuilderStrategy;
+import jerseywiremock.core.stub.GetListRequestStubber;
+import jerseywiremock.core.stub.GetSingleRequestStubber;
 import jerseywiremock.core.verify.EmptyRequestVerifier;
-import jerseywiremock.annotations.handler.requestmapping.verifyverbs.GetRequestedForStrategy;
 import net.bytebuddy.implementation.bind.annotation.AllArguments;
 import net.bytebuddy.implementation.bind.annotation.Origin;
 import net.bytebuddy.implementation.bind.annotation.This;
@@ -37,7 +37,7 @@ public class MockerInvocationHandler {
         this.collectionFactory = collectionFactory;
     }
 
-    public <T> EmptyRequestSimpleResponseRequestStubber<T> handleStubGet(
+    public <T> GetSingleRequestStubber<T> handleStubGet(
             @AllArguments Object[] parameters,
             @This BaseMocker mocker,
             @Origin Method method
@@ -48,13 +48,13 @@ public class MockerInvocationHandler {
         RequestMappingDescriptor mappingDescriptor = requestMappingDescriptorFactory
                 .createMappingDescriptor(descriptor, method, parameters);
         MappingBuilder mappingBuilder = mappingDescriptor.toMappingBuilder(new GetMappingBuilderStrategy());
-        return new EmptyRequestSimpleResponseRequestStubber<>(
+        return new GetSingleRequestStubber<>(
                 mocker.wireMockServer,
                 mocker.objectMapper,
                 mappingBuilder);
     }
 
-    public <T> EmptyRequestCollectionResponseRequestStubber<T> handleStubList(
+    public <T> GetListRequestStubber<T> handleStubList(
             @AllArguments Object[] parameters,
             @This BaseMocker mocker,
             @Origin Method method
@@ -67,7 +67,7 @@ public class MockerInvocationHandler {
         MappingBuilder mappingBuilder = mappingDescriptor.toMappingBuilder(new GetMappingBuilderStrategy());
         Collection<T> collection =
                 collectionFactory.createCollection(descriptor.getResourceClass(), descriptor.getMethodName());
-        return new EmptyRequestCollectionResponseRequestStubber<>(
+        return new GetListRequestStubber<>(
                 mocker.wireMockServer,
                 mocker.objectMapper,
                 mappingBuilder,

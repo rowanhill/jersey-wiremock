@@ -7,8 +7,8 @@ import com.google.common.collect.ImmutableList;
 import io.dropwizard.jersey.params.DateTimeParam;
 import jerseywiremock.annotations.*;
 import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy;
-import jerseywiremock.core.stub.EmptyRequestCollectionResponseRequestStubber;
-import jerseywiremock.core.stub.EmptyRequestSimpleResponseRequestStubber;
+import jerseywiremock.core.stub.GetListRequestStubber;
+import jerseywiremock.core.stub.GetSingleRequestStubber;
 import jerseywiremock.core.verify.EmptyRequestVerifier;
 import jerseywiremock.formatter.ParamFormatter;
 import org.joda.time.DateTime;
@@ -102,16 +102,16 @@ public class MockerFactoryTest {
     @WireMockForResource(TestResource.class)
     public interface TestMockerInterface {
         @WireMockStub("getInt")
-        EmptyRequestSimpleResponseRequestStubber<Integer> stubGetInt();
+        GetSingleRequestStubber<Integer> stubGetInt();
 
         @WireMockStub("getIntsByDate")
-        EmptyRequestCollectionResponseRequestStubber<Integer> stubGetIntsByDate(DateTime dateTime);
+        GetListRequestStubber<Integer> stubGetIntsByDate(DateTime dateTime);
 
         @WireMockVerify("getIntsByDate")
         EmptyRequestVerifier verifyGetIntsByDate(DateTime dateTime);
 
         @WireMockStub("getIntsByDate")
-        EmptyRequestCollectionResponseRequestStubber<Integer> stubGetIntsByDateContaining(
+        GetListRequestStubber<Integer> stubGetIntsByDateContaining(
                 @ParamMatchedBy(ParamMatchingStrategy.CONTAINING) String dateSubstring
         );
     }

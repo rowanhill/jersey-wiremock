@@ -10,8 +10,8 @@ import jerseywiremock.annotations.handler.resourcemethod.HttpVerb;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptor;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
 import jerseywiremock.annotations.handler.util.CollectionFactory;
-import jerseywiremock.core.stub.EmptyRequestSimpleResponseRequestStubber;
-import jerseywiremock.core.stub.EmptyRequestCollectionResponseRequestStubber;
+import jerseywiremock.core.stub.GetListRequestStubber;
+import jerseywiremock.core.stub.GetSingleRequestStubber;
 import jerseywiremock.core.verify.EmptyRequestVerifier;
 import org.junit.Before;
 import org.junit.Rule;
@@ -25,11 +25,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MockerInvocationHandlerTest {
@@ -70,7 +68,7 @@ public class MockerInvocationHandlerTest {
         stubResourceMethodDescriptorFor(WireMockStub.class);
 
         // when
-        EmptyRequestSimpleResponseRequestStubber<Object> getRequestStubber = handler.handleStubGet(params, testMocker, method);
+        GetSingleRequestStubber<Object> getRequestStubber = handler.handleStubGet(params, testMocker, method);
 
         // then
         assertThat(getRequestStubber).isNotNull();
@@ -94,7 +92,7 @@ public class MockerInvocationHandlerTest {
         stubResourceMethodDescriptorFor(WireMockStub.class);
 
         // when
-        EmptyRequestCollectionResponseRequestStubber<Object> listRequestStubber = handler.handleStubList(params, testMocker, method);
+        GetListRequestStubber<Object> listRequestStubber = handler.handleStubList(params, testMocker, method);
 
         // then
         assertThat(listRequestStubber).isNotNull();

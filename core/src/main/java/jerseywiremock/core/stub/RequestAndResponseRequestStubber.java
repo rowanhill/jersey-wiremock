@@ -8,7 +8,12 @@ import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 
-public class RequestAndResponseRequestStubber<RequestEntity, ResponseEntity> extends BaseRequestStubber {
+public abstract class RequestAndResponseRequestStubber<
+        RequestEntity,
+        ResponseEntity,
+        ResponseStubber extends SimpleEntityResponseStubber<ResponseEntity, ResponseStubber>,
+        Self extends RequestAndResponseRequestStubber<RequestEntity, ResponseEntity, ResponseStubber, Self>
+        > extends EmptyRequestSimpleResponseRequestStubber<ResponseEntity, ResponseStubber> {
     public RequestAndResponseRequestStubber(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
@@ -17,24 +22,18 @@ public class RequestAndResponseRequestStubber<RequestEntity, ResponseEntity> ext
         super(wireMockServer, objectMapper, mappingBuilder);
     }
 
-    public RequestAndResponseRequestStubber<RequestEntity, ResponseEntity> withRequestEntity(RequestEntity requestEntity)
+    public Self withRequestEntity(RequestEntity requestEntity)
             throws JsonProcessingException
     {
         String entityString = objectMapper.writeValueAsString(requestEntity);
         mappingBuilder.withRequestBody(equalTo(entityString));
-        return this;
+        //noinspection unchecked
+        return (Self) this;
     }
 
-    public RequestAndResponseRequestStubber<RequestEntity, ResponseEntity> withRequestBody(ValueMatchingStrategy strategy) {
+    public Self withRequestBody(ValueMatchingStrategy strategy) {
         mappingBuilder.withRequestBody(strategy);
-        return this;
-    }
-
-    public SimpleEntityResponseStubber<ResponseEntity> andRespond() {
-        return new SimpleEntityResponseStubber<>(wireMockServer, objectMapper, mappingBuilder);
-    }
-
-    public SimpleEntityResponseStubber<ResponseEntity> andRespondWith(ResponseEntity responseEntity) {
-        return andRespond().withEntity(responseEntity);
+        //noinspection unchecked
+        return (Self) this;
     }
 }

@@ -9,7 +9,11 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import java.util.Collection;
 import java.util.Collections;
 
-public class CollectionResponseStubber<Entity> extends BaseResponseStubber<CollectionResponseStubber<Entity>> {
+public abstract class CollectionResponseStubber<
+        Entity,
+        Self extends CollectionResponseStubber
+        > extends BaseResponseStubber<CollectionResponseStubber<Entity, Self>>
+{
     private final Collection<Entity> entities;
 
     public CollectionResponseStubber(
@@ -23,9 +27,10 @@ public class CollectionResponseStubber<Entity> extends BaseResponseStubber<Colle
     }
 
     @SafeVarargs
-    public final CollectionResponseStubber<Entity> withEntities(Entity... items) {
+    public final Self withEntities(Entity... items) {
         Collections.addAll(entities, items);
-        return this;
+        //noinspection unchecked
+        return (Self) this;
     }
 
     @Override

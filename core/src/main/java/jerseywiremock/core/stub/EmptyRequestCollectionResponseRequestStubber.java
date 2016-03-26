@@ -6,8 +6,12 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder;
 
 import java.util.Collection;
 
-public class EmptyRequestCollectionResponseRequestStubber<Entity> extends BaseRequestStubber {
-    private final Collection<Entity> initialCollection;
+public abstract class EmptyRequestCollectionResponseRequestStubber<
+        Entity,
+        ResponseStubber extends CollectionResponseStubber<Entity, ResponseStubber>
+        > extends BaseRequestStubber
+{
+    protected final Collection<Entity> initialCollection;
 
     public EmptyRequestCollectionResponseRequestStubber(
             WireMockServer wireMockServer,
@@ -19,12 +23,10 @@ public class EmptyRequestCollectionResponseRequestStubber<Entity> extends BaseRe
         this.initialCollection = initialCollection;
     }
 
-    public CollectionResponseStubber<Entity> andRespond() {
-        return new CollectionResponseStubber<>(wireMockServer, objectMapper, mappingBuilder, initialCollection);
-    }
+    public abstract ResponseStubber andRespond();
 
     @SafeVarargs
-    public final CollectionResponseStubber<Entity> andRespondWith(Entity... items) {
+    public final ResponseStubber andRespondWith(Entity... items) {
         return andRespond().withEntities(items);
     }
 }
