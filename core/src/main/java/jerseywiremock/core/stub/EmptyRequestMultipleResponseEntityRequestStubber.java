@@ -6,10 +6,10 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder;
 
 import java.util.Collection;
 
-public class ListRequestStubber<Entity> extends BaseRequestStubber {
+public class EmptyRequestMultipleResponseEntityRequestStubber<Entity> extends BaseRequestStubber {
     private final Collection<Entity> initialCollection;
 
-    public ListRequestStubber(
+    public EmptyRequestMultipleResponseEntityRequestStubber(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
             MappingBuilder mappingBuilder,
@@ -19,12 +19,12 @@ public class ListRequestStubber<Entity> extends BaseRequestStubber {
         this.initialCollection = initialCollection;
     }
 
-    public ListResponseStubber<Entity> andRespond() {
-        return new ListResponseStubber<>(wireMockServer, objectMapper, mappingBuilder, initialCollection);
+    public MultipleEntityResponseStubber<Entity> andRespond() {
+        return new MultipleEntityResponseStubber<>(wireMockServer, objectMapper, mappingBuilder, initialCollection);
     }
 
     @SafeVarargs
-    public final ListResponseStubber<Entity> andRespondWith(Entity... items) {
+    public final MultipleEntityResponseStubber<Entity> andRespondWith(Entity... items) {
         return andRespond().withEntities(items);
     }
 }

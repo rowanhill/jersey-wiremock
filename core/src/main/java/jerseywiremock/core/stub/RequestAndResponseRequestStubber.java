@@ -8,8 +8,8 @@ import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 
-public class PostRequestStubber<RequestEntity, ResponseEntity> extends BaseRequestStubber {
-    public PostRequestStubber(
+public class RequestAndResponseRequestStubber<RequestEntity, ResponseEntity> extends BaseRequestStubber {
+    public RequestAndResponseRequestStubber(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
             MappingBuilder mappingBuilder
@@ -17,7 +17,7 @@ public class PostRequestStubber<RequestEntity, ResponseEntity> extends BaseReque
         super(wireMockServer, objectMapper, mappingBuilder);
     }
 
-    public PostRequestStubber<RequestEntity, ResponseEntity> withRequestEntity(RequestEntity requestEntity)
+    public RequestAndResponseRequestStubber<RequestEntity, ResponseEntity> withRequestEntity(RequestEntity requestEntity)
             throws JsonProcessingException
     {
         String entityString = objectMapper.writeValueAsString(requestEntity);
@@ -25,16 +25,16 @@ public class PostRequestStubber<RequestEntity, ResponseEntity> extends BaseReque
         return this;
     }
 
-    public PostRequestStubber<RequestEntity, ResponseEntity> withRequestBody(ValueMatchingStrategy strategy) {
+    public RequestAndResponseRequestStubber<RequestEntity, ResponseEntity> withRequestBody(ValueMatchingStrategy strategy) {
         mappingBuilder.withRequestBody(strategy);
         return this;
     }
 
-    public PostResponseStubber<ResponseEntity> andRespond() {
-        return new PostResponseStubber<>(wireMockServer, objectMapper, mappingBuilder);
+    public SingleEntityResponseStubber<ResponseEntity> andRespond() {
+        return new SingleEntityResponseStubber<>(wireMockServer, objectMapper, mappingBuilder);
     }
 
-    public PostResponseStubber<ResponseEntity> andRespondWith(ResponseEntity responseEntity) {
+    public SingleEntityResponseStubber<ResponseEntity> andRespondWith(ResponseEntity responseEntity) {
         return andRespond().withEntity(responseEntity);
     }
 }

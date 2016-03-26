@@ -8,9 +8,9 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableList;
-import jerseywiremock.core.stub.GetRequestStubber;
-import jerseywiremock.core.stub.ListRequestStubber;
-import jerseywiremock.core.stub.PostRequestStubber;
+import jerseywiremock.core.stub.EmptyRequestSingleResponseEntityRequestStubber;
+import jerseywiremock.core.stub.EmptyRequestMultipleResponseEntityRequestStubber;
+import jerseywiremock.core.stub.RequestAndResponseRequestStubber;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import jerseywiremock.core.verify.PostRequestVerifier;
 import org.junit.Before;
@@ -144,12 +144,12 @@ public class MockerIntegrationTest {
             this.objectMapper = objectMapper;
         }
 
-        public GetRequestStubber<Integer> stubGetDoubleGivenInt(int input) {
+        public EmptyRequestSingleResponseEntityRequestStubber<Integer> stubGetDoubleGivenInt(int input) {
             String urlPath = UriBuilder.fromResource(TestResource.class)
                     .path(TestResource.class, "getDoubleGivenInt")
                     .build(input)
                     .toString();
-            return new GetRequestStubber<>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)));
+            return new EmptyRequestSingleResponseEntityRequestStubber<>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)));
         }
 
         public GetRequestVerifier verifyGetDoubleGivenInt(int input) {
@@ -160,13 +160,13 @@ public class MockerIntegrationTest {
             return new GetRequestVerifier(wireMockServer, getRequestedFor(urlPathEqualTo(urlPath)));
         }
 
-        public ListRequestStubber<Integer> stubGetListOfInts() {
+        public EmptyRequestMultipleResponseEntityRequestStubber<Integer> stubGetListOfInts() {
             String urlPath = UriBuilder.fromResource(TestResource.class)
                     .path(TestResource.class, "getListOfInts")
                     .build()
                     .toString();
             Collection<Integer> collection = new ArrayList<>();
-            return new ListRequestStubber<>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)), collection);
+            return new EmptyRequestMultipleResponseEntityRequestStubber<>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)), collection);
         }
 
         public GetRequestVerifier verifyGetListOfInts() {
@@ -177,7 +177,7 @@ public class MockerIntegrationTest {
             return new GetRequestVerifier(wireMockServer, getRequestedFor(urlPathEqualTo(urlPath)));
         }
 
-        public ListRequestStubber<Integer> stubGetOdds(int lessThan) {
+        public EmptyRequestMultipleResponseEntityRequestStubber<Integer> stubGetOdds(int lessThan) {
             String urlPath = UriBuilder.fromResource(TestResource.class)
                     .path(TestResource.class, "getOdds")
                     .build()
@@ -185,7 +185,7 @@ public class MockerIntegrationTest {
             Collection<Integer> collection = new ArrayList<>();
             MappingBuilder mappingBuilder = get(urlPathEqualTo(urlPath))
                     .withQueryParam("lessThan", equalTo(Integer.toString(lessThan)));
-            return new ListRequestStubber<>(wireMockServer, objectMapper, mappingBuilder, collection);
+            return new EmptyRequestMultipleResponseEntityRequestStubber<>(wireMockServer, objectMapper, mappingBuilder, collection);
         }
 
         public GetRequestVerifier verifyGetOdds(int lessThan) {
@@ -198,13 +198,13 @@ public class MockerIntegrationTest {
             return new GetRequestVerifier(wireMockServer, patternBuilder);
         }
 
-        public PostRequestStubber<String, Integer> stubPostName() {
+        public RequestAndResponseRequestStubber<String, Integer> stubPostName() {
             String urlPath = UriBuilder.fromResource(TestResource.class)
                     .path(TestResource.class, "postName")
                     .build()
                     .toString();
             MappingBuilder mappingBuilder = post(urlPathEqualTo(urlPath));
-            return new PostRequestStubber<>(wireMockServer, objectMapper, mappingBuilder);
+            return new RequestAndResponseRequestStubber<>(wireMockServer, objectMapper, mappingBuilder);
         }
 
         public PostRequestVerifier<String> verifyPostName() {

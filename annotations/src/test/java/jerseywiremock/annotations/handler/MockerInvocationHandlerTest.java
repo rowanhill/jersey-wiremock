@@ -10,8 +10,8 @@ import jerseywiremock.annotations.handler.resourcemethod.HttpVerb;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptor;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
 import jerseywiremock.annotations.handler.util.CollectionFactory;
-import jerseywiremock.core.stub.GetRequestStubber;
-import jerseywiremock.core.stub.ListRequestStubber;
+import jerseywiremock.core.stub.EmptyRequestSingleResponseEntityRequestStubber;
+import jerseywiremock.core.stub.EmptyRequestMultipleResponseEntityRequestStubber;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import org.junit.Before;
 import org.junit.Rule;
@@ -70,7 +70,7 @@ public class MockerInvocationHandlerTest {
         stubResourceMethodDescriptorFor(WireMockStub.class);
 
         // when
-        GetRequestStubber<Object> getRequestStubber = handler.handleStubGet(params, testMocker, method);
+        EmptyRequestSingleResponseEntityRequestStubber<Object> getRequestStubber = handler.handleStubGet(params, testMocker, method);
 
         // then
         assertThat(getRequestStubber).isNotNull();
@@ -94,7 +94,7 @@ public class MockerInvocationHandlerTest {
         stubResourceMethodDescriptorFor(WireMockStub.class);
 
         // when
-        ListRequestStubber<Object> listRequestStubber = handler.handleStubList(params, testMocker, method);
+        EmptyRequestMultipleResponseEntityRequestStubber<Object> listRequestStubber = handler.handleStubList(params, testMocker, method);
 
         // then
         assertThat(listRequestStubber).isNotNull();
