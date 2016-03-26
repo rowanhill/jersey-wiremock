@@ -7,8 +7,8 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableList;
-import jerseywiremock.core.stub.GetRequestMocker;
-import jerseywiremock.core.stub.ListRequestMocker;
+import jerseywiremock.core.stub.GetRequestStubber;
+import jerseywiremock.core.stub.ListRequestStubber;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import org.junit.Before;
 import org.junit.Rule;
@@ -107,12 +107,12 @@ public class MockerIntegrationTest {
             this.objectMapper = objectMapper;
         }
 
-        public GetRequestMocker<Integer> stubGetDoubleGivenInt(int input) {
+        public GetRequestStubber<Integer> stubGetDoubleGivenInt(int input) {
             String urlPath = UriBuilder.fromResource(TestResource.class)
                     .path(TestResource.class, "getDoubleGivenInt")
                     .build(input)
                     .toString();
-            return new GetRequestMocker<>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)));
+            return new GetRequestStubber<>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)));
         }
 
         public GetRequestVerifier verifyGetDoubleGivenInt(int input) {
@@ -123,13 +123,13 @@ public class MockerIntegrationTest {
             return new GetRequestVerifier(wireMockServer, getRequestedFor(urlPathEqualTo(urlPath)));
         }
 
-        public ListRequestMocker<Integer> stubGetListOfInts() {
+        public ListRequestStubber<Integer> stubGetListOfInts() {
             String urlPath = UriBuilder.fromResource(TestResource.class)
                     .path(TestResource.class, "getListOfInts")
                     .build()
                     .toString();
             Collection<Integer> collection = new ArrayList<>();
-            return new ListRequestMocker<>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)), collection);
+            return new ListRequestStubber<>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)), collection);
         }
 
         public GetRequestVerifier verifyGetListOfInts() {
@@ -140,7 +140,7 @@ public class MockerIntegrationTest {
             return new GetRequestVerifier(wireMockServer, getRequestedFor(urlPathEqualTo(urlPath)));
         }
 
-        public ListRequestMocker<Integer> stubGetOdds(int lessThan) {
+        public ListRequestStubber<Integer> stubGetOdds(int lessThan) {
             String urlPath = UriBuilder.fromResource(TestResource.class)
                     .path(TestResource.class, "getOdds")
                     .build()
@@ -148,7 +148,7 @@ public class MockerIntegrationTest {
             Collection<Integer> collection = new ArrayList<>();
             MappingBuilder mappingBuilder = get(urlPathEqualTo(urlPath))
                     .withQueryParam("lessThan", equalTo(Integer.toString(lessThan)));
-            return new ListRequestMocker<>(wireMockServer, objectMapper, mappingBuilder, collection);
+            return new ListRequestStubber<>(wireMockServer, objectMapper, mappingBuilder, collection);
         }
 
         public GetRequestVerifier verifyGetOdds(int lessThan) {

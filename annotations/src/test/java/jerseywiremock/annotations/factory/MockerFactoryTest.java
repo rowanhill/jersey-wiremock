@@ -7,7 +7,7 @@ import com.google.common.collect.ImmutableList;
 import io.dropwizard.jersey.params.DateTimeParam;
 import jerseywiremock.annotations.*;
 import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy;
-import jerseywiremock.core.stub.ListRequestMocker;
+import jerseywiremock.core.stub.ListRequestStubber;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import jerseywiremock.formatter.ParamFormatter;
 import org.joda.time.DateTime;
@@ -80,7 +80,7 @@ public class MockerFactoryTest {
         ObjectMapper objectMapper = new ObjectMapper();
 
         // when
-        expectedException.expectMessage("All methods must return request mockers or verifiers");
+        expectedException.expectMessage("All methods must return request stubbers or verifiers");
         expectedException.expectMessage("stubGetDoubleGivenInt");
         expectedException.expectMessage("verifyGetDoubleGivenInt");
         MockerFactory.wireMockerFor(TestBadMockerInterface.class, wireMockRule, objectMapper);
@@ -89,13 +89,13 @@ public class MockerFactoryTest {
     @WireMockForResource(TestResource.class)
     public interface TestMockerInterface {
         @WireMockStub("getIntsByDate")
-        ListRequestMocker<Integer> stubGetIntsByDate(DateTime dateTime);
+        ListRequestStubber<Integer> stubGetIntsByDate(DateTime dateTime);
 
         @WireMockVerify("getIntsByDate")
         GetRequestVerifier verifyGetIntsByDate(DateTime dateTime);
 
         @WireMockStub("getIntsByDate")
-        ListRequestMocker<Integer> stubGetIntsByDateContaining(
+        ListRequestStubber<Integer> stubGetIntsByDateContaining(
                 @ParamMatchedBy(ParamMatchingStrategy.CONTAINING) String dateSubstring
         );
     }

@@ -8,7 +8,7 @@ import jerseywiremock.annotations.WireMockForResource;
 import jerseywiremock.annotations.WireMockStub;
 import jerseywiremock.annotations.WireMockVerify;
 import jerseywiremock.annotations.handler.BaseMocker;
-import jerseywiremock.core.stub.GetRequestMocker;
+import jerseywiremock.core.stub.GetRequestStubber;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import org.junit.Before;
 import org.junit.Rule;
@@ -90,7 +90,7 @@ public class MockerFactoryAbstractClassTest {
         }
 
         @WireMockStub("getByQuery")
-        public abstract GetRequestMocker<Integer> stubGetByQuery(int input);
+        public abstract GetRequestStubber<Integer> stubGetByQuery(int input);
 
         @WireMockVerify("getByQuery")
         public abstract GetRequestVerifier verifyGetByQuery(int input);

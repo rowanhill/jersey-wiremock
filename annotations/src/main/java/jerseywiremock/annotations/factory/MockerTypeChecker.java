@@ -1,6 +1,6 @@
 package jerseywiremock.annotations.factory;
 
-import jerseywiremock.core.stub.BaseRequestMocker;
+import jerseywiremock.core.stub.BaseRequestStubber;
 import jerseywiremock.core.verify.BaseRequestVerifyBuilder;
 
 import java.lang.reflect.Method;
@@ -28,15 +28,15 @@ class MockerTypeChecker {
         List<Method> badMethods = new LinkedList<>();
         for (Method method : methods) {
             Class<?> returnType = method.getReturnType();
-            if (!(isMocker(returnType) || isVerifier(returnType))) {
+            if (!(isStubber(returnType) || isVerifier(returnType))) {
                 badMethods.add(method);
             }
         }
         return badMethods;
     }
 
-    private boolean isMocker(Class<?> returnType) {
-        return BaseRequestMocker.class.isAssignableFrom(returnType);
+    private boolean isStubber(Class<?> returnType) {
+        return BaseRequestStubber.class.isAssignableFrom(returnType);
     }
 
     private boolean isVerifier(Class<?> returnType) {
@@ -45,7 +45,7 @@ class MockerTypeChecker {
 
     private void throwExceptionFor(List<Method> badMethods) {
         StringBuilder builder = new StringBuilder();
-        builder.append("All methods must return request mockers or verifiers. The following methods do not:\n");
+        builder.append("All methods must return request stubbers or verifiers. The following methods do not:\n");
         for (Method badMethod : badMethods) {
             builder.append("\t").append(badMethod).append("\n");
         }

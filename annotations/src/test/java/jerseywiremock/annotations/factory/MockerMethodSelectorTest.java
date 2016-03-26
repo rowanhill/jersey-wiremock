@@ -1,6 +1,6 @@
 package jerseywiremock.annotations.factory;
 
-import jerseywiremock.core.stub.GetRequestMocker;
+import jerseywiremock.core.stub.GetRequestStubber;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import org.junit.Test;
 
@@ -19,7 +19,7 @@ public class MockerMethodSelectorTest {
         List<Method> methods = selector.getMethodsForType(TestInterface.class);
 
         // then
-        assertThat(methods).extracting("name").containsOnly("getRequestMocker", "getRequestVerifier");
+        assertThat(methods).extracting("name").containsOnly("getRequestStubber", "getRequestVerifier");
     }
 
     @Test
@@ -31,18 +31,18 @@ public class MockerMethodSelectorTest {
         List<Method> methods = selector.getMethodsForType(TestClass.class);
 
         // then
-        assertThat(methods).extracting("name").containsOnly("getRequestMocker");
+        assertThat(methods).extracting("name").containsOnly("getRequestStubber");
     }
 
     @SuppressWarnings("unused")
     private interface TestInterface {
-        GetRequestMocker<Integer> getRequestMocker();
+        GetRequestStubber<Integer> getRequestStubber();
         GetRequestVerifier getRequestVerifier();
     }
 
     @SuppressWarnings("unused")
     private static abstract class TestClass {
-        abstract GetRequestMocker<Integer> getRequestMocker();
+        abstract GetRequestStubber<Integer> getRequestStubber();
 
         GetRequestVerifier getRequestVerifier() {
             return null;

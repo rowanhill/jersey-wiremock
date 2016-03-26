@@ -8,13 +8,13 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 
-public abstract class BaseResponseMocker<SelfType extends BaseResponseMocker> {
+public abstract class BaseResponseStubber<SelfType extends BaseResponseStubber> {
     protected final WireMockServer wireMockServer;
     protected final ObjectMapper objectMapper;
     protected final MappingBuilder mappingBuilder;
     protected final ResponseDefinitionBuilder responseDefinitionBuilder;
 
-    public BaseResponseMocker(
+    public BaseResponseStubber(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
             MappingBuilder mappingBuilder

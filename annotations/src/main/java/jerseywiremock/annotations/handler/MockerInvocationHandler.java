@@ -10,8 +10,8 @@ import jerseywiremock.annotations.handler.resourcemethod.HttpVerb;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptor;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
 import jerseywiremock.annotations.handler.util.CollectionFactory;
-import jerseywiremock.core.stub.GetRequestMocker;
-import jerseywiremock.core.stub.ListRequestMocker;
+import jerseywiremock.core.stub.GetRequestStubber;
+import jerseywiremock.core.stub.ListRequestStubber;
 import jerseywiremock.annotations.handler.requestmapping.stubverbs.GetMappingBuilderStrategy;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import jerseywiremock.annotations.handler.requestmapping.verifyverbs.GetRequestedForStrategy;
@@ -37,7 +37,7 @@ public class MockerInvocationHandler {
         this.collectionFactory = collectionFactory;
     }
 
-    public <T> GetRequestMocker<T> handleStubGet(
+    public <T> GetRequestStubber<T> handleStubGet(
             @AllArguments Object[] parameters,
             @This BaseMocker mocker,
             @Origin Method method
@@ -48,13 +48,13 @@ public class MockerInvocationHandler {
         RequestMappingDescriptor mappingDescriptor = requestMappingDescriptorFactory
                 .createMappingDescriptor(descriptor, method, parameters);
         MappingBuilder mappingBuilder = mappingDescriptor.toMappingBuilder(new GetMappingBuilderStrategy());
-        return new GetRequestMocker<>(
+        return new GetRequestStubber<>(
                 mocker.wireMockServer,
                 mocker.objectMapper,
                 mappingBuilder);
     }
 
-    public <T> ListRequestMocker<T> handleStubList(
+    public <T> ListRequestStubber<T> handleStubList(
             @AllArguments Object[] parameters,
             @This BaseMocker mocker,
             @Origin Method method
@@ -67,7 +67,7 @@ public class MockerInvocationHandler {
         MappingBuilder mappingBuilder = mappingDescriptor.toMappingBuilder(new GetMappingBuilderStrategy());
         Collection<T> collection =
                 collectionFactory.createCollection(descriptor.getResourceClass(), descriptor.getMethodName());
-        return new ListRequestMocker<>(
+        return new ListRequestStubber<>(
                 mocker.wireMockServer,
                 mocker.objectMapper,
                 mappingBuilder,

@@ -6,25 +6,19 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 
-import java.util.Collection;
-import java.util.Collections;
+public class GetResponseStubber<Entity> extends BaseResponseStubber<GetResponseStubber<Entity>> {
+    private Entity entity;
 
-public class ListResponseMocker<Entity> extends BaseResponseMocker<ListResponseMocker<Entity>> {
-    private final Collection<Entity> entities;
-
-    public ListResponseMocker(
+    public GetResponseStubber(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
-            MappingBuilder mappingBuilder,
-            Collection<Entity> initialCollection
+            MappingBuilder mappingBuilder
     ) {
         super(wireMockServer, objectMapper, mappingBuilder);
-        this.entities = initialCollection;
     }
 
-    @SafeVarargs
-    public final ListResponseMocker<Entity> withEntities(Entity... items) {
-        Collections.addAll(entities, items);
+    public GetResponseStubber<Entity> withEntity(Entity entity) {
+        this.entity = entity;
         return this;
     }
 
@@ -32,7 +26,7 @@ public class ListResponseMocker<Entity> extends BaseResponseMocker<ListResponseM
     protected void amendResponseDefinition(ResponseDefinitionBuilder responseDefinitionBuilder)
             throws JsonProcessingException
     {
-        String bodyString = objectMapper.writeValueAsString(entities);
+        String bodyString = objectMapper.writeValueAsString(entity);
         responseDefinitionBuilder.withBody(bodyString);
     }
 }

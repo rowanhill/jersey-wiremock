@@ -1,7 +1,7 @@
 package jerseywiremock.annotations.factory;
 
 import com.google.common.collect.ImmutableList;
-import jerseywiremock.core.stub.GetRequestMocker;
+import jerseywiremock.core.stub.GetRequestStubber;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,7 +34,7 @@ public class MockerTypeCheckerTest {
                 .thenReturn(ImmutableList.of(returnsInt, returnsString));
 
         // when
-        expectedException.expectMessage("All methods must return request mockers or verifiers");
+        expectedException.expectMessage("All methods must return request stubbers or verifiers");
         expectedException.expectMessage("returnsInt");
         expectedException.expectMessage("returnsString");
         checker.checkReturnTypes(TestInterface.class);
@@ -43,8 +43,8 @@ public class MockerTypeCheckerTest {
     @Test
     public void methodsReturningMockersDoNotCauseException() throws Exception {
         // given
-        Method returnsMocker = TestInterface.class.getMethod("returnsMocker");
-        when(mockMethodSelector.getMethodsForType(TestInterface.class)).thenReturn(ImmutableList.of(returnsMocker));
+        Method returnsStubber = TestInterface.class.getMethod("returnsStubber");
+        when(mockMethodSelector.getMethodsForType(TestInterface.class)).thenReturn(ImmutableList.of(returnsStubber));
 
         // when
         checker.checkReturnTypes(TestInterface.class);
@@ -63,7 +63,7 @@ public class MockerTypeCheckerTest {
     private interface TestInterface {
         int returnsInt();
         String returnsString();
-        GetRequestMocker<Integer> returnsMocker();
+        GetRequestStubber<Integer> returnsStubber();
         GetRequestVerifier returnsVerifier();
     }
 }
