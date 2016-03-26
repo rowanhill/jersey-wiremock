@@ -1,5 +1,6 @@
 package jerseywiremock.core;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -9,18 +10,18 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableList;
 import jerseywiremock.core.stub.GetRequestStubber;
 import jerseywiremock.core.stub.ListRequestStubber;
+import jerseywiremock.core.stub.PostRequestStubber;
 import jerseywiremock.core.verify.GetRequestVerifier;
+import jerseywiremock.core.verify.PostRequestVerifier;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -98,6 +99,42 @@ public class MockerIntegrationTest {
         assertThat(response.getStatus()).isEqualTo(403);
     }
 
+    @Test
+    public void postRequestCanBeStubbedAndVerified() throws Exception {
+        // given
+        mocker.stubPostName().withRequestEntity("Some Name").andRespond().stub();
+
+        // when
+        client.postName("Some Name");
+
+        // then
+        mocker.verifyPostName().withRequestEntity("Some Name").verify();
+    }
+
+    @Test
+    public void postRequestCanBeStubbedForArbitraryEntityMatcherAndVerified() throws Exception {
+        // given
+        mocker.stubPostName().withRequestBody(containing("Some")).andRespond().stub();
+
+        // when
+        client.postName("Some Name");
+
+        // then
+        mocker.verifyPostName().withRequestBody(containing("Some")).verify();
+    }
+
+    @Test
+    public void postRequestsCanBeStubbedToReturnEntities() throws Exception {
+        // given
+        mocker.stubPostName().withRequestEntity("Some Name").andRespondWith(1).stub();
+
+        // when
+        int number = client.postName("Some Name");
+
+        // then
+        assertThat(number).isEqualTo(1);
+    }
+
     public static class TestMocker {
         private final WireMockServer wireMockServer;
         private final ObjectMapper objectMapper;
@@ -160,6 +197,24 @@ public class MockerIntegrationTest {
                     .withQueryParam("lessThan", equalTo(Integer.toString(lessThan)));
             return new GetRequestVerifier(wireMockServer, patternBuilder);
         }
+
+        public PostRequestStubber<String, Integer> stubPostName() {
+            String urlPath = UriBuilder.fromResource(TestResource.class)
+                    .path(TestResource.class, "postName")
+                    .build()
+                    .toString();
+            MappingBuilder mappingBuilder = post(urlPathEqualTo(urlPath));
+            return new PostRequestStubber<>(wireMockServer, objectMapper, mappingBuilder);
+        }
+
+        public PostRequestVerifier<String> verifyPostName() {
+            String urlPath = UriBuilder.fromResource(TestResource.class)
+                    .path(TestResource.class, "postName")
+                    .build()
+                    .toString();
+            RequestPatternBuilder patternBuilder = postRequestedFor(urlPathEqualTo(urlPath));
+            return new PostRequestVerifier<>(wireMockServer, objectMapper, patternBuilder);
+        }
     }
 
     @Path("/test")
@@ -181,6 +236,10 @@ public class MockerIntegrationTest {
         public Collection<Integer> getOdds(@QueryParam("lessThan") int lessThan) {
             return ImmutableList.of(1,3,5);
         }
+
+        @POST
+        @Path("name")
+        public int postName(String name) { return 1; }
     }
 
     public static class TestClient {
@@ -237,6 +296,21 @@ public class MockerIntegrationTest {
                     .request()
                     .get()
                     .readEntity(new GenericType<Collection<Integer>>(){});
+        }
+
+        public Integer postName(String name) throws JsonProcessingException {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String nameJson = objectMapper.writeValueAsString(name);
+            return client
+                    .target(UriBuilder
+                            .fromResource(TestResource.class)
+                            .path(TestResource.class, "postName")
+                            .scheme("http")
+                            .host("localhost")
+                            .port(8080))
+                    .request()
+                    .post(Entity.json(nameJson))
+                    .readEntity(Integer.class);
         }
     }
 }

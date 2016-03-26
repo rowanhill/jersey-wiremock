@@ -4,8 +4,8 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 
 public abstract class BaseRequestVerifier<Self extends BaseRequestVerifier> {
-    private final WireMockServer wireMockServer;
-    private final RequestPatternBuilder requestPatternBuilder;
+    protected final WireMockServer wireMockServer;
+    protected final RequestPatternBuilder requestPatternBuilder;
 
     private Integer numOfTimes;
 
