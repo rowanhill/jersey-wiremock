@@ -5,7 +5,9 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 
-public class DeleteRequestStubber extends EmptyRequestAndResponseRequestStubber<DeleteResponseStubber> {
+public class DeleteRequestStubber<Entity>
+        extends EmptyRequestSimpleResponseRequestStubber<Entity, DeleteResponseStubber<Entity>>
+{
     public DeleteRequestStubber(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
@@ -24,7 +26,7 @@ public class DeleteRequestStubber extends EmptyRequestAndResponseRequestStubber<
     }
 
     @Override
-    public DeleteResponseStubber andRespond() {
-        return new DeleteResponseStubber(wireMockServer, objectMapper, mappingBuilder, responseDefinitionBuilder);
+    public DeleteResponseStubber<Entity> andRespond() {
+        return new DeleteResponseStubber<>(wireMockServer, objectMapper, mappingBuilder, responseDefinitionBuilder);
     }
 }

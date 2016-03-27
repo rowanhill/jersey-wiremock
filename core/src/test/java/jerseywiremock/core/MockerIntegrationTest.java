@@ -162,6 +162,19 @@ public class MockerIntegrationTest {
     }
 
     @Test
+    public void deleteRequestCanOptionallyHaveResponseBody() throws Exception {
+        // given
+        mocker.stubDeleteNameAndReturnId(1).andRespondWith(1).stub();
+
+        // when
+        Response response = client.deleteName(1);
+
+        // then
+        mocker.verifyDeleteName(1).verify();
+        assertThat(response.readEntity(Integer.class)).isEqualTo(1);
+    }
+
+    @Test
     public void defaultResponseCanBeOverriddenWhenCreatingStubber() throws Exception {
         // given
         Client client = ClientBuilder.newClient().register(new JacksonJaxbJsonProvider());
@@ -278,13 +291,22 @@ public class MockerIntegrationTest {
             return new PutRequestVerifier<>(wireMockServer, objectMapper, patternBuilder);
         }
 
-        public DeleteRequestStubber stubDeleteName(int id) {
+        public DeleteRequestStubber<Void> stubDeleteName(int id) {
             String urlPath = UriBuilder.fromResource(TestResource.class)
                     .path(TestResource.class, "deleteName")
                     .build(id)
                     .toString();
             MappingBuilder mappingBuilder = delete(urlPathEqualTo(urlPath));
-            return new DeleteRequestStubber(wireMockServer, objectMapper, mappingBuilder);
+            return new DeleteRequestStubber<>(wireMockServer, objectMapper, mappingBuilder);
+        }
+
+        public DeleteRequestStubber<Integer> stubDeleteNameAndReturnId(int id) {
+            String urlPath = UriBuilder.fromResource(TestResource.class)
+                    .path(TestResource.class, "deleteName")
+                    .build(id)
+                    .toString();
+            MappingBuilder mappingBuilder = delete(urlPathEqualTo(urlPath));
+            return new DeleteRequestStubber<>(wireMockServer, objectMapper, mappingBuilder);
         }
 
         public DeleteRequestVerifier verifyDeleteName(int id) {

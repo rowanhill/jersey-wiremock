@@ -8,7 +8,7 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 
 public abstract class SimpleEntityResponseStubber<
         Entity,
-        Self extends SimpleEntityResponseStubber
+        Self extends SimpleEntityResponseStubber<Entity, Self>
         > extends BaseResponseStubber<Self>
 {
     private Entity entity;

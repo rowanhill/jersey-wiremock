@@ -152,7 +152,7 @@ public class MockerInvocationHandler {
         return new PutRequestVerifier<>(mocker.wireMockServer, mocker.objectMapper, requestPatternBuilder);
     }
 
-    public DeleteRequestStubber handleStubDelete(
+    public <Entity> DeleteRequestStubber<Entity> handleStubDelete(
             @AllArguments Object[] parameters,
             @This BaseMocker mocker,
             @Origin Method method
@@ -162,7 +162,7 @@ public class MockerInvocationHandler {
                 .toMappingBuilder(new DeleteMappingBuilderStrategy());
         ResponseDefinitionBuilder responseDefinitionBuilder = descriptors.resourceMethodDescriptor
                 .toResponseDefinitionBuilder();
-        return new DeleteRequestStubber(
+        return new DeleteRequestStubber<>(
                 mocker.wireMockServer,
                 mocker.objectMapper,
                 mappingBuilder,

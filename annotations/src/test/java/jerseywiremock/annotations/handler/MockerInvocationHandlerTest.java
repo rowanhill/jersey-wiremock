@@ -199,7 +199,7 @@ public class MockerInvocationHandlerTest {
         stubResourceMethodDescriptorFor(WireMockStub.class);
 
         // when
-        DeleteRequestStubber stubber =
+        DeleteRequestStubber<Object> stubber =
                 handler.handleStubDelete(params, testMocker, mockerMethod);
 
         // then
