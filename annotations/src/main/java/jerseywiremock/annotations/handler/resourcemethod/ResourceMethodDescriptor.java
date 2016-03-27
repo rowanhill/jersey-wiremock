@@ -72,11 +72,19 @@ public class ResourceMethodDescriptor {
     public ResponseDefinitionBuilder toResponseDefinitionBuilder() {
         ResponseDefinitionBuilder responseDefinitionBuilder = aResponse();
 
-        // TODO: Don't declare content type if void return type from resource method
-        // TODO: Add content type based on what was declared by @Produces
-        responseDefinitionBuilder.withHeader("Content-Type", "application/json");
+        Method method = getMethod();
+        if (!method.getReturnType().equals(Void.TYPE)) {
+            // TODO: Add content type based on what was declared by @Produces
+            responseDefinitionBuilder.withHeader("Content-Type", "application/json");
+        }
 
-        // TODO: Set default status code: usually 200; 201 for POST; 204 for void return types
+        if (method.getReturnType().equals(Void.TYPE)) {
+            responseDefinitionBuilder.withStatus(204);
+        } else {
+            if (verb == HttpVerb.POST) {
+                responseDefinitionBuilder.withStatus(201);
+            }
+        }
 
         return responseDefinitionBuilder;
     }
