@@ -11,8 +11,10 @@ import com.google.common.collect.ImmutableList;
 import jerseywiremock.core.stub.GetListRequestStubber;
 import jerseywiremock.core.stub.GetSingleRequestStubber;
 import jerseywiremock.core.stub.PostRequestStubber;
+import jerseywiremock.core.stub.PutRequestStubber;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import jerseywiremock.core.verify.PostRequestVerifier;
+import jerseywiremock.core.verify.PutRequestVerifier;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -135,6 +137,19 @@ public class MockerIntegrationTest {
         assertThat(number).isEqualTo(1);
     }
 
+    @Test
+    public void putRequestCanBeStubbedAndVerified() throws Exception {
+        // given
+        mocker.stubPutName(10).withRequestEntity("Updated name").andRespondWith(10).stub();
+
+        // when
+        int number = client.putName(10, "Updated name");
+
+        // then
+        mocker.verifyPutName(10).withRequestEntity("Updated name").verify();
+        assertThat(number).isEqualTo(10);
+    }
+
     public static class TestMocker {
         private final WireMockServer wireMockServer;
         private final ObjectMapper objectMapper;
@@ -215,6 +230,24 @@ public class MockerIntegrationTest {
             RequestPatternBuilder patternBuilder = postRequestedFor(urlPathEqualTo(urlPath));
             return new PostRequestVerifier<>(wireMockServer, objectMapper, patternBuilder);
         }
+
+        public PutRequestStubber<String, Integer> stubPutName(int id) {
+            String urlPath = UriBuilder.fromResource(TestResource.class)
+                    .path(TestResource.class, "putName")
+                    .build(id)
+                    .toString();
+            MappingBuilder mappingBuilder = put(urlPathEqualTo(urlPath));
+            return new PutRequestStubber<>(wireMockServer, objectMapper, mappingBuilder);
+        }
+
+        public PutRequestVerifier<String> verifyPutName(int id) {
+            String urlPath = UriBuilder.fromResource(TestResource.class)
+                    .path(TestResource.class, "putName")
+                    .build(id)
+                    .toString();
+            RequestPatternBuilder patternBuilder = putRequestedFor(urlPathEqualTo(urlPath));
+            return new PutRequestVerifier<>(wireMockServer, objectMapper, patternBuilder);
+        }
     }
 
     @Path("/test")
@@ -240,6 +273,10 @@ public class MockerIntegrationTest {
         @POST
         @Path("name")
         public int postName(String name) { return 1; }
+
+        @PUT
+        @Path("name/{id}")
+        public int putName(@PathParam("id") int id, String name) { return 1; }
     }
 
     public static class TestClient {
@@ -310,6 +347,22 @@ public class MockerIntegrationTest {
                             .port(8080))
                     .request()
                     .post(Entity.json(nameJson))
+                    .readEntity(Integer.class);
+        }
+
+        public Integer putName(int id, String name) throws JsonProcessingException {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String nameJson = objectMapper.writeValueAsString(name);
+            return client
+                    .target(UriBuilder
+                            .fromResource(TestResource.class)
+                            .path(TestResource.class, "putName")
+                            .scheme("http")
+                            .host("localhost")
+                            .port(8080)
+                            .build(id))
+                    .request()
+                    .put(Entity.json(nameJson))
                     .readEntity(Integer.class);
         }
     }
