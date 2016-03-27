@@ -1,11 +1,14 @@
 package jerseywiremock.annotations.handler.resourcemethod;
 
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import jerseywiremock.annotations.handler.util.ReflectionHelper;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.core.UriBuilder;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 
 public class ResourceMethodDescriptor {
     private final Class<?> resourceClass;
@@ -64,5 +67,17 @@ public class ResourceMethodDescriptor {
         }
 
         return  uriBuilder;
+    }
+
+    public ResponseDefinitionBuilder toResponseDefinitionBuilder() {
+        ResponseDefinitionBuilder responseDefinitionBuilder = aResponse();
+
+        // TODO: Don't declare content type if void return type from resource method
+        // TODO: Add content type based on what was declared by @Produces
+        responseDefinitionBuilder.withHeader("Content-Type", "application/json");
+
+        // TODO: Set default status code: usually 200; 201 for POST; 204 for void return types
+
+        return responseDefinitionBuilder;
     }
 }
