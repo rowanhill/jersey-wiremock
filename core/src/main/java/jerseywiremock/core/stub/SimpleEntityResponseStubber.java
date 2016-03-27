@@ -16,9 +16,10 @@ public abstract class SimpleEntityResponseStubber<
     public SimpleEntityResponseStubber(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
-            MappingBuilder mappingBuilder
+            MappingBuilder mappingBuilder,
+            ResponseDefinitionBuilder responseDefinitionBuilder
     ) {
-        super(wireMockServer, objectMapper, mappingBuilder);
+        super(wireMockServer, objectMapper, mappingBuilder, responseDefinitionBuilder);
     }
 
     public Self withEntity(Entity entity) {

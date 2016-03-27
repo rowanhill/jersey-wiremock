@@ -17,13 +17,18 @@ public abstract class BaseResponseStubber<SelfType extends BaseResponseStubber> 
     public BaseResponseStubber(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
-            MappingBuilder mappingBuilder
+            MappingBuilder mappingBuilder,
+            ResponseDefinitionBuilder responseDefinitionBuilder
     ) {
         this.wireMockServer = wireMockServer;
         this.objectMapper = objectMapper;
         this.mappingBuilder = mappingBuilder;
 
-        responseDefinitionBuilder = aResponse().withHeader("Content-Type", "application/json");
+        if (responseDefinitionBuilder != null) {
+            this.responseDefinitionBuilder = responseDefinitionBuilder;
+        } else {
+            this.responseDefinitionBuilder = aResponse().withHeader("Content-Type", "application/json");
+        }
     }
 
     public SelfType withStatusCode(int statusCode) {

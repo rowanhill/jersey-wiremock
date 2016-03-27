@@ -20,10 +20,11 @@ public abstract class CollectionResponseStubber<
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
             MappingBuilder mappingBuilder,
-            Collection<Entity> initialCollection
+            ResponseDefinitionBuilder responseDefinitionBuilder,
+            Collection<Entity> entities
     ) {
-        super(wireMockServer, objectMapper, mappingBuilder);
-        this.entities = initialCollection;
+        super(wireMockServer, objectMapper, mappingBuilder, responseDefinitionBuilder);
+        this.entities = entities;
     }
 
     @SafeVarargs

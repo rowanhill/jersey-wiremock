@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -13,7 +14,17 @@ public abstract class RequestAndResponseRequestStubber<
         ResponseEntity,
         ResponseStubber extends SimpleEntityResponseStubber<ResponseEntity, ResponseStubber>,
         Self extends RequestAndResponseRequestStubber<RequestEntity, ResponseEntity, ResponseStubber, Self>
-        > extends EmptyRequestSimpleResponseRequestStubber<ResponseEntity, ResponseStubber> {
+        > extends EmptyRequestSimpleResponseRequestStubber<ResponseEntity, ResponseStubber>
+{
+    public RequestAndResponseRequestStubber(
+            WireMockServer wireMockServer,
+            ObjectMapper objectMapper,
+            MappingBuilder mappingBuilder,
+            ResponseDefinitionBuilder responseDefinitionBuilder
+    ) {
+        super(wireMockServer, objectMapper, mappingBuilder, responseDefinitionBuilder);
+    }
+
     public RequestAndResponseRequestStubber(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,

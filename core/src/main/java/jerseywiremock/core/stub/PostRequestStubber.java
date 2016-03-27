@@ -3,6 +3,7 @@ package jerseywiremock.core.stub;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 
 public class PostRequestStubber<RequestEntity, ResponseEntity>
         extends RequestAndResponseRequestStubber<
@@ -15,6 +16,15 @@ public class PostRequestStubber<RequestEntity, ResponseEntity>
     public PostRequestStubber(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
+            MappingBuilder mappingBuilder,
+            ResponseDefinitionBuilder responseDefinitionBuilder
+    ) {
+        super(wireMockServer, objectMapper, mappingBuilder, responseDefinitionBuilder);
+    }
+
+    public PostRequestStubber(
+            WireMockServer wireMockServer,
+            ObjectMapper objectMapper,
             MappingBuilder mappingBuilder
     ) {
         super(wireMockServer, objectMapper, mappingBuilder);
@@ -22,6 +32,6 @@ public class PostRequestStubber<RequestEntity, ResponseEntity>
 
     @Override
     public PostResponseStubber<ResponseEntity> andRespond() {
-        return new PostResponseStubber<>(wireMockServer, objectMapper, mappingBuilder);
+        return new PostResponseStubber<>(wireMockServer, objectMapper, mappingBuilder, responseDefinitionBuilder);
     }
 }

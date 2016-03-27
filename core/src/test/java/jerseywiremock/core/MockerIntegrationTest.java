@@ -161,6 +161,24 @@ public class MockerIntegrationTest {
         assertThat(response.readEntity(String.class)).isEmpty();
     }
 
+    @Test
+    public void defaultResponseCanBeOverriddenWhenCreatingStubber() throws Exception {
+        // given
+        Client client = ClientBuilder.newClient().register(new JacksonJaxbJsonProvider());
+        DeleteRequestStubber stubber = new DeleteRequestStubber(
+                wireMockRule,
+                new ObjectMapper(),
+                delete(urlPathEqualTo("/test")),
+                aResponse().withStatus(403));
+
+        // when
+        stubber.andRespond().stub();
+        Response response = client.target("http://localhost:8080/test").request().delete();
+
+        // then
+        assertThat(response.getStatus()).isEqualTo(403);
+    }
+
     public static class TestMocker {
         private final WireMockServer wireMockServer;
         private final ObjectMapper objectMapper;
