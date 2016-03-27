@@ -8,10 +8,8 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableList;
-import jerseywiremock.core.stub.GetListRequestStubber;
-import jerseywiremock.core.stub.GetSingleRequestStubber;
-import jerseywiremock.core.stub.PostRequestStubber;
-import jerseywiremock.core.stub.PutRequestStubber;
+import jerseywiremock.core.stub.*;
+import jerseywiremock.core.verify.DeleteRequestVerifier;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import jerseywiremock.core.verify.PostRequestVerifier;
 import jerseywiremock.core.verify.PutRequestVerifier;
@@ -150,6 +148,19 @@ public class MockerIntegrationTest {
         assertThat(number).isEqualTo(10);
     }
 
+    @Test
+    public void deleteRequestCanBeStubbedAndVerified() throws Exception {
+        // given
+        mocker.stubDeleteName(1).andRespond().withStatusCode(204).stub();
+
+        // when
+        Response response = client.deleteName(1);
+
+        // then
+        mocker.verifyDeleteName(1).verify();
+        assertThat(response.readEntity(String.class)).isEmpty();
+    }
+
     public static class TestMocker {
         private final WireMockServer wireMockServer;
         private final ObjectMapper objectMapper;
@@ -248,6 +259,24 @@ public class MockerIntegrationTest {
             RequestPatternBuilder patternBuilder = putRequestedFor(urlPathEqualTo(urlPath));
             return new PutRequestVerifier<>(wireMockServer, objectMapper, patternBuilder);
         }
+
+        public DeleteRequestStubber stubDeleteName(int id) {
+            String urlPath = UriBuilder.fromResource(TestResource.class)
+                    .path(TestResource.class, "deleteName")
+                    .build(id)
+                    .toString();
+            MappingBuilder mappingBuilder = delete(urlPathEqualTo(urlPath));
+            return new DeleteRequestStubber(wireMockServer, objectMapper, mappingBuilder);
+        }
+
+        public DeleteRequestVerifier verifyDeleteName(int id) {
+            String urlPath = UriBuilder.fromResource(TestResource.class)
+                    .path(TestResource.class, "deleteName")
+                    .build(id)
+                    .toString();
+            RequestPatternBuilder patternBuilder = deleteRequestedFor(urlPathEqualTo(urlPath));
+            return new DeleteRequestVerifier(wireMockServer, patternBuilder);
+        }
     }
 
     @Path("/test")
@@ -277,6 +306,10 @@ public class MockerIntegrationTest {
         @PUT
         @Path("name/{id}")
         public int putName(@PathParam("id") int id, String name) { return 1; }
+
+        @DELETE
+        @Path("name/{id}")
+        public void deleteName(@PathParam("id") int id) { }
     }
 
     public static class TestClient {
@@ -364,6 +397,19 @@ public class MockerIntegrationTest {
                     .request()
                     .put(Entity.json(nameJson))
                     .readEntity(Integer.class);
+        }
+
+        public Response deleteName(int id) {
+            return client
+                    .target(UriBuilder
+                            .fromResource(TestResource.class)
+                            .path(TestResource.class, "deleteName")
+                            .scheme("http")
+                            .host("localhost")
+                            .port(8080)
+                            .build(id))
+                    .request()
+                    .delete();
         }
     }
 }

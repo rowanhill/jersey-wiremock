@@ -4,13 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 
-public abstract class EmptyRequestSimpleResponseRequestStubber<
-        Entity,
-        ResponseStubber extends SimpleEntityResponseStubber<Entity, ResponseStubber>
-        >
-        extends BaseRequestStubber<ResponseStubber>
-{
-    public EmptyRequestSimpleResponseRequestStubber(
+public class DeleteRequestStubber extends EmptyRequestAndResponseRequestStubber<DeleteResponseStubber> {
+    public DeleteRequestStubber(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
             MappingBuilder mappingBuilder
@@ -18,7 +13,8 @@ public abstract class EmptyRequestSimpleResponseRequestStubber<
         super(wireMockServer, objectMapper, mappingBuilder);
     }
 
-    public ResponseStubber andRespondWith(Entity entity) {
-        return andRespond().withEntity(entity);
+    @Override
+    public DeleteResponseStubber andRespond() {
+        return new DeleteResponseStubber(wireMockServer, objectMapper, mappingBuilder);
     }
 }

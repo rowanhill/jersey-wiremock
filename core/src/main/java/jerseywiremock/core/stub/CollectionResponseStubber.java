@@ -12,7 +12,7 @@ import java.util.Collections;
 public abstract class CollectionResponseStubber<
         Entity,
         Self extends CollectionResponseStubber
-        > extends BaseResponseStubber<CollectionResponseStubber<Entity, Self>>
+        > extends BaseResponseStubber<Self>
 {
     private final Collection<Entity> entities;
 

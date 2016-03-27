@@ -6,14 +6,8 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 
-public abstract class SimpleEntityResponseStubber<
-        Entity,
-        Self extends SimpleEntityResponseStubber
-        > extends BaseResponseStubber<Self>
-{
-    private Entity entity;
-
-    public SimpleEntityResponseStubber(
+public abstract class EmptyResponseStubber<Self extends EmptyResponseStubber<Self>> extends BaseResponseStubber<Self> {
+    public EmptyResponseStubber(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
             MappingBuilder mappingBuilder
@@ -21,17 +15,10 @@ public abstract class SimpleEntityResponseStubber<
         super(wireMockServer, objectMapper, mappingBuilder);
     }
 
-    public Self withEntity(Entity entity) {
-        this.entity = entity;
-        //noinspection unchecked
-        return (Self) this;
-    }
-
     @Override
     protected void amendResponseDefinition(ResponseDefinitionBuilder responseDefinitionBuilder)
             throws JsonProcessingException
     {
-        String bodyString = objectMapper.writeValueAsString(entity);
-        responseDefinitionBuilder.withBody(bodyString);
+        // No-op: We don't want to add a body to the response
     }
 }

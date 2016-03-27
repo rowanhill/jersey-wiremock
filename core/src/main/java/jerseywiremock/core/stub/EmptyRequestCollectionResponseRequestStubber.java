@@ -9,7 +9,7 @@ import java.util.Collection;
 public abstract class EmptyRequestCollectionResponseRequestStubber<
         Entity,
         ResponseStubber extends CollectionResponseStubber<Entity, ResponseStubber>
-        > extends BaseRequestStubber
+        > extends BaseRequestStubber<ResponseStubber>
 {
     protected final Collection<Entity> initialCollection;
 
@@ -22,8 +22,6 @@ public abstract class EmptyRequestCollectionResponseRequestStubber<
         super(wireMockServer, objectMapper, mappingBuilder);
         this.initialCollection = initialCollection;
     }
-
-    public abstract ResponseStubber andRespond();
 
     @SafeVarargs
     public final ResponseStubber andRespondWith(Entity... items) {
