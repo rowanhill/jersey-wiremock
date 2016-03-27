@@ -1,4 +1,4 @@
-package jerseywiremock.annotations.handler.requestmapping.paramdescriptors;
+package jerseywiremock.annotations.handler.requestmatching.paramdescriptors;
 
 import jerseywiremock.annotations.ParamFormat;
 import jerseywiremock.annotations.ParamMatchedBy;
@@ -14,9 +14,9 @@ import javax.ws.rs.core.Context;
 import java.util.Date;
 import java.util.LinkedList;
 
-import static jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy.CONTAINING;
-import static jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy.EQUAL_TO;
-import static jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamType.*;
+import static jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamMatchingStrategy.CONTAINING;
+import static jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamMatchingStrategy.EQUAL_TO;
+import static jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 

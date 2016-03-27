@@ -1,4 +1,4 @@
-package jerseywiremock.annotations.handler.requestmapping.paramdescriptors;
+package jerseywiremock.annotations.handler.requestmatching.paramdescriptors;
 
 import jerseywiremock.formatter.ParamFormatter;
 

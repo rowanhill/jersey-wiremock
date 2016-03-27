@@ -1,11 +1,11 @@
-package jerseywiremock.annotations.handler.requestmapping;
+package jerseywiremock.annotations.handler.requestmatching;
 
 import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
 import com.google.common.collect.ImmutableMap;
-import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamFormatterInvoker;
-import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamType;
-import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParameterAnnotationsProcessor;
-import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParameterDescriptor;
+import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamFormatterInvoker;
+import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType;
+import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterAnnotationsProcessor;
+import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterDescriptor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,9 +20,9 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.LinkedList;
 
-import static jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy.*;
-import static jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamType.ENTITY;
-import static jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamType.QUERY;
+import static jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamMatchingStrategy.*;
+import static jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType.ENTITY;
+import static jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType.QUERY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;

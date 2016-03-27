@@ -1,11 +1,11 @@
-package jerseywiremock.annotations.handler.requestmapping;
+package jerseywiremock.annotations.handler.requestmatching;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.client.UrlMatchingStrategy;
 import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
-import jerseywiremock.annotations.handler.requestmapping.stubverbs.VerbMappingBuilderStrategy;
-import jerseywiremock.annotations.handler.requestmapping.verifyverbs.VerbRequestedForStrategy;
+import jerseywiremock.annotations.handler.requestmatching.stubverbs.VerbMappingBuilderStrategy;
+import jerseywiremock.annotations.handler.requestmatching.verifyverbs.VerbRequestedForStrategy;
 
 import java.util.Map;
 

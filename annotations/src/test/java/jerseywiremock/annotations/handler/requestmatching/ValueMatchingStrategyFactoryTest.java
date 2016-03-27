@@ -1,10 +1,10 @@
-package jerseywiremock.annotations.handler.requestmapping;
+package jerseywiremock.annotations.handler.requestmatching;
 
 import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
 import org.junit.Test;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy.*;
+import static jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamMatchingStrategy.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ValueMatchingStrategyFactoryTest {

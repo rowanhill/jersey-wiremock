@@ -1,4 +1,4 @@
-package jerseywiremock.annotations.handler.requestmapping.verifyverbs;
+package jerseywiremock.annotations.handler.requestmatching.verifyverbs;
 
 import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.client.UrlMatchingStrategy;

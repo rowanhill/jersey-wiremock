@@ -1,10 +1,10 @@
-package jerseywiremock.annotations.handler.requestmapping;
+package jerseywiremock.annotations.handler.requestmatching;
 
 import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
-import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamFormatterInvoker;
-import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamType;
-import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParameterAnnotationsProcessor;
-import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParameterDescriptor;
+import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamFormatterInvoker;
+import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType;
+import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterAnnotationsProcessor;
+import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterDescriptor;
 
 import javax.ws.rs.core.UriBuilder;
 import java.lang.reflect.Method;

@@ -32,7 +32,7 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.UriBuilder;
 import java.util.Collection;
 
-import static jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy.CONTAINING;
+import static jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamMatchingStrategy.CONTAINING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
