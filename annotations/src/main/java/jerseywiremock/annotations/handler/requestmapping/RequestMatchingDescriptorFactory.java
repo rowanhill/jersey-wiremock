@@ -71,14 +71,14 @@ public class RequestMatchingDescriptorFactory {
                             parameterDescriptor.getFormatterClass());
                 }
                 ValueMatchingStrategy valueMatchingStrategy = valueMatchingStrategyFactory
-                        .toValueMatchingStrategy(parameterDescriptor.getMatchingStrategy(), stringValue);
+                        .createValueMatchingStrategy(parameterDescriptor.getMatchingStrategy(), stringValue);
                 queryParamMatchingStrategies.put(parameterDescriptor.getParamName(), valueMatchingStrategy);
             } else { // Request entity
                 String formattedValue = paramFormatterInvoker.getFormattedParamValue(
                         rawParamValue,
                         parameterDescriptor.getFormatterClass());
                 requestBodyMatchingStrategy = valueMatchingStrategyFactory
-                        .toValueMatchingStrategy(parameterDescriptor.getMatchingStrategy(), formattedValue);
+                        .createValueMatchingStrategy(parameterDescriptor.getMatchingStrategy(), formattedValue);
             }
         }
 

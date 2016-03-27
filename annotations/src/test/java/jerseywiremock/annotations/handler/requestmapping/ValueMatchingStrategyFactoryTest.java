@@ -13,7 +13,7 @@ public class ValueMatchingStrategyFactoryTest {
     @Test
     public void strategyCanBeCreatedForEqualTo() {
         // when
-        ValueMatchingStrategy valueMatchingStrategy = factory.toValueMatchingStrategy(EQUAL_TO, "val");
+        ValueMatchingStrategy valueMatchingStrategy = factory.createValueMatchingStrategy(EQUAL_TO, "val");
 
         // then
         assertThat(valueMatchingStrategy).isEqualToComparingFieldByField(equalTo("val"));
@@ -22,7 +22,7 @@ public class ValueMatchingStrategyFactoryTest {
     @Test
     public void strategyCanBeCreatedForMatching() {
         // when
-        ValueMatchingStrategy valueMatchingStrategy = factory.toValueMatchingStrategy(MATCHING, "val");
+        ValueMatchingStrategy valueMatchingStrategy = factory.createValueMatchingStrategy(MATCHING, "val");
 
         // then
         assertThat(valueMatchingStrategy).isEqualToComparingFieldByField(matching("val"));
@@ -31,7 +31,7 @@ public class ValueMatchingStrategyFactoryTest {
     @Test
     public void strategyCanBeCreatedForContaining() {
         // when
-        ValueMatchingStrategy valueMatchingStrategy = factory.toValueMatchingStrategy(CONTAINING, "val");
+        ValueMatchingStrategy valueMatchingStrategy = factory.createValueMatchingStrategy(CONTAINING, "val");
 
         // then
         assertThat(valueMatchingStrategy).isEqualToComparingFieldByField(containing("val"));
@@ -40,7 +40,7 @@ public class ValueMatchingStrategyFactoryTest {
     @Test
     public void strategyCanBeCreatedForNotMatching() {
         // when
-        ValueMatchingStrategy valueMatchingStrategy = factory.toValueMatchingStrategy(NOT_MATCHING, "val");
+        ValueMatchingStrategy valueMatchingStrategy = factory.createValueMatchingStrategy(NOT_MATCHING, "val");
 
         // then
         assertThat(valueMatchingStrategy).isEqualToComparingFieldByField(notMatching("val"));

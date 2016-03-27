@@ -91,9 +91,9 @@ public class RequestMatchingDescriptorFactoryTest {
         // given
         ValueMatchingStrategy equalTo = new ValueMatchingStrategy();
         ValueMatchingStrategy containing = new ValueMatchingStrategy();
-        when(mockValueMatchingStrategyFactory.toValueMatchingStrategy(null, "1")).thenReturn(equalTo);
-        when(mockValueMatchingStrategyFactory.toValueMatchingStrategy(EQUAL_TO, "2")).thenReturn(equalTo);
-        when(mockValueMatchingStrategyFactory.toValueMatchingStrategy(CONTAINING, "3")).thenReturn(containing);
+        when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(null, "1")).thenReturn(equalTo);
+        when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(EQUAL_TO, "2")).thenReturn(equalTo);
+        when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(CONTAINING, "3")).thenReturn(containing);
         parameterDescriptors.add(new ParameterDescriptor(QUERY, "default", null, null));
         parameterDescriptors.add(new ParameterDescriptor(QUERY, "equalTo", null, EQUAL_TO));
         parameterDescriptors.add(new ParameterDescriptor(QUERY, "containing", null, CONTAINING));
@@ -118,7 +118,7 @@ public class RequestMatchingDescriptorFactoryTest {
         // given
         ValueMatchingStrategy matching = new ValueMatchingStrategy();
         parameterDescriptors.add(new ParameterDescriptor(ENTITY, null, null, MATCHING));
-        when(mockValueMatchingStrategyFactory.toValueMatchingStrategy(MATCHING, "formattedVal")).thenReturn(matching);
+        when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(MATCHING, "formattedVal")).thenReturn(matching);
 
         // when
         RequestMatchingDescriptor descriptor = descriptorFactory.createRequestMatchingDescriptor(
