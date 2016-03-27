@@ -21,7 +21,12 @@ public class ParameterAnnotationsProcessor {
             if (!isQueryOrPathOrUnannotated(targetSingleParamAnnotations)) {
                 continue;
             }
-            // TODO: Address mockerMethodParamIndex being out of bounds - means mocker method has too few params
+
+            if (mockerMethodParamIndex >= mockerMethodParameterAnnotations.length) {
+                throw new RuntimeException("Expected " + mockerMethod.getName() + " to have at least " +
+                        (mockerMethodParamIndex+1) + " params, but has " + mockerMethodParameterAnnotations.length);
+            }
+
             Annotation[] mockerSingleParamAnnotations = mockerMethodParameterAnnotations[mockerMethodParamIndex];
 
             ParameterDescriptor parameterDescriptor =

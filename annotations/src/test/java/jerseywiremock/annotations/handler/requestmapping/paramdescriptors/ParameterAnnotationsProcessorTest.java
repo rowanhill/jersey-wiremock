@@ -4,7 +4,9 @@ import jerseywiremock.annotations.ParamFormat;
 import jerseywiremock.annotations.ParamMatchedBy;
 import jerseywiremock.annotations.handler.util.ReflectionHelper;
 import jerseywiremock.formatter.ParamFormatter;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
@@ -19,6 +21,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 public class ParameterAnnotationsProcessorTest {
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
+
     private ParameterAnnotationsProcessor parameterAnnotationsProcessor = new ParameterAnnotationsProcessor();
 
     @Test
@@ -132,6 +137,13 @@ public class ParameterAnnotationsProcessorTest {
         assertThat(parameterDescriptors)
                 .extracting("paramType", "paramName", "formatterClass", "matchingStrategy")
                 .containsOnly(tuple(PATH, "one", null, null));
+    }
+
+    @Test
+    public void targetMethodWithMoreParamsThanMockerMethodCausesException() {
+        // when
+        expectedException.expectMessage("Expected noParams to have at least 1 params, but has 0");
+        createParameterDescriptors("pathParam", "noParams");
     }
 
     private LinkedList<ParameterDescriptor> createParameterDescriptors(String resourceMethod, String mockerMethod) {
