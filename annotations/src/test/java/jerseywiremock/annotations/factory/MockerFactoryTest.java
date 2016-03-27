@@ -7,10 +7,8 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableList;
 import io.dropwizard.jersey.params.DateTimeParam;
 import jerseywiremock.annotations.*;
-import jerseywiremock.core.stub.GetListRequestStubber;
-import jerseywiremock.core.stub.GetSingleRequestStubber;
-import jerseywiremock.core.stub.PostRequestStubber;
-import jerseywiremock.core.stub.PutRequestStubber;
+import jerseywiremock.core.stub.*;
+import jerseywiremock.core.verify.DeleteRequestVerifier;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import jerseywiremock.core.verify.PostRequestVerifier;
 import jerseywiremock.core.verify.PutRequestVerifier;
@@ -28,6 +26,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.util.Collection;
 
@@ -150,6 +149,19 @@ public class MockerFactoryTest {
     }
 
     @Test
+    public void deleteRequestWithBodyCanBeStubbedAndVerified() throws Exception {
+        // given
+        mocker.stubDeleteString(1).andRespond().stub();
+
+        // when
+        Response response = client.deleteString(1);
+
+        // then
+        assertThat(response.getStatus()).isEqualTo(204);
+        mocker.verifyDeleteString(1);
+    }
+
+    @Test
     public void callingInterfaceMethodWithWrongReturnTypeThrowsException() throws Exception {
         // given
         ObjectMapper objectMapper = new ObjectMapper();
@@ -192,6 +204,12 @@ public class MockerFactoryTest {
 
         @WireMockVerify("putString")
         PutRequestVerifier<String> verifyPutString(int id, String req);
+
+        @WireMockStub("deleteString")
+        DeleteRequestStubber stubDeleteString(int id);
+
+        @WireMockVerify("deleteString")
+        DeleteRequestVerifier verifyDeleteString(int id);
     }
 
     public static class StringWithId {
@@ -246,6 +264,11 @@ public class MockerFactoryTest {
         @Path("string/{id}")
         public StringWithId putString(@PathParam("id") int id, String entity) {
             return new StringWithId(id, entity);
+        }
+
+        @DELETE
+        @Path("string/{id}")
+        public void deleteString(@PathParam("id") int id) {
         }
     }
 
@@ -309,6 +332,19 @@ public class MockerFactoryTest {
                     .request()
                     .put(Entity.json(req))
                     .readEntity(StringWithId.class);
+        }
+
+        public Response deleteString(int id) {
+            return client
+                    .target(UriBuilder
+                            .fromResource(TestResource.class)
+                            .path(TestResource.class, "deleteString")
+                            .scheme("http")
+                            .host("localhost")
+                            .port(8080)
+                            .build(id))
+                    .request()
+                    .delete();
         }
     }
 }

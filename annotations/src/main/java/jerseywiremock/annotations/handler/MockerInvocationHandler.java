@@ -7,9 +7,11 @@ import jerseywiremock.annotations.WireMockStub;
 import jerseywiremock.annotations.WireMockVerify;
 import jerseywiremock.annotations.handler.requestmatching.RequestMatchingDescriptor;
 import jerseywiremock.annotations.handler.requestmatching.RequestMatchingDescriptorFactory;
+import jerseywiremock.annotations.handler.requestmatching.stubverbs.DeleteMappingBuilderStrategy;
 import jerseywiremock.annotations.handler.requestmatching.stubverbs.GetMappingBuilderStrategy;
 import jerseywiremock.annotations.handler.requestmatching.stubverbs.PostMappingBuilderStrategy;
 import jerseywiremock.annotations.handler.requestmatching.stubverbs.PutMappingBuilderStrategy;
+import jerseywiremock.annotations.handler.requestmatching.verifyverbs.DeleteRequestedForStrategy;
 import jerseywiremock.annotations.handler.requestmatching.verifyverbs.GetRequestedForStrategy;
 import jerseywiremock.annotations.handler.requestmatching.verifyverbs.PostRequestedForStrategy;
 import jerseywiremock.annotations.handler.requestmatching.verifyverbs.PutRequestedForStrategy;
@@ -17,10 +19,8 @@ import jerseywiremock.annotations.handler.resourcemethod.HttpVerb;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptor;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
 import jerseywiremock.annotations.handler.util.CollectionFactory;
-import jerseywiremock.core.stub.GetListRequestStubber;
-import jerseywiremock.core.stub.GetSingleRequestStubber;
-import jerseywiremock.core.stub.PostRequestStubber;
-import jerseywiremock.core.stub.PutRequestStubber;
+import jerseywiremock.core.stub.*;
+import jerseywiremock.core.verify.DeleteRequestVerifier;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import jerseywiremock.core.verify.PostRequestVerifier;
 import jerseywiremock.core.verify.PutRequestVerifier;
@@ -152,6 +152,34 @@ public class MockerInvocationHandler {
         return new PutRequestVerifier<>(mocker.wireMockServer, mocker.objectMapper, requestPatternBuilder);
     }
 
+    public DeleteRequestStubber handleStubDelete(
+            @AllArguments Object[] parameters,
+            @This BaseMocker mocker,
+            @Origin Method method
+    ) {
+        DescriptorsHolder descriptors = descriptorsForStubDelete(parameters, method);
+        MappingBuilder mappingBuilder = descriptors.requestMatchingDescriptor
+                .toMappingBuilder(new DeleteMappingBuilderStrategy());
+        ResponseDefinitionBuilder responseDefinitionBuilder = descriptors.resourceMethodDescriptor
+                .toResponseDefinitionBuilder();
+        return new DeleteRequestStubber(
+                mocker.wireMockServer,
+                mocker.objectMapper,
+                mappingBuilder,
+                responseDefinitionBuilder);
+    }
+
+    public DeleteRequestVerifier handleVerifyDeleteVerb(
+            @AllArguments Object[] parameters,
+            @This BaseMocker mocker,
+            @Origin Method method
+    ) {
+        DescriptorsHolder descriptors = descriptorsForVerifyDelete(parameters, method);
+        RequestPatternBuilder requestPatternBuilder = descriptors.requestMatchingDescriptor
+                .toRequestPatternBuilder(new DeleteRequestedForStrategy());
+        return new DeleteRequestVerifier(mocker.wireMockServer, requestPatternBuilder);
+    }
+
     private DescriptorsHolder descriptorsForStubGet(Object[] parameters, Method method) {
         return createDescriptors(parameters, method, WireMockStub.class, HttpVerb.GET);
     }
@@ -164,6 +192,10 @@ public class MockerInvocationHandler {
         return createDescriptors(parameters, method, WireMockStub.class, HttpVerb.PUT);
     }
 
+    private DescriptorsHolder descriptorsForStubDelete(Object[] parameters, Method method) {
+        return createDescriptors(parameters, method, WireMockStub.class, HttpVerb.DELETE);
+    }
+
     private DescriptorsHolder descriptorsForVerifyGet(Object[] parameters, Method method) {
         return createDescriptors(parameters, method, WireMockVerify.class, HttpVerb.GET);
     }
@@ -174,6 +206,10 @@ public class MockerInvocationHandler {
 
     private DescriptorsHolder descriptorsForVerifyPut(Object[] parameters, Method method) {
         return createDescriptors(parameters, method, WireMockVerify.class, HttpVerb.PUT);
+    }
+
+    private DescriptorsHolder descriptorsForVerifyDelete(Object[] parameters, Method method) {
+        return createDescriptors(parameters, method, WireMockVerify.class, HttpVerb.DELETE);
     }
 
     private DescriptorsHolder createDescriptors(

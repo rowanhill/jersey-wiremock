@@ -10,10 +10,8 @@ import jerseywiremock.annotations.handler.resourcemethod.HttpVerb;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptor;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
 import jerseywiremock.annotations.handler.util.CollectionFactory;
-import jerseywiremock.core.stub.GetListRequestStubber;
-import jerseywiremock.core.stub.GetSingleRequestStubber;
-import jerseywiremock.core.stub.PostRequestStubber;
-import jerseywiremock.core.stub.PutRequestStubber;
+import jerseywiremock.core.stub.*;
+import jerseywiremock.core.verify.DeleteRequestVerifier;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import jerseywiremock.core.verify.PostRequestVerifier;
 import jerseywiremock.core.verify.PutRequestVerifier;
@@ -190,6 +188,32 @@ public class MockerInvocationHandlerTest {
         // when
         PutRequestVerifier<Object> verifier =
                 handler.handleVerifyPutVerb(params, testMocker, mockerMethod);
+
+        // then
+        assertThat(verifier).isNotNull();
+    }
+
+    @Test
+    public void handlingStubDeleteCreatesDeleteRequestStubber() {
+        // given
+        stubResourceMethodDescriptorFor(WireMockStub.class);
+
+        // when
+        DeleteRequestStubber stubber =
+                handler.handleStubDelete(params, testMocker, mockerMethod);
+
+        // then
+        assertThat(stubber).isNotNull();
+    }
+
+    @Test
+    public void handlingVerifyDeleteCreatesDeleteRequestVerifier() {
+        // given
+        stubResourceMethodDescriptorFor(WireMockVerify.class);
+
+        // when
+        DeleteRequestVerifier verifier =
+                handler.handleVerifyDeleteVerb(params, testMocker, mockerMethod);
 
         // then
         assertThat(verifier).isNotNull();
