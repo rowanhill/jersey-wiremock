@@ -3,8 +3,6 @@ package jerseywiremock.annotations.handler;
 import jerseywiremock.annotations.WireMockForResource;
 import jerseywiremock.annotations.WireMockStub;
 import jerseywiremock.annotations.WireMockVerify;
-import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParameterDescriptorsFactory;
-import jerseywiremock.annotations.handler.requestmapping.RequestMappingDescriptorFactory;
 import jerseywiremock.annotations.handler.resourcemethod.HttpVerbDetector;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptor;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
@@ -23,10 +21,6 @@ public class ResourceMethodDescriptorFactoryTest {
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
-    @Mock
-    private ParameterDescriptorsFactory mockParameterDescriptorsFactory;
-    @Mock
-    private RequestMappingDescriptorFactory mockRequestMappingDescriptorFactory;
     @Mock
     private HttpVerbDetector mockHttpVerbDetector;
     @InjectMocks

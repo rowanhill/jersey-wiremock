@@ -1,10 +1,12 @@
-package jerseywiremock.annotations.handler.requestmapping.paramdescriptors;
+package jerseywiremock.annotations.handler.requestmapping;
 
 import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
+import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamMatchingStrategy;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 public class ValueMatchingStrategyFactory {
+    // TODO: Rename this method
     public ValueMatchingStrategy toValueMatchingStrategy(ParamMatchingStrategy matchingStrategy, String value) {
         switch (matchingStrategy) {
             case EQUAL_TO:

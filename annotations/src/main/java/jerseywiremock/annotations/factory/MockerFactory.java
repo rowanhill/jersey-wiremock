@@ -4,9 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import jerseywiremock.annotations.handler.BaseMocker;
 import jerseywiremock.annotations.handler.MockerInvocationHandler;
-import jerseywiremock.annotations.handler.requestmapping.RequestMappingDescriptorFactory;
-import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParameterDescriptorsFactory;
-import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ValueMatchingStrategyFactory;
+import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParamFormatterInvoker;
+import jerseywiremock.annotations.handler.requestmapping.paramdescriptors.ParameterAnnotationsProcessor;
+import jerseywiremock.annotations.handler.requestmapping.RequestMatchingDescriptorFactory;
+import jerseywiremock.annotations.handler.requestmapping.ValueMatchingStrategyFactory;
 import jerseywiremock.annotations.handler.resourcemethod.HttpVerbDetector;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
 import jerseywiremock.annotations.handler.util.CollectionFactory;
@@ -54,10 +55,13 @@ public class MockerFactory {
     }
 
     private MockerInvocationHandler createHandler() {
+        ParameterAnnotationsProcessor parameterAnnotationsProcessor = new ParameterAnnotationsProcessor();
+        ParamFormatterInvoker paramFormatterInvoker = new ParamFormatterInvoker();
         ValueMatchingStrategyFactory valueMatchingStrategyFactory = new ValueMatchingStrategyFactory();
-        ParameterDescriptorsFactory parameterDescriptorsFactory = new ParameterDescriptorsFactory(valueMatchingStrategyFactory);
-        RequestMappingDescriptorFactory requestMappingDescriptorFactory =
-                new RequestMappingDescriptorFactory(parameterDescriptorsFactory);
+        RequestMatchingDescriptorFactory requestMatchingDescriptorFactory = new RequestMatchingDescriptorFactory(
+                parameterAnnotationsProcessor,
+                paramFormatterInvoker,
+                valueMatchingStrategyFactory);
         HttpVerbDetector verbDetector = new HttpVerbDetector();
         ResourceMethodDescriptorFactory resourceMethodDescriptorFactory =
                 new ResourceMethodDescriptorFactory(verbDetector);
@@ -65,7 +69,7 @@ public class MockerFactory {
 
         return new MockerInvocationHandler(
                 resourceMethodDescriptorFactory,
-                requestMappingDescriptorFactory,
+                requestMatchingDescriptorFactory,
                 collectionFactory);
     }
 

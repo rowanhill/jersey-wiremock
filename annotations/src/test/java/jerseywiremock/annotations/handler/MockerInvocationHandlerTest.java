@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import jerseywiremock.annotations.WireMockStub;
 import jerseywiremock.annotations.WireMockVerify;
-import jerseywiremock.annotations.handler.requestmapping.RequestMappingDescriptor;
-import jerseywiremock.annotations.handler.requestmapping.RequestMappingDescriptorFactory;
+import jerseywiremock.annotations.handler.requestmapping.RequestMatchingDescriptor;
+import jerseywiremock.annotations.handler.requestmapping.RequestMatchingDescriptorFactory;
 import jerseywiremock.annotations.handler.resourcemethod.HttpVerb;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptor;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
@@ -24,6 +24,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import javax.ws.rs.core.UriBuilder;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
@@ -39,7 +40,7 @@ public class MockerInvocationHandlerTest {
     @Mock
     private ResourceMethodDescriptorFactory mockResourceMethodDescriptorFactory;
     @Mock
-    private RequestMappingDescriptorFactory mockRequestMappingDescriptorFactory;
+    private RequestMatchingDescriptorFactory mockRequestMatchingDescriptorFactory;
     @Mock
     private CollectionFactory mockCollectionFactory;
     @InjectMocks
@@ -47,21 +48,25 @@ public class MockerInvocationHandlerTest {
 
     private Object[] params;
     private TestMocker testMocker;
-    private Method method;
+    private Method mockerMethod;
     private ResourceMethodDescriptor mockDescriptor;
 
     @Before
     public void setUp() throws Exception {
         params = new Object[]{};
         testMocker = new TestMocker(null, null);
-        method = TestMocker.class.getDeclaredMethod("method");
+        mockerMethod = TestMocker.class.getDeclaredMethod("method");
+        UriBuilder uriBuilder = UriBuilder.fromPath("/test");
+        Method resourceMethod = TestResource.class.getDeclaredMethod("method");
 
         mockDescriptor = mock(ResourceMethodDescriptor.class);
         when(mockDescriptor.getMethodName()).thenReturn("method");
+        when(mockDescriptor.createUriBuilder()).thenReturn(uriBuilder);
+        when(mockDescriptor.getMethod()).thenReturn(resourceMethod);
 
-        RequestMappingDescriptor mockMappingDescriptor = mock(RequestMappingDescriptor.class);
-        when(mockRequestMappingDescriptorFactory.createMappingDescriptor(mockDescriptor, method, params))
-                .thenReturn(mockMappingDescriptor);
+        RequestMatchingDescriptor mockRequestMatchingDescriptor = mock(RequestMatchingDescriptor.class);
+        when(mockRequestMatchingDescriptorFactory.createRequestMatchingDescriptor(resourceMethod, mockerMethod, params, uriBuilder))
+                .thenReturn(mockRequestMatchingDescriptor);
     }
 
     @Test
@@ -70,7 +75,7 @@ public class MockerInvocationHandlerTest {
         stubResourceMethodDescriptorFor(WireMockStub.class);
 
         // when
-        GetSingleRequestStubber<Object> getRequestStubber = handler.handleStubGet(params, testMocker, method);
+        GetSingleRequestStubber<Object> getRequestStubber = handler.handleStubGet(params, testMocker, mockerMethod);
 
         // then
         assertThat(getRequestStubber).isNotNull();
@@ -85,7 +90,7 @@ public class MockerInvocationHandlerTest {
 
         // when
         expectedException.expect(is(rte));
-        handler.handleStubGet(params, testMocker, method);
+        handler.handleStubGet(params, testMocker, mockerMethod);
     }
 
     @Test
@@ -94,7 +99,7 @@ public class MockerInvocationHandlerTest {
         stubResourceMethodDescriptorFor(WireMockStub.class);
 
         // when
-        GetListRequestStubber<Object> listRequestStubber = handler.handleStubList(params, testMocker, method);
+        GetListRequestStubber<Object> listRequestStubber = handler.handleStubList(params, testMocker, mockerMethod);
 
         // then
         assertThat(listRequestStubber).isNotNull();
@@ -109,7 +114,7 @@ public class MockerInvocationHandlerTest {
 
         // when
         expectedException.expect(is(rte));
-        handler.handleStubList(params, testMocker, method);
+        handler.handleStubList(params, testMocker, mockerMethod);
     }
 
     @Test
@@ -118,7 +123,7 @@ public class MockerInvocationHandlerTest {
         stubResourceMethodDescriptorFor(WireMockVerify.class);
 
         // when
-        GetRequestVerifier getRequestVerifier = handler.handleVerifyGetVerb(params, testMocker, method);
+        GetRequestVerifier getRequestVerifier = handler.handleVerifyGetVerb(params, testMocker, mockerMethod);
 
         // then
         assertThat(getRequestVerifier).isNotNull();
@@ -133,7 +138,7 @@ public class MockerInvocationHandlerTest {
 
         // when
         expectedException.expect(is(rte));
-        handler.handleVerifyGetVerb(params, testMocker, method);
+        handler.handleVerifyGetVerb(params, testMocker, mockerMethod);
     }
 
     @Test
@@ -143,7 +148,7 @@ public class MockerInvocationHandlerTest {
 
         // when
         PostRequestStubber<Object, Object> stubber =
-                handler.handleStubPost(params, testMocker, method);
+                handler.handleStubPost(params, testMocker, mockerMethod);
 
         // then
         assertThat(stubber).isNotNull();
@@ -156,14 +161,14 @@ public class MockerInvocationHandlerTest {
 
         // when
         PostRequestVerifier<Object> verifier =
-                handler.handleVerifyPostVerb(params, testMocker, method);
+                handler.handleVerifyPostVerb(params, testMocker, mockerMethod);
 
         // then
         assertThat(verifier).isNotNull();
     }
 
     private void stubResourceMethodDescriptorFor(Class<? extends Annotation> methodAnnotation) {
-        when(mockResourceMethodDescriptorFactory.constructMethodDescriptor(method, methodAnnotation))
+        when(mockResourceMethodDescriptorFactory.constructMethodDescriptor(mockerMethod, methodAnnotation))
                 .thenReturn(mockDescriptor);
     }
 
@@ -173,6 +178,11 @@ public class MockerInvocationHandlerTest {
             super(wireMockServer, objectMapper);
         }
 
+        void method() {}
+    }
+
+    @SuppressWarnings("unused")
+    private static class TestResource {
         void method() {}
     }
 }

@@ -1,5 +1,12 @@
 package jerseywiremock.annotations.handler.resourcemethod;
 
+import jerseywiremock.annotations.handler.util.ReflectionHelper;
+
+import javax.ws.rs.Path;
+import javax.ws.rs.core.UriBuilder;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+
 public class ResourceMethodDescriptor {
     private final Class<?> resourceClass;
     private final String methodName;
@@ -30,6 +37,13 @@ public class ResourceMethodDescriptor {
     }
 
     /**
+     * @return The method on the Jersey resource being described, looked up by reflection
+     */
+    public Method getMethod() {
+        return ReflectionHelper.getMethod(resourceClass, methodName);
+    }
+
+    /**
      * Throws a RuntimeException if the resource method was not annotated with the expected HTTP verb
      */
     public void assertVerb(HttpVerb verb) {
@@ -37,5 +51,18 @@ public class ResourceMethodDescriptor {
             throw new RuntimeException("Expected " + methodName + " to be annotated with @"
                     + verb.getAnnotation().getSimpleName());
         }
+    }
+
+    public UriBuilder createUriBuilder() {
+        Method method = ReflectionHelper.getMethod(resourceClass, methodName);
+
+        UriBuilder uriBuilder = UriBuilder.fromResource(resourceClass);
+        for (Annotation methodAnnotation : method.getDeclaredAnnotations()) {
+            if (methodAnnotation.annotationType().equals(Path.class)) {
+                uriBuilder.path(method);
+            }
+        }
+
+        return  uriBuilder;
     }
 }

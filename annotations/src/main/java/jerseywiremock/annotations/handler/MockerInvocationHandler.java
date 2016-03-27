@@ -4,8 +4,8 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 import jerseywiremock.annotations.WireMockStub;
 import jerseywiremock.annotations.WireMockVerify;
-import jerseywiremock.annotations.handler.requestmapping.RequestMappingDescriptor;
-import jerseywiremock.annotations.handler.requestmapping.RequestMappingDescriptorFactory;
+import jerseywiremock.annotations.handler.requestmapping.RequestMatchingDescriptor;
+import jerseywiremock.annotations.handler.requestmapping.RequestMatchingDescriptorFactory;
 import jerseywiremock.annotations.handler.requestmapping.stubverbs.GetMappingBuilderStrategy;
 import jerseywiremock.annotations.handler.requestmapping.stubverbs.PostMappingBuilderStrategy;
 import jerseywiremock.annotations.handler.requestmapping.verifyverbs.GetRequestedForStrategy;
@@ -29,16 +29,16 @@ import java.util.Collection;
 
 public class MockerInvocationHandler {
     private final ResourceMethodDescriptorFactory resourceMethodDescriptorFactory;
-    private final RequestMappingDescriptorFactory requestMappingDescriptorFactory;
+    private final RequestMatchingDescriptorFactory requestMatchingDescriptorFactory;
     private final CollectionFactory collectionFactory;
 
     public MockerInvocationHandler(
             ResourceMethodDescriptorFactory resourceMethodDescriptorFactory,
-            RequestMappingDescriptorFactory requestMappingDescriptorFactory,
+            RequestMatchingDescriptorFactory requestMatchingDescriptorFactory,
             CollectionFactory collectionFactory
     ) {
         this.resourceMethodDescriptorFactory = resourceMethodDescriptorFactory;
-        this.requestMappingDescriptorFactory = requestMappingDescriptorFactory;
+        this.requestMatchingDescriptorFactory = requestMatchingDescriptorFactory;
         this.collectionFactory = collectionFactory;
     }
 
@@ -48,7 +48,7 @@ public class MockerInvocationHandler {
             @Origin Method method
     ) {
         DescriptorsHolder descriptors = descriptorsForStubGet(parameters, method);
-        MappingBuilder mappingBuilder = descriptors.requestMappingDescriptor
+        MappingBuilder mappingBuilder = descriptors.requestMatchingDescriptor
                 .toMappingBuilder(new GetMappingBuilderStrategy());
         return new GetSingleRequestStubber<>(
                 mocker.wireMockServer,
@@ -62,7 +62,7 @@ public class MockerInvocationHandler {
             @Origin Method method
     ) {
         DescriptorsHolder descriptors = descriptorsForStubGet(parameters, method);
-        MappingBuilder mappingBuilder = descriptors.requestMappingDescriptor
+        MappingBuilder mappingBuilder = descriptors.requestMatchingDescriptor
                 .toMappingBuilder(new GetMappingBuilderStrategy());
         Collection<T> collection = collectionFactory.createCollection(
                 descriptors.resourceMethodDescriptor.getResourceClass(),
@@ -80,7 +80,7 @@ public class MockerInvocationHandler {
             @Origin Method method
     ) {
         DescriptorsHolder descriptors = descriptorsForVerifyGet(parameters, method);
-        RequestPatternBuilder requestPatternBuilder = descriptors.requestMappingDescriptor
+        RequestPatternBuilder requestPatternBuilder = descriptors.requestMatchingDescriptor
                 .toRequestPatternBuilder(new GetRequestedForStrategy());
         return new GetRequestVerifier(mocker.wireMockServer, requestPatternBuilder);
     }
@@ -91,7 +91,7 @@ public class MockerInvocationHandler {
             @Origin Method method
     ) {
         DescriptorsHolder descriptors = descriptorsForStubPost(parameters, method);
-        MappingBuilder mappingBuilder = descriptors.requestMappingDescriptor
+        MappingBuilder mappingBuilder = descriptors.requestMatchingDescriptor
                 .toMappingBuilder(new PostMappingBuilderStrategy());
         return new PostRequestStubber<>(
                 mocker.wireMockServer,
@@ -105,7 +105,7 @@ public class MockerInvocationHandler {
             @Origin Method method
     ) {
         DescriptorsHolder descriptors = descriptorsForVerifyPost(parameters, method);
-        RequestPatternBuilder requestPatternBuilder = descriptors.requestMappingDescriptor
+        RequestPatternBuilder requestPatternBuilder = descriptors.requestMatchingDescriptor
                 .toRequestPatternBuilder(new PostRequestedForStrategy());
         return new PostRequestVerifier<>(mocker.wireMockServer, mocker.objectMapper, requestPatternBuilder);
     }
@@ -137,22 +137,26 @@ public class MockerInvocationHandler {
 
         methodDescriptor.assertVerb(verb);
 
-        RequestMappingDescriptor mappingDescriptor = requestMappingDescriptorFactory
-                .createMappingDescriptor(methodDescriptor, method, parameters);
+        RequestMatchingDescriptor requestMatchingDescriptor = requestMatchingDescriptorFactory
+                .createRequestMatchingDescriptor(
+                        methodDescriptor.getMethod(),
+                        method,
+                        parameters,
+                        methodDescriptor.createUriBuilder());
 
-        return new DescriptorsHolder(methodDescriptor, mappingDescriptor);
+        return new DescriptorsHolder(methodDescriptor, requestMatchingDescriptor);
     }
 
     private static class DescriptorsHolder {
         private final ResourceMethodDescriptor resourceMethodDescriptor;
-        private final RequestMappingDescriptor requestMappingDescriptor;
+        private final RequestMatchingDescriptor requestMatchingDescriptor;
 
         public DescriptorsHolder(
                 ResourceMethodDescriptor resourceMethodDescriptor,
-                RequestMappingDescriptor requestMappingDescriptor
+                RequestMatchingDescriptor requestMatchingDescriptor
         ) {
             this.resourceMethodDescriptor = resourceMethodDescriptor;
-            this.requestMappingDescriptor = requestMappingDescriptor;
+            this.requestMatchingDescriptor = requestMatchingDescriptor;
         }
     }
 }

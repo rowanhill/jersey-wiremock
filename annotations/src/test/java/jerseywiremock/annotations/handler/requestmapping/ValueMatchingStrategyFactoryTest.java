@@ -1,4 +1,4 @@
-package jerseywiremock.annotations.handler.requestmapping.paramdescriptors;
+package jerseywiremock.annotations.handler.requestmapping;
 
 import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
 import org.junit.Test;

@@ -11,12 +11,12 @@ import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
-public class RequestMappingDescriptor {
+public class RequestMatchingDescriptor {
     private final String urlPath;
     private final Map<String, ValueMatchingStrategy> queryParamMatchingStrategies;
     private final ValueMatchingStrategy requestBodyMatchingStrategy;
 
-    public RequestMappingDescriptor(
+    RequestMatchingDescriptor(
             String urlPath,
             Map<String, ValueMatchingStrategy> queryParamMatchingStrategies,
             ValueMatchingStrategy requestBodyMatchingStrategy
