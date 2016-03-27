@@ -1,14 +1,20 @@
-package jerseywiremock.core.stub;
+package jerseywiremock.core.stub.request;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import jerseywiremock.core.stub.response.PostResponseStubber;
 
-public class DeleteRequestStubber<Entity>
-        extends EmptyRequestSimpleResponseRequestStubber<Entity, DeleteResponseStubber<Entity>>
+public class PostRequestStubber<RequestEntity, ResponseEntity>
+        extends RequestAndResponseRequestStubber<
+        RequestEntity,
+        ResponseEntity,
+        PostResponseStubber<ResponseEntity>,
+        PostRequestStubber<RequestEntity, ResponseEntity>
+        >
 {
-    public DeleteRequestStubber(
+    public PostRequestStubber(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
             MappingBuilder mappingBuilder,
@@ -17,7 +23,7 @@ public class DeleteRequestStubber<Entity>
         super(wireMockServer, objectMapper, mappingBuilder, responseDefinitionBuilder);
     }
 
-    public DeleteRequestStubber(
+    public PostRequestStubber(
             WireMockServer wireMockServer,
             ObjectMapper objectMapper,
             MappingBuilder mappingBuilder
@@ -26,7 +32,7 @@ public class DeleteRequestStubber<Entity>
     }
 
     @Override
-    public DeleteResponseStubber<Entity> andRespond() {
-        return new DeleteResponseStubber<>(wireMockServer, objectMapper, mappingBuilder, responseDefinitionBuilder);
+    public PostResponseStubber<ResponseEntity> andRespond() {
+        return new PostResponseStubber<>(wireMockServer, objectMapper, mappingBuilder, responseDefinitionBuilder);
     }
 }

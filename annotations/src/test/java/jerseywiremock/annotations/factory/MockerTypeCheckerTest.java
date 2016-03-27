@@ -1,7 +1,7 @@
 package jerseywiremock.annotations.factory;
 
 import com.google.common.collect.ImmutableList;
-import jerseywiremock.core.stub.GetSingleRequestStubber;
+import jerseywiremock.core.stub.request.GetSingleRequestStubber;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import org.junit.Rule;
 import org.junit.Test;

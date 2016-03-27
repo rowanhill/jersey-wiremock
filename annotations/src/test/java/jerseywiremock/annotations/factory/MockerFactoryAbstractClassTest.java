@@ -8,7 +8,7 @@ import jerseywiremock.annotations.WireMockForResource;
 import jerseywiremock.annotations.WireMockStub;
 import jerseywiremock.annotations.WireMockVerify;
 import jerseywiremock.annotations.handler.BaseMocker;
-import jerseywiremock.core.stub.GetSingleRequestStubber;
+import jerseywiremock.core.stub.request.GetSingleRequestStubber;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import org.junit.Before;
 import org.junit.Rule;

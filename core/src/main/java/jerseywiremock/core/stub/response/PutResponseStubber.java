@@ -1,4 +1,4 @@
-package jerseywiremock.core.stub;
+package jerseywiremock.core.stub.response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;

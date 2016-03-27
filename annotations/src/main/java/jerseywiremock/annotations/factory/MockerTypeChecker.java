@@ -1,6 +1,6 @@
 package jerseywiremock.annotations.factory;
 
-import jerseywiremock.core.stub.BaseRequestStubber;
+import jerseywiremock.core.stub.request.BaseRequestStubber;
 import jerseywiremock.core.verify.BaseRequestVerifier;
 
 import java.lang.reflect.Method;

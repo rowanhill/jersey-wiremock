@@ -1,9 +1,10 @@
-package jerseywiremock.core.stub;
+package jerseywiremock.core.stub.request;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import jerseywiremock.core.stub.response.BaseResponseStubber;
 
 public abstract class BaseRequestStubber<ResponseStubber extends BaseResponseStubber<ResponseStubber>> {
     protected final WireMockServer wireMockServer;

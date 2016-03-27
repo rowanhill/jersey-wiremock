@@ -1,4 +1,4 @@
-package jerseywiremock.core.stub;
+package jerseywiremock.core.stub.request;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
+import jerseywiremock.core.stub.response.SimpleEntityResponseStubber;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 
