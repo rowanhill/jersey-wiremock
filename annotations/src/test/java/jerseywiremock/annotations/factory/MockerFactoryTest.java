@@ -10,8 +10,10 @@ import jerseywiremock.annotations.*;
 import jerseywiremock.core.stub.GetListRequestStubber;
 import jerseywiremock.core.stub.GetSingleRequestStubber;
 import jerseywiremock.core.stub.PostRequestStubber;
+import jerseywiremock.core.stub.PutRequestStubber;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import jerseywiremock.core.verify.PostRequestVerifier;
+import jerseywiremock.core.verify.PutRequestVerifier;
 import jerseywiremock.formatter.ParamFormatter;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import org.joda.time.DateTime;
@@ -21,10 +23,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -138,6 +137,19 @@ public class MockerFactoryTest {
     }
 
     @Test
+    public void putRequestWithBodyCanBeStubbedAndVerified() throws Exception {
+        // given
+        mocker.stubPutString(1, "updated").andRespondWith(new StringWithId(1, "updated")).stub();
+
+        // when
+        StringWithId response = client.putString(1, "updated");
+
+        // then
+        assertThat(response).isEqualToComparingFieldByField(new StringWithId(1, "updated"));
+        mocker.verifyPutString(1, "updated");
+    }
+
+    @Test
     public void callingInterfaceMethodWithWrongReturnTypeThrowsException() throws Exception {
         // given
         ObjectMapper objectMapper = new ObjectMapper();
@@ -174,6 +186,12 @@ public class MockerFactoryTest {
 
         @WireMockVerify("postString")
         PostRequestVerifier<String> verifyPostStringContaining(@ParamMatchedBy(CONTAINING) String req);
+
+        @WireMockStub("putString")
+        PutRequestStubber<String, StringWithId> stubPutString(int id, String req);
+
+        @WireMockVerify("putString")
+        PutRequestVerifier<String> verifyPutString(int id, String req);
     }
 
     public static class StringWithId {
@@ -220,8 +238,14 @@ public class MockerFactoryTest {
 
         @POST
         @Path("string")
-        public String postString(String entity) {
-            return entity;
+        public StringWithId postString(String entity) {
+            return new StringWithId(1, entity);
+        }
+
+        @PUT
+        @Path("string/{id}")
+        public StringWithId putString(@PathParam("id") int id, String entity) {
+            return new StringWithId(id, entity);
         }
     }
 
@@ -270,6 +294,20 @@ public class MockerFactoryTest {
                             .port(8080))
                     .request()
                     .post(Entity.json(req))
+                    .readEntity(StringWithId.class);
+        }
+
+        public StringWithId putString(int id, String req) {
+            return client
+                    .target(UriBuilder
+                            .fromResource(TestResource.class)
+                            .path(TestResource.class, "putString")
+                            .scheme("http")
+                            .host("localhost")
+                            .port(8080)
+                            .build(id))
+                    .request()
+                    .put(Entity.json(req))
                     .readEntity(StringWithId.class);
         }
     }

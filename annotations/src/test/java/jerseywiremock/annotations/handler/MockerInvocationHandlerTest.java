@@ -13,8 +13,10 @@ import jerseywiremock.annotations.handler.util.CollectionFactory;
 import jerseywiremock.core.stub.GetListRequestStubber;
 import jerseywiremock.core.stub.GetSingleRequestStubber;
 import jerseywiremock.core.stub.PostRequestStubber;
+import jerseywiremock.core.stub.PutRequestStubber;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import jerseywiremock.core.verify.PostRequestVerifier;
+import jerseywiremock.core.verify.PutRequestVerifier;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -162,6 +164,32 @@ public class MockerInvocationHandlerTest {
         // when
         PostRequestVerifier<Object> verifier =
                 handler.handleVerifyPostVerb(params, testMocker, mockerMethod);
+
+        // then
+        assertThat(verifier).isNotNull();
+    }
+
+    @Test
+    public void handlingStubPutCreatesPutRequestStubber() {
+        // given
+        stubResourceMethodDescriptorFor(WireMockStub.class);
+
+        // when
+        PutRequestStubber<Object, Object> stubber =
+                handler.handleStubPut(params, testMocker, mockerMethod);
+
+        // then
+        assertThat(stubber).isNotNull();
+    }
+
+    @Test
+    public void handlingVerifyPutCreatesPutRequestVerifier() {
+        // given
+        stubResourceMethodDescriptorFor(WireMockVerify.class);
+
+        // when
+        PutRequestVerifier<Object> verifier =
+                handler.handleVerifyPutVerb(params, testMocker, mockerMethod);
 
         // then
         assertThat(verifier).isNotNull();
