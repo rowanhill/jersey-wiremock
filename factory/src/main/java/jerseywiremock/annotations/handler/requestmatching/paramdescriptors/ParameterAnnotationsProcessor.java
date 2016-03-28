@@ -19,7 +19,7 @@ public class ParameterAnnotationsProcessor {
 
         int mockerMethodParamIndex = 0;
         for (Annotation[] targetSingleParamAnnotations : targetMethodParameterAnnotations) {
-            if (!isQueryOrPathOrUnannotated(targetSingleParamAnnotations)) {
+            if (!includesQueryOrPathParams(targetSingleParamAnnotations)) {
                 continue;
             }
 
@@ -39,22 +39,9 @@ public class ParameterAnnotationsProcessor {
         return parameterDescriptors;
     }
 
-    private boolean isQueryOrPathOrUnannotated(Annotation[] annotations) {
-        return includesQueryOrPathParams(annotations) || !includesJaxRsAnnotation(annotations);
-    }
-
     private boolean includesQueryOrPathParams(Annotation[] annotations) {
         for (Annotation annotation : annotations) {
             if (annotation instanceof QueryParam || annotation instanceof PathParam) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean includesJaxRsAnnotation(Annotation[] annotations) {
-        for (Annotation annotation : annotations) {
-            if (annotation.annotationType().getPackage().getName().startsWith("javax.ws.rs")) {
                 return true;
             }
         }
@@ -71,7 +58,7 @@ public class ParameterAnnotationsProcessor {
 
         // Param matching strategies do not make sense for path params, so are ignored
         ParamMatchingStrategy matchingStrategy = null;
-        if (paramType == ParamType.QUERY || paramType == ParamType.ENTITY) {
+        if (paramType == ParamType.QUERY) {
             matchingStrategy = getParamMatchingStrategy(mockerParamAnnotations);
         }
 
@@ -86,7 +73,7 @@ public class ParameterAnnotationsProcessor {
                 return ((PathParam) annotation).value();
             }
         }
-        return null;
+        throw new RuntimeException("Trying to create ParameterDescriptor for neither @QueryParam nor @PathParam");
     }
 
     private Class<? extends ParamFormatter> getParamFormatter(Annotation[] annotations) {
@@ -106,7 +93,7 @@ public class ParameterAnnotationsProcessor {
                 return ParamType.PATH;
             }
         }
-        return ParamType.ENTITY;
+        throw new RuntimeException("Trying to create ParameterDescriptor for neither @QueryParam nor @PathParam");
     }
 
     private ParamMatchingStrategy getParamMatchingStrategy(Annotation[] annotations) {

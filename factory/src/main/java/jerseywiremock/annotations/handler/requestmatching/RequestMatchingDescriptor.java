@@ -15,16 +15,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 public class RequestMatchingDescriptor {
     private final String urlPath;
     private final ListMultimap<String, ValueMatchingStrategy> queryParamMatchingStrategies;
-    private final ValueMatchingStrategy requestBodyMatchingStrategy;
 
     RequestMatchingDescriptor(
             String urlPath,
-            ListMultimap<String, ValueMatchingStrategy> queryParamMatchingStrategies,
-            ValueMatchingStrategy requestBodyMatchingStrategy
+            ListMultimap<String, ValueMatchingStrategy> queryParamMatchingStrategies
     ) {
         this.urlPath = urlPath;
         this.queryParamMatchingStrategies = queryParamMatchingStrategies;
-        this.requestBodyMatchingStrategy = requestBodyMatchingStrategy;
     }
 
     public MappingBuilder toMappingBuilder(VerbMappingBuilderStrategy verbMappingBuilderStrategy) {
@@ -32,9 +29,6 @@ public class RequestMatchingDescriptor {
         MappingBuilder mappingBuilder = verbMappingBuilderStrategy.verb(urlMatchingStrategy);
         for (Map.Entry<String, ValueMatchingStrategy> entry : queryParamMatchingStrategies.entries()) {
             mappingBuilder.withQueryParam(entry.getKey(), entry.getValue());
-        }
-        if (requestBodyMatchingStrategy != null) {
-            mappingBuilder.withRequestBody(requestBodyMatchingStrategy);
         }
         return mappingBuilder;
     }
@@ -44,9 +38,6 @@ public class RequestMatchingDescriptor {
         RequestPatternBuilder patternBuilder = verbRequestedForStrategy.verbRequestedFor(urlMatchingStrategy);
         for (Map.Entry<String, ValueMatchingStrategy> entry : queryParamMatchingStrategies.entries()) {
             patternBuilder.withQueryParam(entry.getKey(), entry.getValue());
-        }
-        if (requestBodyMatchingStrategy != null) {
-            patternBuilder.withRequestBody(requestBodyMatchingStrategy);
         }
         return patternBuilder;
     }

@@ -7,12 +7,12 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableList;
 import io.dropwizard.jersey.params.DateTimeParam;
 import jerseywiremock.annotations.*;
+import jerseywiremock.annotations.formatter.ParamFormatter;
 import jerseywiremock.core.stub.request.*;
 import jerseywiremock.core.verify.DeleteRequestVerifier;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import jerseywiremock.core.verify.PostRequestVerifier;
 import jerseywiremock.core.verify.PutRequestVerifier;
-import jerseywiremock.annotations.formatter.ParamFormatter;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
@@ -30,6 +30,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.util.Collection;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static jerseywiremock.annotations.ParamMatchingStrategy.CONTAINING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -95,57 +96,57 @@ public class MockerFactoryTest {
     @Test
     public void postRequestWithBodyCanBeStubbedAndVerified() throws Exception {
         // given
-        mocker.stubPostString("req").andRespondWith(new StringWithId(1, "req")).stub();
+        mocker.stubPostString().withRequestEntity(new StringHolder("req")).andRespondWith(new StringWithId(1, "req")).stub();
 
         // when
-        StringWithId response = client.postString("req");
+        StringWithId response = client.postString(new StringHolder("req"));
 
         // then
         assertThat(response).isEqualToComparingFieldByField(new StringWithId(1, "req"));
-        mocker.verifyPostString("req");
+        mocker.verifyPostString().withRequestEntity(new StringHolder("req"));
     }
 
     @Test
     public void postRequestWithBodyIsNotMatchedIfWrongRequestBodyIsGiven() throws Exception {
         // given
-        mocker.stubPostString("expected").andRespondWith(null).stub();
+        mocker.stubPostString().withRequestEntity(new StringHolder("expected")).andRespondWith(null).stub();
 
         // when
         try {
-            client.postString("wrong");
+            client.postString(new StringHolder("wrong"));
             fail("Expected MessageBodyProviderNotFoundException when POSTing a string not matched");
         } catch (MessageBodyProviderNotFoundException ignored) {
             // This exception is required - WireMock will return HTML in the 404, which the client can't parse
         }
 
         // then
-        mocker.verifyPostString("expected").times(0).verify();
+        mocker.verifyPostString().withRequestEntity(new StringHolder("expected")).times(0).verify();
     }
 
     @Test
     public void postRequestWithRequestBodyMatchedByContainingCanBeStubbedAndVerified() throws Exception {
         // given
-        mocker.stubPostStringContaining("quest").andRespondWith(new StringWithId(1, "req")).stub();
+        mocker.stubPostString().withRequestBody(containing("quest")).andRespondWith(new StringWithId(1, "req")).stub();
 
         // when
-        StringWithId response = client.postString("Request string");
+        StringWithId response = client.postString(new StringHolder("Request string"));
 
         // then
         assertThat(response).isEqualToComparingFieldByField(new StringWithId(1, "req"));
-            mocker.verifyPostStringContaining("quest");
+        mocker.verifyPostString().withRequestBody(containing("quest")).verify();
     }
 
     @Test
     public void putRequestWithBodyCanBeStubbedAndVerified() throws Exception {
         // given
-        mocker.stubPutString(1, "updated").andRespondWith(new StringWithId(1, "updated")).stub();
+        mocker.stubPutString(1).withRequestEntity(new StringHolder("updated")).andRespondWith(new StringWithId(1, "updated")).stub();
 
         // when
-        StringWithId response = client.putString(1, "updated");
+        StringWithId response = client.putString(1, new StringHolder("updated"));
 
         // then
         assertThat(response).isEqualToComparingFieldByField(new StringWithId(1, "updated"));
-        mocker.verifyPutString(1, "updated");
+        mocker.verifyPutString(1).withRequestEntity(new StringHolder("updated"));
     }
 
     @Test
@@ -188,22 +189,16 @@ public class MockerFactoryTest {
         GetListRequestStubber<Integer> stubGetIntsByDateContaining(@ParamMatchedBy(CONTAINING) String dateSubstring);
 
         @WireMockStub("postString")
-        PostRequestStubber<String, StringWithId> stubPostString(String req);
+        PostRequestStubber<StringHolder, StringWithId> stubPostString();
 
         @WireMockVerify("postString")
-        PostRequestVerifier<String> verifyPostString(String req);
-
-        @WireMockStub("postString")
-        PostRequestStubber<String, StringWithId> stubPostStringContaining(@ParamMatchedBy(CONTAINING) String req);
-
-        @WireMockVerify("postString")
-        PostRequestVerifier<String> verifyPostStringContaining(@ParamMatchedBy(CONTAINING) String req);
+        PostRequestVerifier<StringHolder> verifyPostString();
 
         @WireMockStub("putString")
-        PutRequestStubber<String, StringWithId> stubPutString(int id, String req);
+        PutRequestStubber<StringHolder, StringWithId> stubPutString(int id);
 
         @WireMockVerify("putString")
-        PutRequestVerifier<String> verifyPutString(int id, String req);
+        PutRequestVerifier<StringHolder> verifyPutString(int id);
 
         @WireMockStub("deleteString")
         DeleteRequestStubber stubDeleteString(int id);
@@ -225,6 +220,20 @@ public class MockerFactoryTest {
 
         public StringWithId(int id, String string) {
             this.id = id;
+            this.string = string;
+        }
+    }
+
+    public static class StringHolder {
+        @JsonProperty
+        public String string;
+
+        @SuppressWarnings("unused")
+        public StringHolder() {
+            // Jackson
+        }
+
+        public StringHolder(String string) {
             this.string = string;
         }
     }
@@ -307,7 +316,7 @@ public class MockerFactoryTest {
                     .readEntity(new GenericType<Collection<Integer>>(){});
         }
 
-        public StringWithId postString(String req) {
+        public StringWithId postString(StringHolder req) {
             return client
                     .target(UriBuilder
                             .fromResource(TestResource.class)
@@ -320,7 +329,7 @@ public class MockerFactoryTest {
                     .readEntity(StringWithId.class);
         }
 
-        public StringWithId putString(int id, String req) {
+        public StringWithId putString(int id, StringHolder req) {
             return client
                     .target(UriBuilder
                             .fromResource(TestResource.class)

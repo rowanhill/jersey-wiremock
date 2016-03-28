@@ -70,15 +70,13 @@ public class ParameterAnnotationsProcessorTest {
     }
 
     @Test
-    public void targetMethodWithOneUnannotatedParamProducesEntityParamDescriptor() {
+    public void targetMethodWithOneUnannotatedParamProducesNoParamDescriptors() {
         // when
         LinkedList<ParameterDescriptor> parameterDescriptors =
                 createParameterDescriptors("unannotatedParam", "oneNakedParam");
 
         // then
-        assertThat(parameterDescriptors)
-                .extracting("paramType", "paramName", "formatterClass", "matchingStrategy")
-                .containsOnly(tuple(ENTITY, null, null, EQUAL_TO));
+        assertThat(parameterDescriptors).isEmpty();
     }
 
     @Test

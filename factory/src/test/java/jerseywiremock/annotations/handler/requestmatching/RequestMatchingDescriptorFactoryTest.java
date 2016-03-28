@@ -21,7 +21,6 @@ import java.net.URI;
 import java.util.LinkedList;
 
 import static jerseywiremock.annotations.ParamMatchingStrategy.*;
-import static jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType.ENTITY;
 import static jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType.QUERY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -77,8 +76,7 @@ public class RequestMatchingDescriptorFactoryTest {
         // then
         assertThat(descriptor).isEqualToComparingFieldByField(new RequestMatchingDescriptor(
                 "http://localhost/forPathParam",
-                ImmutableListMultimap.<String, ValueMatchingStrategy>of(),
-                null
+                ImmutableListMultimap.<String, ValueMatchingStrategy>of()
         ));
     }
 
@@ -104,8 +102,7 @@ public class RequestMatchingDescriptorFactoryTest {
         multimap.put("containing", containing);
         assertThat(descriptor).isEqualToComparingFieldByField(new RequestMatchingDescriptor(
                 PATH,
-                multimap,
-                null
+                multimap
         ));
     }
 
@@ -134,8 +131,7 @@ public class RequestMatchingDescriptorFactoryTest {
         multimap.put("set", equalTo);
         assertThat(descriptor).isEqualToComparingFieldByField(new RequestMatchingDescriptor(
                 PATH,
-                multimap,
-                null
+                multimap
         ));
     }
 
@@ -154,26 +150,7 @@ public class RequestMatchingDescriptorFactoryTest {
         multimap.put("query", equalTo);
         assertThat(descriptor).isEqualToComparingFieldByField(new RequestMatchingDescriptor(
                 PATH,
-                multimap,
-                null
-        ));
-    }
-
-    @Test
-    public void descriptorDerivesRequestBodyMatchingStrategyFromEntityParam() {
-        // given
-        ValueMatchingStrategy matching = new ValueMatchingStrategy();
-        parameterDescriptors.add(new ParameterDescriptor(ENTITY, null, null, MATCHING));
-        when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(MATCHING, "formattedVal")).thenReturn(matching);
-
-        // when
-        RequestMatchingDescriptor descriptor = createDescriptor(new Object[]{ "entity" });
-
-        // then
-        assertThat(descriptor).isEqualToComparingFieldByField(new RequestMatchingDescriptor(
-                PATH,
-                ImmutableListMultimap.<String, ValueMatchingStrategy>of(),
-                matching
+                multimap
         ));
     }
 

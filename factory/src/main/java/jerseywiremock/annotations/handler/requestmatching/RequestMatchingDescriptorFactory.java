@@ -73,12 +73,10 @@ public class RequestMatchingDescriptorFactory {
     private class Builder {
         private final PathParamBuilder pathParamBuilder;
         private final QueryParamBuilder queryParamBuilder;
-        private final EntityParamBuilder entryParamBuilder;
 
         public Builder(QueryParamEncodingStrategy encodingStrategy) {
             this.pathParamBuilder = new PathParamBuilder();
             this.queryParamBuilder = new QueryParamBuilder(encodingStrategy);
-            this.entryParamBuilder = new EntityParamBuilder();
         }
 
         public void addParameter(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
@@ -86,16 +84,13 @@ public class RequestMatchingDescriptorFactory {
                 pathParamBuilder.addPathParam(parameterDescriptor, rawParamValue);
             } else if (parameterDescriptor.getParamType() == ParamType.QUERY) {
                 queryParamBuilder.addQueryParam(parameterDescriptor, rawParamValue);
-            } else {
-                entryParamBuilder.addEntityParam(parameterDescriptor, rawParamValue);
             }
         }
 
         public RequestMatchingDescriptor build(UriBuilder uriBuilder) {
             return new RequestMatchingDescriptor(
                     pathParamBuilder.build(uriBuilder),
-                    queryParamBuilder.build(),
-                    entryParamBuilder.build()
+                    queryParamBuilder.build()
             );
         }
     }
@@ -169,22 +164,6 @@ public class RequestMatchingDescriptorFactory {
 
         public ListMultimap<String, ValueMatchingStrategy> build() {
             return queryParamMatchingStrategies;
-        }
-    }
-
-    private class EntityParamBuilder {
-        private ValueMatchingStrategy requestBodyMatchingStrategy = null;
-
-        public void addEntityParam(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
-            String formattedValue = paramFormatterInvoker.getFormattedParamValue(
-                    rawParamValue,
-                    parameterDescriptor.getFormatterClass());
-            requestBodyMatchingStrategy = valueMatchingStrategyFactory
-                    .createValueMatchingStrategy(parameterDescriptor.getMatchingStrategy(), formattedValue);
-        }
-
-        public ValueMatchingStrategy build() {
-            return requestBodyMatchingStrategy;
         }
     }
 }
