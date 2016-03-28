@@ -9,12 +9,18 @@ import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.Param
 import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterDescriptor;
 
 import javax.ws.rs.core.UriBuilder;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
 public class RequestMatchingDescriptorFactory {
+    public enum QueryParamEncodingStrategy {
+        ENCODED, UNENCODED
+    }
+
     private final ParameterAnnotationsProcessor parameterAnnotationsProcessor;
     private final ParamFormatterInvoker paramFormatterInvoker;
     private final ValueMatchingStrategyFactory valueMatchingStrategyFactory;
@@ -32,7 +38,8 @@ public class RequestMatchingDescriptorFactory {
             Method targetMethod,
             Method mockerMethod,
             Object[] parameters,
-            UriBuilder uriBuilder
+            UriBuilder uriBuilder,
+            QueryParamEncodingStrategy encodingStrategy
     ) {
         LinkedList<ParameterDescriptor> parameterDescriptors = parameterAnnotationsProcessor
                 .createParameterDescriptors(targetMethod, mockerMethod);
@@ -42,15 +49,16 @@ public class RequestMatchingDescriptorFactory {
                     " params, but " + parameterDescriptors.size() + " are desired");
         }
 
-        return buildParameterDescriptorsObject(parameters, parameterDescriptors, uriBuilder);
+        return buildParameterDescriptorsObject(parameters, parameterDescriptors, uriBuilder, encodingStrategy);
     }
 
     private RequestMatchingDescriptor buildParameterDescriptorsObject(
             Object[] parameters,
             LinkedList<ParameterDescriptor> parameterDescriptors,
-            UriBuilder uriBuilder
+            UriBuilder uriBuilder,
+            QueryParamEncodingStrategy encodingStrategy
     ) {
-        Builder builder = new Builder();
+        Builder builder = new Builder(encodingStrategy);
 
         for (int i = 0; i < parameterDescriptors.size(); i++) {
             ParameterDescriptor parameterDescriptor = parameterDescriptors.get(i);
@@ -63,9 +71,15 @@ public class RequestMatchingDescriptorFactory {
     }
 
     private class Builder {
-        private final PathParamBuilder pathParamBuilder = new PathParamBuilder();
-        private final QueryParamBuilder queryParamBuilder = new QueryParamBuilder();
-        private final EntityParamBuilder entryParamBuilder = new EntityParamBuilder();
+        private final PathParamBuilder pathParamBuilder;
+        private final QueryParamBuilder queryParamBuilder;
+        private final EntityParamBuilder entryParamBuilder;
+
+        public Builder(QueryParamEncodingStrategy encodingStrategy) {
+            this.pathParamBuilder = new PathParamBuilder();
+            this.queryParamBuilder = new QueryParamBuilder(encodingStrategy);
+            this.entryParamBuilder = new EntityParamBuilder();
+        }
 
         public void addParameter(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
             if (parameterDescriptor.getParamType() == ParamType.PATH) {
@@ -102,7 +116,12 @@ public class RequestMatchingDescriptorFactory {
     }
 
     private class QueryParamBuilder {
+        private final QueryParamEncodingStrategy encodingStrategy;
         private ListMultimap<String, ValueMatchingStrategy> queryParamMatchingStrategies = ArrayListMultimap.create();
+
+        public QueryParamBuilder(QueryParamEncodingStrategy encodingStrategy) {
+            this.encodingStrategy = encodingStrategy;
+        }
 
         public void addQueryParam(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
             if (rawParamValue instanceof Iterable) {
@@ -127,11 +146,24 @@ public class RequestMatchingDescriptorFactory {
 
         private String stringifyValue(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
             if (rawParamValue instanceof String) {
-                return (String) rawParamValue;
+                return urlEncodeIfNeeded((String) rawParamValue);
             } else {
-                return paramFormatterInvoker.getFormattedParamValue(
+                String formattedValue = paramFormatterInvoker.getFormattedParamValue(
                         rawParamValue,
                         parameterDescriptor.getFormatterClass());
+                return urlEncodeIfNeeded(formattedValue);
+            }
+        }
+
+        private String urlEncodeIfNeeded(String value) {
+            if (encodingStrategy.equals(QueryParamEncodingStrategy.ENCODED)) {
+                try {
+                    return URLEncoder.encode(value, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                return value;
             }
         }
 

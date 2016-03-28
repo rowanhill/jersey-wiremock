@@ -50,14 +50,16 @@ public class MockerInvocationHandlerTest {
     private TestMocker testMocker;
     private Method mockerMethod;
     private ResourceMethodDescriptor mockDescriptor;
+    private Method resourceMethod;
+    private UriBuilder uriBuilder;
 
     @Before
     public void setUp() throws Exception {
         params = new Object[]{};
         testMocker = new TestMocker(null, null);
         mockerMethod = TestMocker.class.getDeclaredMethod("method");
-        UriBuilder uriBuilder = UriBuilder.fromPath("/test");
-        Method resourceMethod = TestResource.class.getDeclaredMethod("method");
+        uriBuilder = UriBuilder.fromPath("/test");
+        resourceMethod = TestResource.class.getDeclaredMethod("method");
 
         mockDescriptor = mock(ResourceMethodDescriptor.class);
         when(mockDescriptor.getMethodName()).thenReturn("method");
@@ -65,8 +67,13 @@ public class MockerInvocationHandlerTest {
         when(mockDescriptor.getMethod()).thenReturn(resourceMethod);
 
         RequestMatchingDescriptor mockRequestMatchingDescriptor = mock(RequestMatchingDescriptor.class);
-        when(mockRequestMatchingDescriptorFactory.createRequestMatchingDescriptor(resourceMethod, mockerMethod, params, uriBuilder))
-                .thenReturn(mockRequestMatchingDescriptor);
+        when(mockRequestMatchingDescriptorFactory.createRequestMatchingDescriptor(
+                eq(resourceMethod),
+                eq(mockerMethod),
+                eq(params),
+                eq(uriBuilder),
+                any(RequestMatchingDescriptorFactory.QueryParamEncodingStrategy.class))
+        ).thenReturn(mockRequestMatchingDescriptor);
     }
 
     @Test
@@ -217,6 +224,44 @@ public class MockerInvocationHandlerTest {
 
         // then
         assertThat(verifier).isNotNull();
+    }
+
+    @Test
+    public void handlingStubbingEncodesQueryParams() {
+        // given
+        stubResourceMethodDescriptorFor(WireMockStub.class);
+
+        // when
+        GetSingleRequestStubber<Object> stubber = handler.handleStubGet(params, testMocker, mockerMethod);
+
+        // then
+        assertThat(stubber).isNotNull();
+        verify(mockRequestMatchingDescriptorFactory).createRequestMatchingDescriptor(
+                resourceMethod,
+                mockerMethod,
+                params,
+                uriBuilder,
+                RequestMatchingDescriptorFactory.QueryParamEncodingStrategy.ENCODED
+        );
+    }
+
+    @Test
+    public void handlingVerifyingEncodesQueryParams() {
+        // given
+        stubResourceMethodDescriptorFor(WireMockVerify.class);
+
+        // when
+        GetRequestVerifier stubber = handler.handleVerifyGetVerb(params, testMocker, mockerMethod);
+
+        // then
+        assertThat(stubber).isNotNull();
+        verify(mockRequestMatchingDescriptorFactory).createRequestMatchingDescriptor(
+                resourceMethod,
+                mockerMethod,
+                params,
+                uriBuilder,
+                RequestMatchingDescriptorFactory.QueryParamEncodingStrategy.UNENCODED
+        );
     }
 
     private void stubResourceMethodDescriptorFor(Class<? extends Annotation> methodAnnotation) {

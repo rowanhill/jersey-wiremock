@@ -72,11 +72,7 @@ public class RequestMatchingDescriptorFactoryTest {
                 .thenReturn(new URI("http://localhost/forPathParam"));
 
         // when
-        RequestMatchingDescriptor descriptor = descriptorFactory.createRequestMatchingDescriptor(
-                targetMethod,
-                mockerMethod,
-                new Object[]{ "val" },
-                mockUriBuilder);
+        RequestMatchingDescriptor descriptor = createDescriptor(new Object[]{ "val" });
 
         // then
         assertThat(descriptor).isEqualToComparingFieldByField(new RequestMatchingDescriptor(
@@ -99,11 +95,7 @@ public class RequestMatchingDescriptorFactoryTest {
         parameterDescriptors.add(new ParameterDescriptor(QUERY, "containing", null, CONTAINING));
 
         // when
-        RequestMatchingDescriptor descriptor = descriptorFactory.createRequestMatchingDescriptor(
-                targetMethod,
-                mockerMethod,
-                new Object[]{ "1", "2", "3" },
-                mockUriBuilder);
+        RequestMatchingDescriptor descriptor = createDescriptor(new Object[]{ "1", "2", "3" });
 
         // then
         ListMultimap<String, ValueMatchingStrategy> multimap = ArrayListMultimap.create();
@@ -129,11 +121,10 @@ public class RequestMatchingDescriptorFactoryTest {
         parameterDescriptors.add(new ParameterDescriptor(QUERY, "set", null, null));
 
         // when
-        RequestMatchingDescriptor descriptor = descriptorFactory.createRequestMatchingDescriptor(
-                targetMethod,
-                mockerMethod,
-                new Object[]{ ImmutableList.of("l1", "l2"), ImmutableSet.of("s1", "s2")},
-                mockUriBuilder);
+        RequestMatchingDescriptor descriptor = createDescriptor(new Object[]{
+                ImmutableList.of("l1", "l2"),
+                ImmutableSet.of("s1", "s2")
+        });
 
         // then
         ListMultimap<String, ValueMatchingStrategy> multimap = ArrayListMultimap.create();
@@ -149,6 +140,26 @@ public class RequestMatchingDescriptorFactoryTest {
     }
 
     @Test
+    public void descriptorUrlEncodesQueryParameterValues() {
+        // given
+        ValueMatchingStrategy equalTo = new ValueMatchingStrategy();
+        when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(null, "a%3Ab")).thenReturn(equalTo);
+        parameterDescriptors.add(new ParameterDescriptor(QUERY, "query", null, null));
+
+        // when
+        RequestMatchingDescriptor descriptor = createDescriptor(new Object[]{ "a:b" });
+
+        // then
+        ListMultimap<String, ValueMatchingStrategy> multimap = ArrayListMultimap.create();
+        multimap.put("query", equalTo);
+        assertThat(descriptor).isEqualToComparingFieldByField(new RequestMatchingDescriptor(
+                PATH,
+                multimap,
+                null
+        ));
+    }
+
+    @Test
     public void descriptorDerivesRequestBodyMatchingStrategyFromEntityParam() {
         // given
         ValueMatchingStrategy matching = new ValueMatchingStrategy();
@@ -156,11 +167,7 @@ public class RequestMatchingDescriptorFactoryTest {
         when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(MATCHING, "formattedVal")).thenReturn(matching);
 
         // when
-        RequestMatchingDescriptor descriptor = descriptorFactory.createRequestMatchingDescriptor(
-                targetMethod,
-                mockerMethod,
-                new Object[]{ "entity" },
-                mockUriBuilder);
+        RequestMatchingDescriptor descriptor = createDescriptor(new Object[]{ "entity" });
 
         // then
         assertThat(descriptor).isEqualToComparingFieldByField(new RequestMatchingDescriptor(
@@ -174,11 +181,16 @@ public class RequestMatchingDescriptorFactoryTest {
     public void exceptionIsThrownIfNumberOfParamsDoesNotMuchNumberOfParamDescriptors() {
         // when
         expectedException.expectMessage("Invocation of method had 1 params, but 0 are desired");
-        descriptorFactory.createRequestMatchingDescriptor(
+        createDescriptor(new Object[]{ "Param value without descriptor" });
+    }
+
+    private RequestMatchingDescriptor createDescriptor(Object[] params) {
+        return descriptorFactory.createRequestMatchingDescriptor(
                 targetMethod,
                 mockerMethod,
-                new Object[]{ "Param value without descriptor" },
-                mockUriBuilder);
+                params,
+                mockUriBuilder,
+                RequestMatchingDescriptorFactory.QueryParamEncodingStrategy.ENCODED);
     }
 
     @SuppressWarnings("unused")

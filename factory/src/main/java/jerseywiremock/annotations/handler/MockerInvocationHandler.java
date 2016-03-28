@@ -32,6 +32,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collection;
 
+import static jerseywiremock.annotations.handler.requestmatching.RequestMatchingDescriptorFactory.QueryParamEncodingStrategy.ENCODED;
+import static jerseywiremock.annotations.handler.requestmatching.RequestMatchingDescriptorFactory.QueryParamEncodingStrategy.UNENCODED;
+
 public class MockerInvocationHandler {
     private final ResourceMethodDescriptorFactory resourceMethodDescriptorFactory;
     private final RequestMatchingDescriptorFactory requestMatchingDescriptorFactory;
@@ -181,42 +184,51 @@ public class MockerInvocationHandler {
     }
 
     private DescriptorsHolder descriptorsForStubGet(Object[] parameters, Method method) {
-        return createDescriptors(parameters, method, WireMockStub.class, HttpVerb.GET);
+        return descriptorsForStub(parameters, method, HttpVerb.GET);
     }
 
     private DescriptorsHolder descriptorsForStubPost(Object[] parameters, Method method) {
-        return createDescriptors(parameters, method, WireMockStub.class, HttpVerb.POST);
+        return descriptorsForStub(parameters, method, HttpVerb.POST);
     }
 
     private DescriptorsHolder descriptorsForStubPut(Object[] parameters, Method method) {
-        return createDescriptors(parameters, method, WireMockStub.class, HttpVerb.PUT);
+        return descriptorsForStub(parameters, method, HttpVerb.PUT);
     }
 
     private DescriptorsHolder descriptorsForStubDelete(Object[] parameters, Method method) {
-        return createDescriptors(parameters, method, WireMockStub.class, HttpVerb.DELETE);
+        return descriptorsForStub(parameters, method, HttpVerb.DELETE);
     }
 
     private DescriptorsHolder descriptorsForVerifyGet(Object[] parameters, Method method) {
-        return createDescriptors(parameters, method, WireMockVerify.class, HttpVerb.GET);
+        return descriptorsForVerify(parameters, method, HttpVerb.GET);
     }
 
     private DescriptorsHolder descriptorsForVerifyPost(Object[] parameters, Method method) {
-        return createDescriptors(parameters, method, WireMockVerify.class, HttpVerb.POST);
+        return descriptorsForVerify(parameters, method, HttpVerb.POST);
     }
 
     private DescriptorsHolder descriptorsForVerifyPut(Object[] parameters, Method method) {
-        return createDescriptors(parameters, method, WireMockVerify.class, HttpVerb.PUT);
+        return descriptorsForVerify(parameters, method, HttpVerb.PUT);
     }
 
     private DescriptorsHolder descriptorsForVerifyDelete(Object[] parameters, Method method) {
-        return createDescriptors(parameters, method, WireMockVerify.class, HttpVerb.DELETE);
+        return descriptorsForVerify(parameters, method, HttpVerb.DELETE);
+    }
+
+    private DescriptorsHolder descriptorsForStub(Object[] parameters, Method method, HttpVerb verb) {
+        return createDescriptors(parameters, method, WireMockStub.class, verb, ENCODED);
+    }
+
+    private DescriptorsHolder descriptorsForVerify(Object[] parameters, Method method, HttpVerb verb) {
+        return createDescriptors(parameters, method, WireMockVerify.class, verb, UNENCODED);
     }
 
     private DescriptorsHolder createDescriptors(
             Object[] parameters,
             Method method,
             Class<? extends Annotation> wireMockAnnotation,
-            HttpVerb verb
+            HttpVerb verb,
+            RequestMatchingDescriptorFactory.QueryParamEncodingStrategy encodingStrategy
     ) {
         ResourceMethodDescriptor methodDescriptor =
                 resourceMethodDescriptorFactory.constructMethodDescriptor(method, wireMockAnnotation);
@@ -228,7 +240,8 @@ public class MockerInvocationHandler {
                         methodDescriptor.getMethod(),
                         method,
                         parameters,
-                        methodDescriptor.createUriBuilder());
+                        methodDescriptor.createUriBuilder(),
+                        encodingStrategy);
 
         return new DescriptorsHolder(methodDescriptor, requestMatchingDescriptor);
     }
