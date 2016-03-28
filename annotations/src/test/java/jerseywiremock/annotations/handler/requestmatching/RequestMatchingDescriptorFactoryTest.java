@@ -1,7 +1,7 @@
 package jerseywiremock.annotations.handler.requestmatching;
 
 import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.*;
 import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamFormatterInvoker;
 import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType;
 import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterAnnotationsProcessor;
@@ -81,7 +81,7 @@ public class RequestMatchingDescriptorFactoryTest {
         // then
         assertThat(descriptor).isEqualToComparingFieldByField(new RequestMatchingDescriptor(
                 "http://localhost/forPathParam",
-                ImmutableMap.<String, ValueMatchingStrategy>of(),
+                ImmutableListMultimap.<String, ValueMatchingStrategy>of(),
                 null
         ));
     }
@@ -106,9 +106,44 @@ public class RequestMatchingDescriptorFactoryTest {
                 mockUriBuilder);
 
         // then
+        ListMultimap<String, ValueMatchingStrategy> multimap = ArrayListMultimap.create();
+        multimap.put("default", equalTo);
+        multimap.put("equalTo", equalTo);
+        multimap.put("containing", containing);
         assertThat(descriptor).isEqualToComparingFieldByField(new RequestMatchingDescriptor(
                 PATH,
-                ImmutableMap.of("default", equalTo, "equalTo", equalTo, "containing", containing),
+                multimap,
+                null
+        ));
+    }
+
+    @Test
+    public void descriptorHasMatchingStrategyForEachItemInIterableUsedAsQueryParam() {
+        // given
+        ValueMatchingStrategy equalTo = new ValueMatchingStrategy();
+        when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(null, "l1")).thenReturn(equalTo);
+        when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(null, "l2")).thenReturn(equalTo);
+        parameterDescriptors.add(new ParameterDescriptor(QUERY, "list", null, null));
+        when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(null, "s1")).thenReturn(equalTo);
+        when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(null, "s2")).thenReturn(equalTo);
+        parameterDescriptors.add(new ParameterDescriptor(QUERY, "set", null, null));
+
+        // when
+        RequestMatchingDescriptor descriptor = descriptorFactory.createRequestMatchingDescriptor(
+                targetMethod,
+                mockerMethod,
+                new Object[]{ ImmutableList.of("l1", "l2"), ImmutableSet.of("s1", "s2")},
+                mockUriBuilder);
+
+        // then
+        ListMultimap<String, ValueMatchingStrategy> multimap = ArrayListMultimap.create();
+        multimap.put("list", equalTo);
+        multimap.put("list", equalTo);
+        multimap.put("set", equalTo);
+        multimap.put("set", equalTo);
+        assertThat(descriptor).isEqualToComparingFieldByField(new RequestMatchingDescriptor(
+                PATH,
+                multimap,
                 null
         ));
     }
@@ -130,7 +165,7 @@ public class RequestMatchingDescriptorFactoryTest {
         // then
         assertThat(descriptor).isEqualToComparingFieldByField(new RequestMatchingDescriptor(
                 PATH,
-                ImmutableMap.<String, ValueMatchingStrategy>of(),
+                ImmutableListMultimap.<String, ValueMatchingStrategy>of(),
                 matching
         ));
     }

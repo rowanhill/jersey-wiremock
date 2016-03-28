@@ -1,6 +1,8 @@
 package jerseywiremock.annotations.handler.requestmatching;
 
 import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamFormatterInvoker;
 import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType;
 import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterAnnotationsProcessor;
@@ -48,42 +50,80 @@ public class RequestMatchingDescriptorFactory {
             LinkedList<ParameterDescriptor> parameterDescriptors,
             UriBuilder uriBuilder
     ) {
-        Map<String, String> pathParams = new HashMap<>();
-        Map<String, ValueMatchingStrategy> queryParamMatchingStrategies = new HashMap<>();
-        ValueMatchingStrategy requestBodyMatchingStrategy = null;
+        Builder builder = new Builder();
 
         for (int i = 0; i < parameterDescriptors.size(); i++) {
             ParameterDescriptor parameterDescriptor = parameterDescriptors.get(i);
             Object rawParamValue = parameters[i];
 
+            builder.addParameter(parameterDescriptor, rawParamValue);
+        }
+
+        return builder.build(uriBuilder);
+    }
+
+    private class Builder {
+        private Map<String, String> pathParams = new HashMap<>();
+        private ListMultimap<String, ValueMatchingStrategy> queryParamMatchingStrategies = ArrayListMultimap.create();
+        private ValueMatchingStrategy requestBodyMatchingStrategy = null;
+
+        public void addParameter(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
             if (parameterDescriptor.getParamType() == ParamType.PATH) {
-                String formattedValue = paramFormatterInvoker.getFormattedParamValue(
-                        rawParamValue,
-                        parameterDescriptor.getFormatterClass());
-                pathParams.put(parameterDescriptor.getParamName(), formattedValue);
+                addPathParam(parameterDescriptor, rawParamValue);
             } else if (parameterDescriptor.getParamType() == ParamType.QUERY) {
-                String stringValue;
-                if (rawParamValue instanceof String) {
-                    stringValue = (String) rawParamValue;
-                } else {
-                    stringValue = paramFormatterInvoker.getFormattedParamValue(
-                            rawParamValue,
-                            parameterDescriptor.getFormatterClass());
-                }
-                ValueMatchingStrategy valueMatchingStrategy = valueMatchingStrategyFactory
-                        .createValueMatchingStrategy(parameterDescriptor.getMatchingStrategy(), stringValue);
-                queryParamMatchingStrategies.put(parameterDescriptor.getParamName(), valueMatchingStrategy);
-            } else { // Request entity
-                String formattedValue = paramFormatterInvoker.getFormattedParamValue(
-                        rawParamValue,
-                        parameterDescriptor.getFormatterClass());
-                requestBodyMatchingStrategy = valueMatchingStrategyFactory
-                        .createValueMatchingStrategy(parameterDescriptor.getMatchingStrategy(), formattedValue);
+                addQueryParam(parameterDescriptor, rawParamValue);
+            } else {
+                addEntityParam(parameterDescriptor, rawParamValue);
             }
         }
 
-        String urlPath = uriBuilder.buildFromMap(pathParams).toString();
+        public RequestMatchingDescriptor build(UriBuilder uriBuilder) {
+            String urlPath = uriBuilder.buildFromMap(pathParams).toString();
+            return new RequestMatchingDescriptor(urlPath, queryParamMatchingStrategies, requestBodyMatchingStrategy);
+        }
 
-        return new RequestMatchingDescriptor(urlPath, queryParamMatchingStrategies, requestBodyMatchingStrategy);
+        private void addPathParam(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
+            String formattedValue = formatValue(parameterDescriptor, rawParamValue);
+            pathParams.put(parameterDescriptor.getParamName(), formattedValue);
+        }
+
+        private void addQueryParam(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
+            if (rawParamValue instanceof Iterable) {
+                addIterableQueryParam(parameterDescriptor, (Iterable) rawParamValue);
+            } else {
+                addSingleQueryParam(parameterDescriptor, rawParamValue);
+            }
+        }
+
+        private void addEntityParam(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
+            String formattedValue = formatValue(parameterDescriptor, rawParamValue);
+            requestBodyMatchingStrategy = valueMatchingStrategyFactory
+                    .createValueMatchingStrategy(parameterDescriptor.getMatchingStrategy(), formattedValue);
+        }
+
+        private void addIterableQueryParam(ParameterDescriptor parameterDescriptor, Iterable rawParamValue) {
+            for (Object childRawParamValue : rawParamValue) {
+                addSingleQueryParam(parameterDescriptor, childRawParamValue);
+            }
+        }
+
+        private void addSingleQueryParam(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
+            String stringValue = stringifyValue(parameterDescriptor, rawParamValue);
+            ValueMatchingStrategy valueMatchingStrategy = valueMatchingStrategyFactory
+                    .createValueMatchingStrategy(parameterDescriptor.getMatchingStrategy(), stringValue);
+            queryParamMatchingStrategies.put(parameterDescriptor.getParamName(), valueMatchingStrategy);
+        }
+
+        private String stringifyValue(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
+            if (rawParamValue instanceof String) {
+                return (String) rawParamValue;
+            } else {
+                return formatValue(parameterDescriptor, rawParamValue);
+            }
+        }
+
+        private String formatValue(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
+            return paramFormatterInvoker.getFormattedParamValue(rawParamValue, parameterDescriptor.getFormatterClass());
+        }
     }
 }
