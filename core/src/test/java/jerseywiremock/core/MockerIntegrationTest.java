@@ -6,6 +6,7 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableList;
 import jerseywiremock.core.stub.request.*;
@@ -25,11 +26,14 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collection;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.isA;
 
 public class MockerIntegrationTest {
     @Rule
@@ -190,6 +194,18 @@ public class MockerIntegrationTest {
 
         // then
         assertThat(response.getStatus()).isEqualTo(403);
+    }
+
+    @Test
+    public void responseFaultsCanBeStubbed() throws Exception {
+        // given
+        mocker.stubGetDoubleGivenInt(1).andRespond().withFault(Fault.EMPTY_RESPONSE).stub();
+
+        // when
+        expectedException.expect(ProcessingException.class);
+        expectedException.expectCause(isA(SocketException.class));
+        expectedException.expectMessage(containsString("Unexpected end of file"));
+        client.getDoubleGivenInt(1);
     }
 
     public static class TestMocker {

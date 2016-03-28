@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.http.Fault;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 
@@ -33,6 +34,12 @@ public abstract class BaseResponseStubber<SelfType extends BaseResponseStubber> 
 
     public SelfType withStatusCode(int statusCode) {
         responseDefinitionBuilder.withStatus(statusCode);
+        //noinspection unchecked
+        return (SelfType) this;
+    }
+
+    public SelfType withFault(Fault fault) {
+        responseDefinitionBuilder.withFault(fault);
         //noinspection unchecked
         return (SelfType) this;
     }
