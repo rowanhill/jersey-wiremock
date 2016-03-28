@@ -1,6 +1,6 @@
 package jerseywiremock.annotations;
 
-import jerseywiremock.formatter.ParamFormatter;
+import jerseywiremock.annotations.formatter.ParamFormatter;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

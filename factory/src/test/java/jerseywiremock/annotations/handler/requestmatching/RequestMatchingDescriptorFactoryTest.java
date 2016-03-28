@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.LinkedList;
 
-import static jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamMatchingStrategy.*;
+import static jerseywiremock.annotations.ParamMatchingStrategy.*;
 import static jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType.ENTITY;
 import static jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType.QUERY;
 import static org.assertj.core.api.Assertions.assertThat;

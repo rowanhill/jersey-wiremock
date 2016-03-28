@@ -1,6 +1,6 @@
 package jerseywiremock.joda.formatter;
 
-import jerseywiremock.formatter.ParamFormatter;
+import jerseywiremock.annotations.formatter.ParamFormatter;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 

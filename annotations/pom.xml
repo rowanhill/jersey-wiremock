@@ -10,41 +10,4 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jersey-wiremock-annotations</artifactId>
-
-    <dependencies>
-        <dependency>
-            <groupId>jersey-wiremock</groupId>
-            <artifactId>jersey-wiremock-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-common</artifactId>
-            <version>2.22.1</version>
-        </dependency>
-        <dependency>
-            <groupId>net.bytebuddy</groupId>
-            <artifactId>byte-buddy</artifactId>
-            <version>1.3.4</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-client</artifactId>
-            <version>2.22.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.jaxrs</groupId>
-            <artifactId>jackson-jaxrs-json-provider</artifactId>
-            <version>2.5.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.dropwizard</groupId>
-            <artifactId>dropwizard-jersey</artifactId>
-            <version>0.8.2</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 </project>

@@ -1,6 +1,7 @@
 package jerseywiremock.annotations.handler.requestmatching.paramdescriptors;
 
-import jerseywiremock.formatter.ParamFormatter;
+import jerseywiremock.annotations.ParamMatchingStrategy;
+import jerseywiremock.annotations.formatter.ParamFormatter;
 
 public class ParameterDescriptor {
     private final ParamType paramType;

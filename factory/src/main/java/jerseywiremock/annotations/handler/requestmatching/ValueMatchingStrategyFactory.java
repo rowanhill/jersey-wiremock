@@ -1,7 +1,7 @@
 package jerseywiremock.annotations.handler.requestmatching;
 
 import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
-import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamMatchingStrategy;
+import jerseywiremock.annotations.ParamMatchingStrategy;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 

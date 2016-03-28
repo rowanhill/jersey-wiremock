@@ -1,6 +1,6 @@
 package jerseywiremock.annotations.handler.requestmatching.paramdescriptors;
 
-import jerseywiremock.formatter.ParamFormatter;
+import jerseywiremock.annotations.formatter.ParamFormatter;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

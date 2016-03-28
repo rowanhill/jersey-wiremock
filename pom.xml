@@ -12,6 +12,7 @@
         <module>annotations</module>
         <module>core</module>
         <module>joda</module>
+        <module>factory</module>
     </modules>
 
     <dependencies>

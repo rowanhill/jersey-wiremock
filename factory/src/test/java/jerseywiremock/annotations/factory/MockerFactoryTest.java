@@ -12,7 +12,7 @@ import jerseywiremock.core.verify.DeleteRequestVerifier;
 import jerseywiremock.core.verify.GetRequestVerifier;
 import jerseywiremock.core.verify.PostRequestVerifier;
 import jerseywiremock.core.verify.PutRequestVerifier;
-import jerseywiremock.formatter.ParamFormatter;
+import jerseywiremock.annotations.formatter.ParamFormatter;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
@@ -30,7 +30,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.util.Collection;
 
-import static jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamMatchingStrategy.CONTAINING;
+import static jerseywiremock.annotations.ParamMatchingStrategy.CONTAINING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 

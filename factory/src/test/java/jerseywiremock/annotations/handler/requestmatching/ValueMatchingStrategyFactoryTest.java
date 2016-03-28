@@ -4,7 +4,7 @@ import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
 import org.junit.Test;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamMatchingStrategy.*;
+import static jerseywiremock.annotations.ParamMatchingStrategy.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ValueMatchingStrategyFactoryTest {

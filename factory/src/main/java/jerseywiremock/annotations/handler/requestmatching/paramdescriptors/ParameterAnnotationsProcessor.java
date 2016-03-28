@@ -2,7 +2,8 @@ package jerseywiremock.annotations.handler.requestmatching.paramdescriptors;
 
 import jerseywiremock.annotations.ParamFormat;
 import jerseywiremock.annotations.ParamMatchedBy;
-import jerseywiremock.formatter.ParamFormatter;
+import jerseywiremock.annotations.ParamMatchingStrategy;
+import jerseywiremock.annotations.formatter.ParamFormatter;
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
