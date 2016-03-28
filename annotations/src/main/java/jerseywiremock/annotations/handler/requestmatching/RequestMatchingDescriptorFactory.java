@@ -63,42 +63,53 @@ public class RequestMatchingDescriptorFactory {
     }
 
     private class Builder {
-        private Map<String, String> pathParams = new HashMap<>();
-        private ListMultimap<String, ValueMatchingStrategy> queryParamMatchingStrategies = ArrayListMultimap.create();
-        private ValueMatchingStrategy requestBodyMatchingStrategy = null;
+        private final PathParamBuilder pathParamBuilder = new PathParamBuilder();
+        private final QueryParamBuilder queryParamBuilder = new QueryParamBuilder();
+        private final EntityParamBuilder entryParamBuilder = new EntityParamBuilder();
 
         public void addParameter(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
             if (parameterDescriptor.getParamType() == ParamType.PATH) {
-                addPathParam(parameterDescriptor, rawParamValue);
+                pathParamBuilder.addPathParam(parameterDescriptor, rawParamValue);
             } else if (parameterDescriptor.getParamType() == ParamType.QUERY) {
-                addQueryParam(parameterDescriptor, rawParamValue);
+                queryParamBuilder.addQueryParam(parameterDescriptor, rawParamValue);
             } else {
-                addEntityParam(parameterDescriptor, rawParamValue);
+                entryParamBuilder.addEntityParam(parameterDescriptor, rawParamValue);
             }
         }
 
         public RequestMatchingDescriptor build(UriBuilder uriBuilder) {
-            String urlPath = uriBuilder.buildFromMap(pathParams).toString();
-            return new RequestMatchingDescriptor(urlPath, queryParamMatchingStrategies, requestBodyMatchingStrategy);
+            return new RequestMatchingDescriptor(
+                    pathParamBuilder.build(uriBuilder),
+                    queryParamBuilder.build(),
+                    entryParamBuilder.build()
+            );
         }
+    }
 
-        private void addPathParam(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
-            String formattedValue = formatValue(parameterDescriptor, rawParamValue);
+    private class PathParamBuilder {
+        private Map<String, String> pathParams = new HashMap<>();
+
+        public void addPathParam(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
+            String formattedValue = paramFormatterInvoker.getFormattedParamValue(
+                    rawParamValue,
+                    parameterDescriptor.getFormatterClass());
             pathParams.put(parameterDescriptor.getParamName(), formattedValue);
         }
 
-        private void addQueryParam(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
+        public String build(UriBuilder uriBuilder) {
+            return uriBuilder.buildFromMap(pathParams).toString();
+        }
+    }
+
+    private class QueryParamBuilder {
+        private ListMultimap<String, ValueMatchingStrategy> queryParamMatchingStrategies = ArrayListMultimap.create();
+
+        public void addQueryParam(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
             if (rawParamValue instanceof Iterable) {
                 addIterableQueryParam(parameterDescriptor, (Iterable) rawParamValue);
             } else {
                 addSingleQueryParam(parameterDescriptor, rawParamValue);
             }
-        }
-
-        private void addEntityParam(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
-            String formattedValue = formatValue(parameterDescriptor, rawParamValue);
-            requestBodyMatchingStrategy = valueMatchingStrategyFactory
-                    .createValueMatchingStrategy(parameterDescriptor.getMatchingStrategy(), formattedValue);
         }
 
         private void addIterableQueryParam(ParameterDescriptor parameterDescriptor, Iterable rawParamValue) {
@@ -118,12 +129,30 @@ public class RequestMatchingDescriptorFactory {
             if (rawParamValue instanceof String) {
                 return (String) rawParamValue;
             } else {
-                return formatValue(parameterDescriptor, rawParamValue);
+                return paramFormatterInvoker.getFormattedParamValue(
+                        rawParamValue,
+                        parameterDescriptor.getFormatterClass());
             }
         }
 
-        private String formatValue(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
-            return paramFormatterInvoker.getFormattedParamValue(rawParamValue, parameterDescriptor.getFormatterClass());
+        public ListMultimap<String, ValueMatchingStrategy> build() {
+            return queryParamMatchingStrategies;
+        }
+    }
+
+    private class EntityParamBuilder {
+        private ValueMatchingStrategy requestBodyMatchingStrategy = null;
+
+        public void addEntityParam(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
+            String formattedValue = paramFormatterInvoker.getFormattedParamValue(
+                    rawParamValue,
+                    parameterDescriptor.getFormatterClass());
+            requestBodyMatchingStrategy = valueMatchingStrategyFactory
+                    .createValueMatchingStrategy(parameterDescriptor.getMatchingStrategy(), formattedValue);
+        }
+
+        public ValueMatchingStrategy build() {
+            return requestBodyMatchingStrategy;
         }
     }
 }
