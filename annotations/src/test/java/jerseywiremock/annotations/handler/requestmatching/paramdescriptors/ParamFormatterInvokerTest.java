@@ -26,6 +26,27 @@ public class ParamFormatterInvokerTest {
     }
 
     @Test
+    public void invokerUsesToStringIfNoFormatterSpecified() {
+        // given
+        Date date = new Date();
+
+        // when
+        String formattedParamValue = invoker.getFormattedParamValue(date, null);
+
+        // then
+        assertThat(formattedParamValue).isEqualTo(date.toString());
+    }
+
+    @Test
+    public void invokerReturnsStringContainingWordNullIfNoFormatterSpecifiedAndValueIsNull() {
+        // when
+        String formattedParamValue = invoker.getFormattedParamValue(null, null);
+
+        // then
+        assertThat(formattedParamValue).isEqualTo("null");
+    }
+
+    @Test
     public void usingAbstractFormatterClassThrowsException() {
         // when
         expectedException.expectMessage("Could not instantiate formatter AbstractFormatter");

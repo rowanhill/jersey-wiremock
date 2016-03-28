@@ -2,6 +2,8 @@ package jerseywiremock.annotations.handler.requestmatching.paramdescriptors;
 
 import jerseywiremock.formatter.ParamFormatter;
 
+import java.util.Objects;
+
 public class ParamFormatterInvoker {
     public String getFormattedParamValue(Object rawParamValue, Class<? extends ParamFormatter> formatterClass) {
         String formattedValue;
@@ -18,7 +20,7 @@ public class ParamFormatterInvoker {
             //noinspection unchecked
             formattedValue = formatter.format(rawParamValue);
         } else {
-            formattedValue = rawParamValue.toString();
+            formattedValue = Objects.toString(rawParamValue);
         }
         return formattedValue;
     }
