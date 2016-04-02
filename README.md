@@ -116,8 +116,16 @@ The jersey-wiremock mocker interface methods must have an argument for each `@Pa
 resource method, and they must be declared in the same order. No other parameters (e.g. `@Context`, entity parameters)
 should be declared in the mocker method; `@HeaderParam` is not supported.
 
+#### Argument serialisation
 If an argument needs more careful serialisation than simply calling toString() on it, apply the `@ParamFormat`
-annotation to the _resource_ parameter to specify a `ParamFormatter` class to perform the formatting.
+annotation to the _resource_ method parameter to specify a `ParamFormatter` class to perform the formatting.
+
+#### Query parameter matching
+By default, query parameters are matched using WireMock's `equalTo()` value matching strategy. To use a different
+strategy annotate the _mocker_ method parameter with `@ParamMatchedBy`. Supported strategies are `EQUAL_TO`,
+`CONTAINING`, `MATCHING` and `NOT_MATCHING`.
+
+Note that `@ParamMatchedBy` has no effect on path parameters.
 
 ### Request body matching
 Request stubbers and verifiers for request types that have request entity bodies come with two methods for matching
