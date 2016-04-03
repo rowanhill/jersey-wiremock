@@ -7,11 +7,10 @@ import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.Param
 import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType;
 import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterAnnotationsProcessor;
 import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterDescriptor;
+import org.glassfish.jersey.uri.UriComponent;
 
 import javax.ws.rs.core.UriBuilder;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -152,11 +151,10 @@ public class RequestMatchingDescriptorFactory {
 
         private String urlEncodeIfNeeded(String value) {
             if (encodingStrategy.equals(QueryParamEncodingStrategy.ENCODED)) {
-                try {
-                    return URLEncoder.encode(value, "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException(e);
-                }
+                // Use Jersey's UriComponent for encoding, rather than Java's URLEncoder. The two can have some
+                // differences, and WireMock stubbing is sensitive to encoding (in 1.x at least - might be changed in
+                // 2.x). Using Jersey's encoding means that jersey-wiremock stubbing will work with jersey-client.
+                return UriComponent.contextualEncode(value, UriComponent.Type.QUERY_PARAM, true);
             } else {
                 return value;
             }
