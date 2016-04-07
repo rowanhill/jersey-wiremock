@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import jerseywiremock.annotations.handler.BaseMocker;
 import jerseywiremock.annotations.handler.MockerInvocationHandler;
-import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamFormatterInvoker;
-import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterAnnotationsProcessor;
 import jerseywiremock.annotations.handler.requestmatching.RequestMatchingDescriptorFactory;
 import jerseywiremock.annotations.handler.requestmatching.ValueMatchingStrategyFactory;
+import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamFormatterInvoker;
+import jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterAnnotationsProcessor;
 import jerseywiremock.annotations.handler.resourcemethod.HttpVerbDetector;
 import jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
 import jerseywiremock.annotations.handler.util.CollectionFactory;
@@ -20,7 +20,6 @@ import net.bytebuddy.implementation.MethodDelegation;
 import java.lang.reflect.InvocationTargetException;
 
 import static net.bytebuddy.matcher.ElementMatchers.isAbstract;
-import static net.bytebuddy.matcher.ElementMatchers.isDeclaredBy;
 
 public class MockerFactory {
     private final MockerTypeChecker mockerTypeChecker;
@@ -93,7 +92,7 @@ public class MockerFactory {
         return byteBuddy
                 .subclass(BaseMocker.class)
                 .implement(mockerType)
-                .method(isDeclaredBy(mockerType));
+                .method(isAbstract());
     }
 
     private <T> ImplementationDefinition<? extends BaseMocker> createClassImplementationDefinition(
@@ -106,7 +105,7 @@ public class MockerFactory {
         //noinspection unchecked
         return byteBuddy
                 .subclass((Class<? extends BaseMocker>) mockerType)
-                .method(isDeclaredBy(mockerType).and(isAbstract()));
+                .method(isAbstract());
     }
 
     private <T> void checkExtendsBaseMocker(Class<T> mockerType) {
