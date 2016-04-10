@@ -115,6 +115,18 @@ public class ParameterAnnotationsProcessorTest {
     }
 
     @Test
+    public void formattersCanBeOverriddenOnMockerMethodParameters() {
+        // when
+        LinkedList<ParameterDescriptor> parameterDescriptors =
+                createParameterDescriptors("formattedQueryParam", "formattedParam");
+
+        // then
+        assertThat(parameterDescriptors)
+                .extracting("paramType", "paramName", "formatterClass", "matchingStrategy")
+                .containsExactly(tuple(QUERY, "one", AnotherFormatter.class, EQUAL_TO));
+    }
+
+    @Test
     public void targetMethodWithQueryParamWithMatchingStrategyProducesParamDescriptorWithMatchingStrategy() {
         // when
         LinkedList<ParameterDescriptor> parameterDescriptors =
@@ -237,12 +249,21 @@ public class ParameterAnnotationsProcessorTest {
         void onlyPathParams(@ParamNamed("path") String path) {}
         void missingPathParams(@ParamNamed("query") String query) {}
         void duplicatedNamedParams(@ParamNamed("path") String path1, @ParamNamed("path") String path2) {}
+
+        void formattedParam(@ParamFormat(AnotherFormatter.class) String one) {}
     }
 
     static class StaticFormatter implements ParamFormatter<Date> {
         @Override
         public String format(Date param) {
             return "formatted";
+        }
+    }
+
+    static class AnotherFormatter implements ParamFormatter<Date> {
+        @Override
+        public String format(Date param) {
+            return "another-formatter";
         }
     }
 }

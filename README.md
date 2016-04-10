@@ -127,7 +127,9 @@ not supported.
 
 #### Argument serialisation
 If an argument needs more careful serialisation than simply calling toString() on it, apply the `@ParamFormat`
-annotation to the _resource_ method parameter to specify a `ParamFormatter` class to perform the formatting.
+annotation to specify a `ParamFormatter` class to perform the formatting. You can do this on either the _resource_
+method argument (if you want to set a default serialiser that all mocker methods will use), or on the _mocker_ method
+argument (if you want to override a deafult, or if you don't want or are unable to modify the resource class).
 
 #### Query parameter matching
 By default, query parameters are matched using WireMock's `equalTo()` value matching strategy. To use a different

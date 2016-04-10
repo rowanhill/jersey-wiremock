@@ -147,10 +147,12 @@ public class ParameterAnnotationsProcessor {
             matchingStrategy = getParamMatchingStrategy(mockerParamAnnotations);
         }
 
+        Class<? extends ParamFormatter> mockerFormatter = getParamFormatter(mockerParamAnnotations);
+
         return new ParameterDescriptor(
                 targetParamDescriptor.type,
                 targetParamDescriptor.name,
-                targetParamDescriptor.formatter,
+                mockerFormatter != null ? mockerFormatter : targetParamDescriptor.formatter,
                 matchingStrategy);
     }
 
