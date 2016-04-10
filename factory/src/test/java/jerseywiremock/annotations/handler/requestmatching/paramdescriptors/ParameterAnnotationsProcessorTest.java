@@ -194,6 +194,13 @@ public class ParameterAnnotationsProcessorTest {
         createParameterDescriptors("pathAndQueryParams", "missingPathParams");
     }
 
+    @Test
+    public void duplicatedNamedParametersCausesAnException() {
+        // when
+        expectedException.expectMessage("Named parameters must be unique, but the following are duplicated: [path]");
+        createParameterDescriptors("pathAndQueryParams", "duplicatedNamedParams");
+    }
+
     private LinkedList<ParameterDescriptor> createParameterDescriptors(String resourceMethod, String mockerMethod) {
         return parameterAnnotationsProcessor.createParameterDescriptors(
                 ReflectionHelper.getMethod(TestResource.class, resourceMethod),
@@ -229,6 +236,7 @@ public class ParameterAnnotationsProcessorTest {
         void allNamedParams(@ParamNamed("query") String query, @ParamNamed("path") String path) {}
         void onlyPathParams(@ParamNamed("path") String path) {}
         void missingPathParams(@ParamNamed("query") String query) {}
+        void duplicatedNamedParams(@ParamNamed("path") String path1, @ParamNamed("path") String path2) {}
     }
 
     static class StaticFormatter implements ParamFormatter<Date> {

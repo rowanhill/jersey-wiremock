@@ -58,11 +58,19 @@ public class ParameterAnnotationsProcessor {
 
     private Set<String> getMockerParamNames(Annotation[][] mockerMethodParameterAnnotations) {
         Set<String> names = new HashSet<>();
+        Set<String> duplicates = new HashSet<>();
         for (Annotation[] mockerSingleParamAnnotations : mockerMethodParameterAnnotations) {
             String name = getMockerParamName(mockerSingleParamAnnotations);
             if (name != null) {
+                if (names.contains(name)) {
+                    duplicates.add(name);
+                }
                 names.add(name);
             }
+        }
+        if (!duplicates.isEmpty()) {
+            throw new RuntimeException("Named parameters must be unique, but the following are duplicated: "
+                    + duplicates);
         }
         return names;
     }
