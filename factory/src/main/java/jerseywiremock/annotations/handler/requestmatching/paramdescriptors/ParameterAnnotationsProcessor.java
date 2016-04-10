@@ -33,8 +33,7 @@ public class ParameterAnnotationsProcessor {
                 mockerMethod,
                 mockerParamNames,
                 mockerMethodParameterAnnotations,
-                relevantTargetParamAnnotations,
-                mockerMethodParameterAnnotations.length);
+                relevantTargetParamAnnotations);
 
         int paramIndex = 0;
         for (Annotation[] mockerSingleParamAnnotations : mockerMethodParameterAnnotations) {
@@ -89,14 +88,13 @@ public class ParameterAnnotationsProcessor {
             Method mockerMethod,
             Set<String> mockerParamNames,
             Annotation[][] mockerMethodParameterAnnotations,
-            TargetParamAnnotations targetParamAnnotations,
-            int mockerParamsCount
+            TargetParamAnnotations targetParamAnnotations
     ) {
         if (mockerParamNames.size() == 0 && mockerMethodParameterAnnotations.length > 0) {
             int relevantTargetParamsCount = targetParamAnnotations.annotationsByOrder.size();
-            if (relevantTargetParamsCount != mockerParamsCount) {
+            if (relevantTargetParamsCount != mockerMethodParameterAnnotations.length) {
                 throw new RuntimeException("Expected " + mockerMethod.getName() + " to have " +
-                        relevantTargetParamsCount + " param(s), but has " + mockerParamsCount);
+                        relevantTargetParamsCount + " param(s), but has " + mockerMethodParameterAnnotations.length);
             }
         } else {
             Sets.SetView<String> missingPathParamNames =
