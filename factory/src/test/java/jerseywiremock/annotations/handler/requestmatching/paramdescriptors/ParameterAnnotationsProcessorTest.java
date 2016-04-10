@@ -2,6 +2,7 @@ package jerseywiremock.annotations.handler.requestmatching.paramdescriptors;
 
 import jerseywiremock.annotations.ParamFormat;
 import jerseywiremock.annotations.ParamMatchedBy;
+import jerseywiremock.annotations.ParamNamed;
 import jerseywiremock.annotations.handler.util.ReflectionHelper;
 import jerseywiremock.annotations.formatter.ParamFormatter;
 import org.junit.Rule;
@@ -73,7 +74,7 @@ public class ParameterAnnotationsProcessorTest {
     public void targetMethodWithOneUnannotatedParamProducesNoParamDescriptors() {
         // when
         LinkedList<ParameterDescriptor> parameterDescriptors =
-                createParameterDescriptors("unannotatedParam", "oneNakedParam");
+                createParameterDescriptors("unannotatedParam", "noParams");
 
         // then
         assertThat(parameterDescriptors).isEmpty();
@@ -140,8 +141,57 @@ public class ParameterAnnotationsProcessorTest {
     @Test
     public void targetMethodWithMoreParamsThanMockerMethodCausesException() {
         // when
-        expectedException.expectMessage("Expected noParams to have at least 1 params, but has 0");
-        createParameterDescriptors("pathParam", "noParams");
+        expectedException.expectMessage("Expected oneNakedParam to have 2 param(s), but has 1");
+        createParameterDescriptors("pathAndQueryParams", "oneNakedParam");
+    }
+
+    @Test
+    public void mockerMethodWithOnlySomeParamsAnnotatedWithParamNameCausesException() {
+        // when
+        expectedException.expectMessage("Only some parameters were annotated with @ParamNamed; either all must be, or none");
+        createParameterDescriptors("pathAndQueryParams", "onlySomeNamedParams");
+    }
+
+    @Test
+    public void mockerMethodParametersCanBeNamedAndCreatesParameterDescriptorsInOrderOfMockerMethod() {
+        // when
+        LinkedList<ParameterDescriptor> parameterDescriptors =
+                createParameterDescriptors("pathAndQueryParams", "allNamedParams");
+
+        // then
+        // Note query and path parameters are in reverse order (i.e. order of mocker method params, not resource method)
+        assertThat(parameterDescriptors)
+                .extracting("paramType", "paramName", "formatterClass", "matchingStrategy")
+                .containsExactly(tuple(QUERY, "query", null, EQUAL_TO), tuple(PATH, "path", null, null));
+    }
+
+    @Test
+    public void queryParamsAreOptionalIfSpecifyingMockerParameterNames() {
+        // when
+        LinkedList<ParameterDescriptor> parameterDescriptors =
+                createParameterDescriptors("pathAndQueryParams", "onlyPathParams");
+
+        // then
+        // Note query and path parameters are in reverse order (i.e. order of mocker method params, not resource method)
+        assertThat(parameterDescriptors)
+                .extracting("paramType", "paramName", "formatterClass", "matchingStrategy")
+                .containsExactly(tuple(PATH, "path", null, null));
+    }
+
+    @Test
+    public void queryParamsAreOptionalIfNoMockerParametersAreSpecified() {
+        // when
+        LinkedList<ParameterDescriptor> parameterDescriptors = createParameterDescriptors("queryParam", "noParams");
+
+        // then
+        assertThat(parameterDescriptors).isEmpty();
+    }
+
+    @Test
+    public void pathParamsAreRequiredEvenIfSpecifyingMockerParameterNames() {
+        // when
+        expectedException.expectMessage("Expected missingPathParams to specify all path parameters, but the following are missing: [path]");
+        createParameterDescriptors("pathAndQueryParams", "missingPathParams");
     }
 
     private LinkedList<ParameterDescriptor> createParameterDescriptors(String resourceMethod, String mockerMethod) {
@@ -174,6 +224,11 @@ public class ParameterAnnotationsProcessorTest {
         void twoNakedParams(String one, String two) {}
 
         void containingParam(@ParamMatchedBy(CONTAINING) String containing) {}
+
+        void onlySomeNamedParams(@ParamNamed("path") String path, String query) {}
+        void allNamedParams(@ParamNamed("query") String query, @ParamNamed("path") String path) {}
+        void onlyPathParams(@ParamNamed("path") String path) {}
+        void missingPathParams(@ParamNamed("query") String query) {}
     }
 
     static class StaticFormatter implements ParamFormatter<Date> {

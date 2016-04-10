@@ -174,6 +174,19 @@ public class MockerFactoryTest {
         MockerFactory.wireMockerFor(TestBadMockerInterface.class, wireMockRule, objectMapper);
     }
 
+    @Test
+    public void omittedQueryParametersAllowMatchingAgainstAnything() throws Exception {
+        // given
+        mocker.stubGetIntsByAnyDate().andRespondWith(4, 5, 6).stub();
+
+        // when
+        Collection<Integer> intsByDate = client.getIntsByDate(DateTime.now());
+
+        // then
+        assertThat(intsByDate).containsOnly(4, 5, 6);
+        mocker.verifyGetIntsByAnyDate().verify();
+    }
+
     @WireMockForResource(TestResource.class)
     public interface TestMockerInterface {
         @WireMockStub("getInt")
@@ -184,6 +197,12 @@ public class MockerFactoryTest {
 
         @WireMockVerify("getIntsByDate")
         GetRequestVerifier verifyGetIntsByDate(DateTime dateTime);
+
+        @WireMockStub("getIntsByDate")
+        GetListRequestStubber<Integer> stubGetIntsByAnyDate();
+
+        @WireMockVerify("getIntsByDate")
+        GetRequestVerifier verifyGetIntsByAnyDate();
 
         @WireMockStub("getIntsByDate")
         GetListRequestStubber<Integer> stubGetIntsByDateContaining(@ParamMatchedBy(CONTAINING) String dateSubstring);

@@ -112,9 +112,18 @@ simple interface definitions.
 | `@DELETE` | Verify | `DeleteRequestVerifier` | `@WireMockVerify` |
 
 ### Argument handling
-The jersey-wiremock mocker interface methods must have an argument for each `@PathParam` and `@QueryParam` declared by the
-resource method, and they must be declared in the same order. No other parameters (e.g. `@Context`, entity parameters)
-should be declared in the mocker method; `@HeaderParam` is not supported.
+#### Argument resolution
+Arguments to mocker methods are matched up to the arguments of resource methods in one of two ways: either explicitly,
+using `@ParamNamed` on every mocker method argument, or implicitly, with no arguments annotated with `@ParamNamed`.
+
+When resolving arguments explicitly, the mocker method must have an argument for every `@PathParam` declared by the
+resource method, but `@QueryParam` arguments are optional. Ordering or arguments can be arbitrary.
+
+When resolving arguments implicitly, the mocker interface methods must have an argument for each `@PathParam` and
+`@QueryParam` declared by the resource method, and they must be declared in the same order.
+
+No other parameters (e.g. `@Context`, entity parameters) should be declared in the mocker method; `@HeaderParam` is
+not supported.
 
 #### Argument serialisation
 If an argument needs more careful serialisation than simply calling toString() on it, apply the `@ParamFormat`
