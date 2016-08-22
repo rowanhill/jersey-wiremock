@@ -40,7 +40,7 @@
     <groupId>io.jersey-wiremock</groupId>
     <artifactId>jersey-wiremock-parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.1</version>
+    <version>0.2-SNAPSHOT</version>
     <modules>
         <module>annotations</module>
         <module>core</module>
