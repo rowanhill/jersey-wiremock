@@ -35,7 +35,7 @@
 
     <scm>
         <connection>scm:git:git://github.com/rowanhill/jersey-wiremock.git</connection>
-        <developerConnection>scm:git:ssh://github.com:rowanhill/jersey-wiremock.git</developerConnection>
+        <developerConnection>scm:git:git@github.com:rowanhill/jersey-wiremock.git</developerConnection>
         <url>http://github.com/rowanhill/jersey-wiremock/tree/master</url>
     </scm>
 
