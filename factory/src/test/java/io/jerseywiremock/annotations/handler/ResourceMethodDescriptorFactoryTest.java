@@ -60,6 +60,16 @@ public class ResourceMethodDescriptorFactoryTest {
     }
 
     @Test
+    public void exceptionIsThrownIfMockerTypeIsMissingWireMockForResourceAnnotation() throws Exception {
+        // when
+        expectedException.expectMessage(
+                "Expected TestUnannotatedMocker to be annotated with @WireMockForResource, but it was not");
+        methodDescriptorFactory.constructMethodDescriptor(
+                TestUnannotatedMocker.class.getMethod("stub"),
+                WireMockStub.class);
+    }
+
+    @Test
     public void exceptionIsThrownIfMockerMethodIsMissingExpectedWireMockStubAnnotation() throws Exception {
         // when
         expectedException.expectMessage("Expected verify to be annotated with @WireMockStub, but it was not");
@@ -93,6 +103,12 @@ public class ResourceMethodDescriptorFactoryTest {
 
         @WireMockVerify("resourceMethod")
         void verify();
+    }
+
+    @SuppressWarnings("unused")
+    private interface TestUnannotatedMocker {
+        @WireMockStub("resourceMethod")
+        void stub();
     }
 
     @SuppressWarnings("unused")

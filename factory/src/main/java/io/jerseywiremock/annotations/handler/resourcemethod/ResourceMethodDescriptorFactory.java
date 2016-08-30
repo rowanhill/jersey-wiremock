@@ -20,10 +20,19 @@ public class ResourceMethodDescriptorFactory {
             Method method,
             Class<? extends Annotation> wireMockAnnotationType
     ) {
-        Class<?> resourceClass = method.getDeclaringClass().getAnnotation(WireMockForResource.class).value();
+        Class<?> resourceClass = getTargetResourceClass(method);
         String targetMethodName = getTargetMethodName(method, wireMockAnnotationType);
         HttpVerb verb = verbDetector.getVerbFromAnnotation(resourceClass, targetMethodName);
         return new ResourceMethodDescriptor(resourceClass, targetMethodName, verb);
+    }
+
+    private Class<?> getTargetResourceClass(Method method) {
+        WireMockForResource annotation = method.getDeclaringClass().getAnnotation(WireMockForResource.class);
+        if (annotation == null) {
+            throw new RuntimeException("Expected " + method.getDeclaringClass().getSimpleName() +
+                    " to be annotated with @WireMockForResource, but it was not");
+        }
+        return annotation.value();
     }
 
     private String getTargetMethodName(Method method, Class<? extends Annotation> wireMockAnnotationType) {
