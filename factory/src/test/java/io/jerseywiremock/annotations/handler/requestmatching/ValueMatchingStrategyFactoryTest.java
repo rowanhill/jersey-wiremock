@@ -1,11 +1,18 @@
 package io.jerseywiremock.annotations.handler.requestmatching;
 
-import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.notMatching;
+import static io.jerseywiremock.annotations.ParamMatchingStrategy.CONTAINING;
+import static io.jerseywiremock.annotations.ParamMatchingStrategy.EQUAL_TO;
+import static io.jerseywiremock.annotations.ParamMatchingStrategy.MATCHING;
+import static io.jerseywiremock.annotations.ParamMatchingStrategy.NOT_MATCHING;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.Test;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static io.jerseywiremock.annotations.ParamMatchingStrategy.*;
-import static org.assertj.core.api.Assertions.assertThat;
+import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 
 public class ValueMatchingStrategyFactoryTest {
     private ValueMatchingStrategyFactory factory = new ValueMatchingStrategyFactory();
@@ -13,7 +20,7 @@ public class ValueMatchingStrategyFactoryTest {
     @Test
     public void strategyCanBeCreatedForEqualTo() {
         // when
-        ValueMatchingStrategy valueMatchingStrategy = factory.createValueMatchingStrategy(EQUAL_TO, "val");
+        StringValuePattern valueMatchingStrategy = factory.createValueMatchingStrategy(EQUAL_TO, "val");
 
         // then
         assertThat(valueMatchingStrategy).isEqualToComparingFieldByField(equalTo("val"));
@@ -22,16 +29,16 @@ public class ValueMatchingStrategyFactoryTest {
     @Test
     public void strategyCanBeCreatedForMatching() {
         // when
-        ValueMatchingStrategy valueMatchingStrategy = factory.createValueMatchingStrategy(MATCHING, "val");
+        StringValuePattern valueMatchingStrategy = factory.createValueMatchingStrategy(MATCHING, "val");
 
         // then
-        assertThat(valueMatchingStrategy).isEqualToComparingFieldByField(matching("val"));
+        assertThat(valueMatchingStrategy).isEqualTo(matching("val"));
     }
 
     @Test
     public void strategyCanBeCreatedForContaining() {
         // when
-        ValueMatchingStrategy valueMatchingStrategy = factory.createValueMatchingStrategy(CONTAINING, "val");
+        StringValuePattern valueMatchingStrategy = factory.createValueMatchingStrategy(CONTAINING, "val");
 
         // then
         assertThat(valueMatchingStrategy).isEqualToComparingFieldByField(containing("val"));
@@ -40,9 +47,9 @@ public class ValueMatchingStrategyFactoryTest {
     @Test
     public void strategyCanBeCreatedForNotMatching() {
         // when
-        ValueMatchingStrategy valueMatchingStrategy = factory.createValueMatchingStrategy(NOT_MATCHING, "val");
+        StringValuePattern valueMatchingStrategy = factory.createValueMatchingStrategy(NOT_MATCHING, "val");
 
         // then
-        assertThat(valueMatchingStrategy).isEqualToComparingFieldByField(notMatching("val"));
+        assertThat(valueMatchingStrategy).isEqualTo(notMatching("val"));
     }
 }

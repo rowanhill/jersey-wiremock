@@ -1,15 +1,16 @@
 package io.jerseywiremock.core.verify;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
+
+import io.jerseywiremock.core.stub.request.Serializer;
 
 public class PostRequestVerifier<Entity> extends RequestWithEntityVerifier<Entity, PostRequestVerifier<Entity>> {
     public PostRequestVerifier(
-            WireMockServer wireMockServer,
-            ObjectMapper objectMapper,
+            WireMock wireMock,
+            Serializer serializer,
             RequestPatternBuilder patternBuilder
     ) {
-        super(wireMockServer, objectMapper, patternBuilder);
+        super(wireMock, serializer, patternBuilder);
     }
 }

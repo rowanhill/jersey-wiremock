@@ -1,39 +1,61 @@
 package io.jerseywiremock.core;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
-import com.github.tomakehurst.wiremock.http.Fault;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.common.collect.ImmutableList;
-import io.jerseywiremock.core.stub.request.*;
-import io.jerseywiremock.core.verify.DeleteRequestVerifier;
-import io.jerseywiremock.core.verify.GetRequestVerifier;
-import io.jerseywiremock.core.verify.PostRequestVerifier;
-import io.jerseywiremock.core.verify.PutRequestVerifier;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.delete;
+import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.put;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import javax.ws.rs.*;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.Collection;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.isA;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.http.Fault;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
+import com.google.common.collect.ImmutableList;
+
+import io.jerseywiremock.core.stub.request.DeleteRequestStubber;
+import io.jerseywiremock.core.stub.request.GetListRequestStubber;
+import io.jerseywiremock.core.stub.request.GetSingleRequestStubber;
+import io.jerseywiremock.core.stub.request.PostRequestStubber;
+import io.jerseywiremock.core.stub.request.PutRequestStubber;
+import io.jerseywiremock.core.stub.request.Serializer;
+import io.jerseywiremock.core.verify.DeleteRequestVerifier;
+import io.jerseywiremock.core.verify.GetRequestVerifier;
+import io.jerseywiremock.core.verify.PostRequestVerifier;
+import io.jerseywiremock.core.verify.PutRequestVerifier;
 
 public class MockerIntegrationTest {
     @Rule
@@ -46,10 +68,9 @@ public class MockerIntegrationTest {
     private TestMocker mocker;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         client = new TestClient();
-        ObjectMapper objectMapper = new ObjectMapper();
-        mocker = new TestMocker(wireMockRule, objectMapper);
+        mocker = new TestMocker(new WireMock(8080), new JacksonSerializer());
     }
 
     @Test
@@ -63,6 +84,19 @@ public class MockerIntegrationTest {
         // then
         assertThat(doubleOne).isEqualTo(5);
         mocker.verifyGetDoubleGivenInt(1).times(1).verify();
+    }
+
+    @Test
+    public void sendHeaderCanBeStubbedAndVerified() throws Exception {
+        // given
+        mocker.stubSendHeader("en").andRespondWith(123).stub();
+
+        // when
+        int doubleOne = client.sendHeader("en");
+
+        // then
+        assertThat(doubleOne).isEqualTo(123);
+//        mocker.verifyGetDoubleGivenInt(1).times(1).verify();
     }
 
     @Test
@@ -183,8 +217,8 @@ public class MockerIntegrationTest {
         // given
         Client client = ClientBuilder.newClient().register(new JacksonJaxbJsonProvider());
         DeleteRequestStubber stubber = new DeleteRequestStubber(
-                wireMockRule,
-                new ObjectMapper(),
+                new WireMock(8080),
+                new JacksonSerializer(),
                 delete(urlPathEqualTo("/test")),
                 aResponse().withStatus(403));
 
@@ -203,18 +237,16 @@ public class MockerIntegrationTest {
 
         // when
         expectedException.expect(ProcessingException.class);
-        expectedException.expectCause(isA(SocketException.class));
-        expectedException.expectMessage(containsString("Unexpected end of file"));
         client.getDoubleGivenInt(1);
     }
 
     public static class TestMocker {
-        private final WireMockServer wireMockServer;
-        private final ObjectMapper objectMapper;
+        private final WireMock wireMock;
+        private final Serializer serializer;
 
-        public TestMocker(WireMockServer wireMockServer, ObjectMapper objectMapper) {
-            this.wireMockServer = wireMockServer;
-            this.objectMapper = objectMapper;
+        public TestMocker(WireMock wireMock, Serializer serializer) {
+            this.wireMock = wireMock;
+            this.serializer = serializer;
         }
 
         public GetSingleRequestStubber<Integer> stubGetDoubleGivenInt(int input) {
@@ -222,7 +254,7 @@ public class MockerIntegrationTest {
                     .path(TestResource.class, "getDoubleGivenInt")
                     .build(input)
                     .toString();
-            return new GetSingleRequestStubber<>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)));
+            return new GetSingleRequestStubber<>(wireMock, serializer, get(urlPathEqualTo(urlPath)));
         }
 
         public GetRequestVerifier verifyGetDoubleGivenInt(int input) {
@@ -230,7 +262,7 @@ public class MockerIntegrationTest {
                     .path(TestResource.class, "getDoubleGivenInt")
                     .build(input)
                     .toString();
-            return new GetRequestVerifier(wireMockServer, getRequestedFor(urlPathEqualTo(urlPath)));
+            return new GetRequestVerifier(wireMock, getRequestedFor(urlPathEqualTo(urlPath)));
         }
 
         public GetListRequestStubber<Integer> stubGetListOfInts() {
@@ -239,7 +271,7 @@ public class MockerIntegrationTest {
                     .build()
                     .toString();
             Collection<Integer> collection = new ArrayList<>();
-            return new GetListRequestStubber<>(wireMockServer, objectMapper, get(urlPathEqualTo(urlPath)), collection);
+            return new GetListRequestStubber<>(wireMock, serializer, get(urlPathEqualTo(urlPath)), collection);
         }
 
         public GetRequestVerifier verifyGetListOfInts() {
@@ -247,7 +279,7 @@ public class MockerIntegrationTest {
                     .path(TestResource.class, "getListOfInts")
                     .build()
                     .toString();
-            return new GetRequestVerifier(wireMockServer, getRequestedFor(urlPathEqualTo(urlPath)));
+            return new GetRequestVerifier(wireMock, getRequestedFor(urlPathEqualTo(urlPath)));
         }
 
         public GetListRequestStubber<Integer> stubGetOdds(int lessThan) {
@@ -258,7 +290,7 @@ public class MockerIntegrationTest {
             Collection<Integer> collection = new ArrayList<>();
             MappingBuilder mappingBuilder = get(urlPathEqualTo(urlPath))
                     .withQueryParam("lessThan", equalTo(Integer.toString(lessThan)));
-            return new GetListRequestStubber<>(wireMockServer, objectMapper, mappingBuilder, collection);
+            return new GetListRequestStubber<>(wireMock, serializer, mappingBuilder, collection);
         }
 
         public GetRequestVerifier verifyGetOdds(int lessThan) {
@@ -268,7 +300,16 @@ public class MockerIntegrationTest {
                     .toString();
             RequestPatternBuilder patternBuilder = getRequestedFor(urlPathEqualTo(urlPath))
                     .withQueryParam("lessThan", equalTo(Integer.toString(lessThan)));
-            return new GetRequestVerifier(wireMockServer, patternBuilder);
+            return new GetRequestVerifier(wireMock, patternBuilder);
+        }
+
+        public GetSingleRequestStubber<Integer> stubSendHeader(String acceptLanguage) {
+            String urlPath = UriBuilder.fromResource(TestResource.class)
+                    .path(TestResource.class, "sendHeader")
+                    .build()
+                    .toString();
+            MappingBuilder mappingBuilder = get(urlPathEqualTo(urlPath)).withHeader("Accept-Language", equalTo(acceptLanguage));
+            return new GetSingleRequestStubber<>(wireMock, serializer, mappingBuilder);
         }
 
         public PostRequestStubber<String, Integer> stubPostName() {
@@ -277,7 +318,7 @@ public class MockerIntegrationTest {
                     .build()
                     .toString();
             MappingBuilder mappingBuilder = post(urlPathEqualTo(urlPath));
-            return new PostRequestStubber<>(wireMockServer, objectMapper, mappingBuilder);
+            return new PostRequestStubber<>(wireMock, serializer, mappingBuilder);
         }
 
         public PostRequestVerifier<String> verifyPostName() {
@@ -286,7 +327,7 @@ public class MockerIntegrationTest {
                     .build()
                     .toString();
             RequestPatternBuilder patternBuilder = postRequestedFor(urlPathEqualTo(urlPath));
-            return new PostRequestVerifier<>(wireMockServer, objectMapper, patternBuilder);
+            return new PostRequestVerifier<>(wireMock, serializer, patternBuilder);
         }
 
         public PutRequestStubber<String, Integer> stubPutName(int id) {
@@ -295,7 +336,7 @@ public class MockerIntegrationTest {
                     .build(id)
                     .toString();
             MappingBuilder mappingBuilder = put(urlPathEqualTo(urlPath));
-            return new PutRequestStubber<>(wireMockServer, objectMapper, mappingBuilder);
+            return new PutRequestStubber<>(wireMock, serializer, mappingBuilder);
         }
 
         public PutRequestVerifier<String> verifyPutName(int id) {
@@ -304,7 +345,7 @@ public class MockerIntegrationTest {
                     .build(id)
                     .toString();
             RequestPatternBuilder patternBuilder = putRequestedFor(urlPathEqualTo(urlPath));
-            return new PutRequestVerifier<>(wireMockServer, objectMapper, patternBuilder);
+            return new PutRequestVerifier<>(wireMock, serializer, patternBuilder);
         }
 
         public DeleteRequestStubber<Void> stubDeleteName(int id) {
@@ -313,7 +354,7 @@ public class MockerIntegrationTest {
                     .build(id)
                     .toString();
             MappingBuilder mappingBuilder = delete(urlPathEqualTo(urlPath));
-            return new DeleteRequestStubber<>(wireMockServer, objectMapper, mappingBuilder);
+            return new DeleteRequestStubber<>(wireMock, serializer, mappingBuilder);
         }
 
         public DeleteRequestStubber<Integer> stubDeleteNameAndReturnId(int id) {
@@ -322,7 +363,7 @@ public class MockerIntegrationTest {
                     .build(id)
                     .toString();
             MappingBuilder mappingBuilder = delete(urlPathEqualTo(urlPath));
-            return new DeleteRequestStubber<>(wireMockServer, objectMapper, mappingBuilder);
+            return new DeleteRequestStubber<>(wireMock, serializer, mappingBuilder);
         }
 
         public DeleteRequestVerifier verifyDeleteName(int id) {
@@ -331,7 +372,7 @@ public class MockerIntegrationTest {
                     .build(id)
                     .toString();
             RequestPatternBuilder patternBuilder = deleteRequestedFor(urlPathEqualTo(urlPath));
-            return new DeleteRequestVerifier(wireMockServer, patternBuilder);
+            return new DeleteRequestVerifier(wireMock, patternBuilder);
         }
     }
 
@@ -341,6 +382,12 @@ public class MockerIntegrationTest {
         @Path("double/{input}")
         public int getDoubleGivenInt(@PathParam("input") int input) {
             return 2*input;
+        }
+
+        @GET
+        @Path("send-header")
+        public int sendHeader(@HeaderParam("Accept-Language") String acceptLanguage) {
+            return 0;
         }
 
         @GET
@@ -424,9 +471,8 @@ public class MockerIntegrationTest {
                     .readEntity(new GenericType<Collection<Integer>>(){});
         }
 
-        public Integer postName(String name) throws JsonProcessingException {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String nameJson = objectMapper.writeValueAsString(name);
+        public Integer postName(String name) {
+            String nameJson = new JacksonSerializer().serialize(name);
             return client
                     .target(UriBuilder
                             .fromResource(TestResource.class)
@@ -439,9 +485,8 @@ public class MockerIntegrationTest {
                     .readEntity(Integer.class);
         }
 
-        public Integer putName(int id, String name) throws JsonProcessingException {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String nameJson = objectMapper.writeValueAsString(name);
+        public Integer putName(int id, String name) {
+            String nameJson = new JacksonSerializer().serialize(name);
             return client
                     .target(UriBuilder
                             .fromResource(TestResource.class)
@@ -466,6 +511,20 @@ public class MockerIntegrationTest {
                             .build(id))
                     .request()
                     .delete();
+        }
+
+        public int sendHeader(String language) {
+            return client
+                    .target(UriBuilder
+                            .fromResource(TestResource.class)
+                            .path(TestResource.class, "sendHeader")
+                            .scheme("http")
+                            .host("localhost")
+                            .port(8080))
+                    .request()
+                    .header("Accept-Language", language)
+                    .get()
+                    .readEntity(Integer.class);
         }
     }
 }

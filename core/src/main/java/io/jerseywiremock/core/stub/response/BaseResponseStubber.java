@@ -1,28 +1,29 @@
 package io.jerseywiremock.core.stub.response;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
-import com.github.tomakehurst.wiremock.http.Fault;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.http.Fault;
+
+import io.jerseywiremock.core.stub.request.Serializer;
+
 public abstract class BaseResponseStubber<SelfType extends BaseResponseStubber> {
-    protected final WireMockServer wireMockServer;
-    protected final ObjectMapper objectMapper;
+    protected final WireMock wireMock;
+    protected final Serializer serializer;
     protected final MappingBuilder mappingBuilder;
     protected final ResponseDefinitionBuilder responseDefinitionBuilder;
 
     public BaseResponseStubber(
-            WireMockServer wireMockServer,
-            ObjectMapper objectMapper,
+            WireMock wireMock,
+            Serializer serializer,
             MappingBuilder mappingBuilder,
             ResponseDefinitionBuilder responseDefinitionBuilder
     ) {
-        this.wireMockServer = wireMockServer;
-        this.objectMapper = objectMapper;
+        this.wireMock = wireMock;
+        this.serializer = serializer;
         this.mappingBuilder = mappingBuilder;
 
         if (responseDefinitionBuilder != null) {
@@ -46,8 +47,7 @@ public abstract class BaseResponseStubber<SelfType extends BaseResponseStubber> 
 
     public void stub() throws JsonProcessingException {
         amendResponseDefinition(responseDefinitionBuilder);
-
-        wireMockServer.stubFor(mappingBuilder.willReturn(responseDefinitionBuilder));
+        wireMock.register(mappingBuilder.willReturn(responseDefinitionBuilder));
     }
 
     protected abstract void amendResponseDefinition(ResponseDefinitionBuilder responseDefinitionBuilder) throws JsonProcessingException;

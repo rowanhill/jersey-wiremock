@@ -1,19 +1,21 @@
 package io.jerseywiremock.annotations.handler.requestmatching;
 
-import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
+import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+
 import io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamFormatterInvoker;
 import io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType;
 import io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterAnnotationsProcessor;
 import io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterDescriptor;
 import org.glassfish.jersey.uri.UriComponent;
 
-import javax.ws.rs.core.UriBuilder;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+
+import javax.ws.rs.core.UriBuilder;
 
 public class RequestMatchingDescriptorFactory {
     public enum QueryParamEncodingStrategy {
@@ -71,31 +73,36 @@ public class RequestMatchingDescriptorFactory {
 
     private class Builder {
         private final PathParamBuilder pathParamBuilder;
-        private final QueryParamBuilder queryParamBuilder;
+        private final ParamBuilder queryParamBuilder;
+        private final ParamBuilder headerParamBuilder;
 
         public Builder(QueryParamEncodingStrategy encodingStrategy) {
             this.pathParamBuilder = new PathParamBuilder();
-            this.queryParamBuilder = new QueryParamBuilder(encodingStrategy);
+            this.queryParamBuilder = new ParamBuilder(encodingStrategy);
+            this.headerParamBuilder = new ParamBuilder(encodingStrategy);
         }
 
         public void addParameter(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
             if (parameterDescriptor.getParamType() == ParamType.PATH) {
                 pathParamBuilder.addPathParam(parameterDescriptor, rawParamValue);
             } else if (parameterDescriptor.getParamType() == ParamType.QUERY) {
-                queryParamBuilder.addQueryParam(parameterDescriptor, rawParamValue);
+                queryParamBuilder.addParam(parameterDescriptor, rawParamValue);
+            } else if (parameterDescriptor.getParamType() == ParamType.HEADER) {
+                headerParamBuilder.addParam(parameterDescriptor, rawParamValue);
             }
         }
 
         public RequestMatchingDescriptor build(UriBuilder uriBuilder) {
             return new RequestMatchingDescriptor(
                     pathParamBuilder.build(uriBuilder),
-                    queryParamBuilder.build()
+                    queryParamBuilder.build(),
+                    headerParamBuilder.build()
             );
         }
     }
 
     private class PathParamBuilder {
-        private Map<String, String> pathParams = new HashMap<>();
+        private final Map<String, String> pathParams = new HashMap<>();
 
         public void addPathParam(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
             String formattedValue = paramFormatterInvoker.getFormattedParamValue(
@@ -109,33 +116,36 @@ public class RequestMatchingDescriptorFactory {
         }
     }
 
-    private class QueryParamBuilder {
+    private class ParamBuilder {
         private final QueryParamEncodingStrategy encodingStrategy;
-        private ListMultimap<String, ValueMatchingStrategy> queryParamMatchingStrategies = ArrayListMultimap.create();
+        private final ListMultimap<String, StringValuePattern> paramMatchingStrategies = ArrayListMultimap.create();
 
-        public QueryParamBuilder(QueryParamEncodingStrategy encodingStrategy) {
+        public ParamBuilder(QueryParamEncodingStrategy encodingStrategy) {
             this.encodingStrategy = encodingStrategy;
         }
 
-        public void addQueryParam(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
+        public void addParam(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
+            if (rawParamValue == null) {
+                return;
+            }
             if (rawParamValue instanceof Iterable) {
-                addIterableQueryParam(parameterDescriptor, (Iterable) rawParamValue);
+                addIterableParam(parameterDescriptor, (Iterable<?>) rawParamValue);
             } else {
-                addSingleQueryParam(parameterDescriptor, rawParamValue);
+                addSingleParam(parameterDescriptor, rawParamValue);
             }
         }
 
-        private void addIterableQueryParam(ParameterDescriptor parameterDescriptor, Iterable rawParamValue) {
+        private void addIterableParam(ParameterDescriptor parameterDescriptor, Iterable<?> rawParamValue) {
             for (Object childRawParamValue : rawParamValue) {
-                addSingleQueryParam(parameterDescriptor, childRawParamValue);
+                addSingleParam(parameterDescriptor, childRawParamValue);
             }
         }
 
-        private void addSingleQueryParam(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
+        private void addSingleParam(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
             String stringValue = stringifyValue(parameterDescriptor, rawParamValue);
-            ValueMatchingStrategy valueMatchingStrategy = valueMatchingStrategyFactory
+            StringValuePattern valueMatchingStrategy = valueMatchingStrategyFactory
                     .createValueMatchingStrategy(parameterDescriptor.getMatchingStrategy(), stringValue);
-            queryParamMatchingStrategies.put(parameterDescriptor.getParamName(), valueMatchingStrategy);
+            paramMatchingStrategies.put(parameterDescriptor.getParamName(), valueMatchingStrategy);
         }
 
         private String stringifyValue(ParameterDescriptor parameterDescriptor, Object rawParamValue) {
@@ -160,8 +170,9 @@ public class RequestMatchingDescriptorFactory {
             }
         }
 
-        public ListMultimap<String, ValueMatchingStrategy> build() {
-            return queryParamMatchingStrategies;
+        public ListMultimap<String, StringValuePattern> build() {
+            return paramMatchingStrategies;
         }
+
     }
 }

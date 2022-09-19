@@ -1,14 +1,6 @@
 package io.jerseywiremock.annotations.factory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import io.jerseywiremock.annotations.WireMockForResource;
-import io.jerseywiremock.annotations.WireMockStub;
-import io.jerseywiremock.core.stub.request.GetSingleRequestStubber;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -16,7 +8,20 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.UriBuilder;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import com.JacksonSerializer;
+import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+
+import io.jerseywiremock.annotations.WireMockForResource;
+import io.jerseywiremock.annotations.WireMockStub;
+import io.jerseywiremock.core.stub.request.GetSingleRequestStubber;
+import io.jerseywiremock.core.stub.request.Serializers;
 
 public class MockerFactoryInheritedInterfaceTest {
     @Rule
@@ -28,8 +33,9 @@ public class MockerFactoryInheritedInterfaceTest {
     @Before
     public void setUp() throws Exception {
         client = new TestClient();
-        ObjectMapper objectMapper = new ObjectMapper();
-        mocker = MockerFactory.wireMockerFor(TestMocker.class, wireMockRule, objectMapper);
+        Serializers serializers = new Serializers();
+        serializers.addSerializer("application/json", new JacksonSerializer());
+        mocker = MockerFactory.wireMockerFor(TestMocker.class, new WireMock(8080), serializers);
     }
 
     @Test
@@ -78,7 +84,7 @@ public class MockerFactoryInheritedInterfaceTest {
     }
 
     public static class TestClient {
-        private final Client client = ClientBuilder.newClient().register(new JacksonJaxbJsonProvider());
+        private final Client client = ClientBuilder.newClient().register(JacksonJsonProvider.class);
 
         public int getFoo() {
             return client

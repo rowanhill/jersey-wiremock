@@ -29,6 +29,15 @@
             <organization>jersey-wiremock</organization>
             <organizationUrl>https://github.com/rowanhill</organizationUrl>
         </developer>
+        <developer>
+            <name>Vitalii Vorobii</name>
+            <email>vitalij.vorobij@gmail.com</email>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <organization>jersey-wiremock</organization>
+            <organizationUrl>https://github.com/vorobii-vitalii</organizationUrl>
+        </developer>
     </developers>
 
     <scm>
@@ -44,7 +53,6 @@
     <modules>
         <module>annotations</module>
         <module>core</module>
-        <module>joda</module>
         <module>factory</module>
     </modules>
 
@@ -76,8 +84,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.5.1</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
         </plugins>

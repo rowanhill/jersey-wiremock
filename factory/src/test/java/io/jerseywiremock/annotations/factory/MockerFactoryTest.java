@@ -1,11 +1,12 @@
 package io.jerseywiremock.annotations.factory;
 
+import com.JacksonSerializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableList;
-import io.dropwizard.jersey.params.DateTimeParam;
 import io.jerseywiremock.annotations.*;
 import io.jerseywiremock.annotations.formatter.ParamFormatter;
 import io.jerseywiremock.core.stub.request.*;
@@ -48,8 +49,9 @@ public class MockerFactoryTest {
     @Before
     public void setUp() throws Exception {
         client = new TestClient();
-        ObjectMapper objectMapper = new ObjectMapper();
-        mocker = MockerFactory.wireMockerFor(TestMockerInterface.class, wireMockRule, objectMapper);
+        Serializers serializers = new Serializers();
+        serializers.addSerializer("application/json", new JacksonSerializer());
+        mocker = MockerFactory.wireMockerFor(TestMockerInterface.class, new WireMock(8080), serializers);
     }
 
     @Test
@@ -107,23 +109,6 @@ public class MockerFactoryTest {
     }
 
     @Test
-    public void postRequestWithBodyIsNotMatchedIfWrongRequestBodyIsGiven() throws Exception {
-        // given
-        mocker.stubPostString().withRequestEntity(new StringHolder("expected")).andRespondWith(null).stub();
-
-        // when
-        try {
-            client.postString(new StringHolder("wrong"));
-            fail("Expected MessageBodyProviderNotFoundException when POSTing a string not matched");
-        } catch (MessageBodyProviderNotFoundException ignored) {
-            // This exception is required - WireMock will return HTML in the 404, which the client can't parse
-        }
-
-        // then
-        mocker.verifyPostString().withRequestEntity(new StringHolder("expected")).times(0).verify();
-    }
-
-    @Test
     public void postRequestWithRequestBodyMatchedByContainingCanBeStubbedAndVerified() throws Exception {
         // given
         mocker.stubPostString().withRequestBody(containing("quest")).andRespondWith(new StringWithId(1, "req")).stub();
@@ -165,13 +150,13 @@ public class MockerFactoryTest {
     @Test
     public void callingInterfaceMethodWithWrongReturnTypeThrowsException() throws Exception {
         // given
-        ObjectMapper objectMapper = new ObjectMapper();
+        Serializers serializers = new Serializers();
 
         // when
         expectedException.expectMessage("All methods must return request stubbers or verifiers");
         expectedException.expectMessage("stubGetDoubleGivenInt");
         expectedException.expectMessage("verifyGetDoubleGivenInt");
-        MockerFactory.wireMockerFor(TestBadMockerInterface.class, wireMockRule, objectMapper);
+        MockerFactory.wireMockerFor(TestBadMockerInterface.class, new WireMock(8080), serializers);
     }
 
     @Test
@@ -277,7 +262,7 @@ public class MockerFactoryTest {
 
         @GET
         public Collection<Integer> getIntsByDate(
-                @QueryParam("date") @ParamFormat(DateTimeFormatter.class) DateTimeParam dateParam
+                @QueryParam("date") @ParamFormat(DateTimeFormatter.class) DateTime date
         ) {
             return ImmutableList.of(4,5,6);
         }
@@ -307,7 +292,7 @@ public class MockerFactoryTest {
     }
 
     public static class TestClient {
-        private final Client client = ClientBuilder.newClient().register(new JacksonJaxbJsonProvider());
+        private final Client client = ClientBuilder.newClient().register(JacksonJsonProvider.class);
 
         public int getInt() {
             return client

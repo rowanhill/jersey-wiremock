@@ -1,12 +1,16 @@
 package io.jerseywiremock.annotations.handler.requestmatching;
 
-import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.notMatching;
+
+import com.github.tomakehurst.wiremock.matching.StringValuePattern;
+
 import io.jerseywiremock.annotations.ParamMatchingStrategy;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-
 public class ValueMatchingStrategyFactory {
-    public ValueMatchingStrategy createValueMatchingStrategy(ParamMatchingStrategy matchingStrategy, String value) {
+    public StringValuePattern createValueMatchingStrategy(ParamMatchingStrategy matchingStrategy, String value) {
         switch (matchingStrategy) {
             case EQUAL_TO:
                 return equalTo(value);

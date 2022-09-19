@@ -1,14 +1,18 @@
 package io.jerseywiremock.annotations.factory;
 
+import com.JacksonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.jerseywiremock.annotations.WireMockForResource;
 import io.jerseywiremock.annotations.WireMockStub;
 import io.jerseywiremock.annotations.WireMockVerify;
 import io.jerseywiremock.annotations.handler.BaseMocker;
 import io.jerseywiremock.core.stub.request.GetSingleRequestStubber;
+import io.jerseywiremock.core.stub.request.Serializers;
 import io.jerseywiremock.core.verify.GetRequestVerifier;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,11 +31,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MockerFactoryAbstractClassTest {
+    private static final int WIREMOCK_PORT = 8080;
+
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
     @Rule
-    public WireMockRule wireMockRule = new WireMockRule(8080);
+    public WireMockRule wireMockRule = new WireMockRule(WIREMOCK_PORT);
 
     private TestClient client;
     private TestMockerFromBase mocker;
@@ -39,8 +45,9 @@ public class MockerFactoryAbstractClassTest {
     @Before
     public void setUp() throws Exception {
         client = new TestClient();
-        ObjectMapper objectMapper = new ObjectMapper();
-        mocker = MockerFactory.wireMockerFor(TestMockerFromBase.class, wireMockRule, objectMapper);
+        Serializers serializers = new Serializers();
+        serializers.addSerializer("application/json", new JacksonSerializer());
+        mocker = MockerFactory.wireMockerFor(TestMockerFromBase.class, new WireMock(8080), serializers);
     }
 
     @Test
@@ -70,22 +77,23 @@ public class MockerFactoryAbstractClassTest {
 
     @Test
     public void exceptionIsThrownCreatingMockerFromAbstractClassThatDoesNotInheritFromBaseMocker() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
+        Serializers serializers = new Serializers();
+        serializers.addSerializer("application/json", new JacksonSerializer());
         expectedException.expectMessage("must subclass BaseMocker. TestMockerWithoutBase does not.");
-        MockerFactory.wireMockerFor(TestMockerWithoutBase.class, wireMockRule, objectMapper);
+        MockerFactory.wireMockerFor(TestMockerWithoutBase.class, new WireMock(8080), serializers);
     }
 
     @WireMockForResource(TestResource.class)
     public static abstract class TestMockerFromBase extends BaseMocker {
         public TestMockerFromBase(
-                WireMockServer wireMockServer,
-                ObjectMapper objectMapper
+                WireMock wireMock,
+                Serializers serializers
         ) {
-            super(wireMockServer, objectMapper);
+            super(wireMock, serializers);
         }
 
         public void stub500ForAnyUrlStartingBadUrl() {
-            wireMockServer.stubFor(get(urlPathMatching("/bad-url(-.+)?"))
+            wireMock.register(get(urlPathMatching("/bad-url(-.+)?"))
                     .willReturn(aResponse().withStatus(500)));
         }
 
@@ -109,7 +117,7 @@ public class MockerFactoryAbstractClassTest {
     }
 
     public static class TestClient {
-        private final Client client = ClientBuilder.newClient().register(new JacksonJaxbJsonProvider());
+        private final Client client = ClientBuilder.newClient().register(JacksonJsonProvider.class);
 
         public int getByQuery(int input) {
             return client

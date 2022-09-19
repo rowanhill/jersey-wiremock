@@ -1,33 +1,33 @@
 package io.jerseywiremock.core.stub.request;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
+
 import io.jerseywiremock.core.stub.response.GetSingleResponseStubber;
 
 public class GetSingleRequestStubber<Entity>
         extends EmptyRequestSimpleResponseRequestStubber<Entity, GetSingleResponseStubber<Entity>>
 {
     public GetSingleRequestStubber(
-            WireMockServer wireMockServer,
-            ObjectMapper objectMapper,
+            WireMock wireMock,
+            Serializer serializer,
             MappingBuilder mappingBuilder,
             ResponseDefinitionBuilder responseDefinitionBuilder
     ) {
-        super(wireMockServer, objectMapper, mappingBuilder, responseDefinitionBuilder);
+        super(wireMock, serializer, mappingBuilder, responseDefinitionBuilder);
     }
 
     public GetSingleRequestStubber(
-            WireMockServer wireMockServer,
-            ObjectMapper objectMapper,
+            WireMock wireMock,
+            Serializer serializer,
             MappingBuilder mappingBuilder
     ) {
-        super(wireMockServer, objectMapper, mappingBuilder);
+        super(wireMock, serializer, mappingBuilder);
     }
 
     @Override
     public GetSingleResponseStubber<Entity> andRespond() {
-        return new GetSingleResponseStubber<>(wireMockServer, objectMapper, mappingBuilder, responseDefinitionBuilder);
+        return new GetSingleResponseStubber<>(wireMock, serializer, mappingBuilder, responseDefinitionBuilder);
     }
 }

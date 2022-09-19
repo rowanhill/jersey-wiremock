@@ -1,36 +1,35 @@
 package io.jerseywiremock.core.verify;
 
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
-import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.matching.ContentPattern;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
+
+import io.jerseywiremock.core.stub.request.Serializer;
 
 public abstract class RequestWithEntityVerifier<Entity, Self extends RequestWithEntityVerifier<Entity, Self>>
         extends BaseRequestVerifier<RequestWithEntityVerifier>
 {
-    protected ObjectMapper objectMapper;
+    protected Serializer serializer;
 
     public RequestWithEntityVerifier(
-            WireMockServer wireMockServer,
-            ObjectMapper objectMapper,
+            WireMock wireMock,
+            Serializer serializer,
             RequestPatternBuilder patternBuilder
     ) {
-        super(wireMockServer, patternBuilder);
-        this.objectMapper = objectMapper;
+        super(wireMock, patternBuilder);
+        this.serializer = serializer;
     }
 
-    public Self withRequestEntity(Entity entity) throws JsonProcessingException {
-        String entityString = objectMapper.writeValueAsString(entity);
+    public Self withRequestEntity(Entity entity) {
+        String entityString = serializer.serialize(entity);
         requestPatternBuilder.withRequestBody(equalTo(entityString));
         //noinspection unchecked
         return (Self) this;
     }
 
-    public Self withRequestBody(ValueMatchingStrategy valueMatchingStrategy) {
+    public Self withRequestBody(ContentPattern<?> valueMatchingStrategy) {
         requestPatternBuilder.withRequestBody(valueMatchingStrategy);
         //noinspection unchecked
         return (Self) this;

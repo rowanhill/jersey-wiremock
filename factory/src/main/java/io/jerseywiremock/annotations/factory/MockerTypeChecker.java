@@ -6,6 +6,7 @@ import io.jerseywiremock.core.verify.BaseRequestVerifier;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 class MockerTypeChecker {
     private final MockerMethodSelector methodSelector;
@@ -25,14 +26,12 @@ class MockerTypeChecker {
     }
 
     private List<Method> selectBadMethods(List<Method> methods) {
-        List<Method> badMethods = new LinkedList<>();
-        for (Method method : methods) {
-            Class<?> returnType = method.getReturnType();
-            if (!(isStubber(returnType) || isVerifier(returnType))) {
-                badMethods.add(method);
-            }
-        }
-        return badMethods;
+        return methods.stream()
+                .filter(method -> {
+                    Class<?> returnType = method.getReturnType();
+                    return !(isStubber(returnType) || isVerifier(returnType));
+                })
+                .collect(Collectors.toList());
     }
 
     private boolean isStubber(Class<?> returnType) {

@@ -1,16 +1,16 @@
 package io.jerseywiremock.core.verify;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 
 public abstract class BaseRequestVerifier<Self extends BaseRequestVerifier> {
-    protected final WireMockServer wireMockServer;
+    protected final WireMock wireMock;
     protected final RequestPatternBuilder requestPatternBuilder;
 
     private Integer numOfTimes;
 
-    public BaseRequestVerifier(WireMockServer wireMockServer, RequestPatternBuilder patternBuilder) {
-        this.wireMockServer = wireMockServer;
+    public BaseRequestVerifier(WireMock wireMock, RequestPatternBuilder patternBuilder) {
+        this.wireMock = wireMock;
         this.requestPatternBuilder = patternBuilder;
     }
 
@@ -22,9 +22,9 @@ public abstract class BaseRequestVerifier<Self extends BaseRequestVerifier> {
 
     public void verify() {
         if (numOfTimes != null) {
-            wireMockServer.verify(numOfTimes, requestPatternBuilder);
+            wireMock.verifyThat(numOfTimes, requestPatternBuilder);
         } else {
-            wireMockServer.verify(requestPatternBuilder);
+            wireMock.verifyThat(requestPatternBuilder);
         }
     }
 }

@@ -1,10 +1,10 @@
 package io.jerseywiremock.core.stub.response;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
+
+import io.jerseywiremock.core.stub.request.Serializer;
 
 public abstract class SimpleEntityResponseStubber<
         Entity,
@@ -14,12 +14,12 @@ public abstract class SimpleEntityResponseStubber<
     private Entity entity;
 
     public SimpleEntityResponseStubber(
-            WireMockServer wireMockServer,
-            ObjectMapper objectMapper,
+            WireMock wireMock,
+            Serializer serializer,
             MappingBuilder mappingBuilder,
             ResponseDefinitionBuilder responseDefinitionBuilder
     ) {
-        super(wireMockServer, objectMapper, mappingBuilder, responseDefinitionBuilder);
+        super(wireMock, serializer, mappingBuilder, responseDefinitionBuilder);
     }
 
     public Self withEntity(Entity entity) {
@@ -29,10 +29,8 @@ public abstract class SimpleEntityResponseStubber<
     }
 
     @Override
-    protected void amendResponseDefinition(ResponseDefinitionBuilder responseDefinitionBuilder)
-            throws JsonProcessingException
-    {
-        String bodyString = objectMapper.writeValueAsString(entity);
+    protected void amendResponseDefinition(ResponseDefinitionBuilder responseDefinitionBuilder) {
+        String bodyString = serializer.serialize(entity);
         responseDefinitionBuilder.withBody(bodyString);
     }
 }

@@ -1,10 +1,10 @@
 package io.jerseywiremock.core.verify;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 
 public abstract class EmptyRequestVerifier extends BaseRequestVerifier<EmptyRequestVerifier> {
-    public EmptyRequestVerifier(WireMockServer wireMockServer, RequestPatternBuilder patternBuilder) {
-        super(wireMockServer, patternBuilder);
+    public EmptyRequestVerifier(WireMock wireMock, RequestPatternBuilder patternBuilder) {
+        super(wireMock, patternBuilder);
     }
 }

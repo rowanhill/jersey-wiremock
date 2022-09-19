@@ -1,20 +1,19 @@
 package io.jerseywiremock.annotations.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
-import io.jerseywiremock.annotations.WireMockStub;
-import io.jerseywiremock.annotations.WireMockVerify;
-import io.jerseywiremock.annotations.handler.requestmatching.RequestMatchingDescriptor;
-import io.jerseywiremock.annotations.handler.requestmatching.RequestMatchingDescriptorFactory;
-import io.jerseywiremock.annotations.handler.resourcemethod.HttpVerb;
-import io.jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptor;
-import io.jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
-import io.jerseywiremock.annotations.handler.util.CollectionFactory;
-import io.jerseywiremock.core.stub.request.*;
-import io.jerseywiremock.core.verify.DeleteRequestVerifier;
-import io.jerseywiremock.core.verify.GetRequestVerifier;
-import io.jerseywiremock.core.verify.PostRequestVerifier;
-import io.jerseywiremock.core.verify.PutRequestVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.is;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+
+import javax.ws.rs.core.UriBuilder;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -24,13 +23,26 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.ws.rs.core.UriBuilder;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
+import com.github.tomakehurst.wiremock.client.WireMock;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.is;
-import static org.mockito.Mockito.*;
+import io.jerseywiremock.annotations.WireMockStub;
+import io.jerseywiremock.annotations.WireMockVerify;
+import io.jerseywiremock.annotations.handler.requestmatching.RequestMatchingDescriptor;
+import io.jerseywiremock.annotations.handler.requestmatching.RequestMatchingDescriptorFactory;
+import io.jerseywiremock.annotations.handler.resourcemethod.HttpVerb;
+import io.jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptor;
+import io.jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
+import io.jerseywiremock.annotations.handler.util.CollectionFactory;
+import io.jerseywiremock.core.stub.request.DeleteRequestStubber;
+import io.jerseywiremock.core.stub.request.GetListRequestStubber;
+import io.jerseywiremock.core.stub.request.GetSingleRequestStubber;
+import io.jerseywiremock.core.stub.request.PostRequestStubber;
+import io.jerseywiremock.core.stub.request.PutRequestStubber;
+import io.jerseywiremock.core.stub.request.Serializers;
+import io.jerseywiremock.core.verify.DeleteRequestVerifier;
+import io.jerseywiremock.core.verify.GetRequestVerifier;
+import io.jerseywiremock.core.verify.PostRequestVerifier;
+import io.jerseywiremock.core.verify.PutRequestVerifier;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MockerInvocationHandlerTest {
@@ -56,12 +68,13 @@ public class MockerInvocationHandlerTest {
     @Before
     public void setUp() throws Exception {
         params = new Object[]{};
-        testMocker = new TestMocker(null, null);
+        testMocker = new TestMocker(null, new Serializers());
         mockerMethod = TestMocker.class.getDeclaredMethod("method");
         uriBuilder = UriBuilder.fromPath("/test");
         resourceMethod = TestResource.class.getDeclaredMethod("method");
 
         mockDescriptor = mock(ResourceMethodDescriptor.class);
+        when(mockDescriptor.computeContentType()).thenReturn("application/json");
         when(mockDescriptor.getMethodName()).thenReturn("method");
         when(mockDescriptor.createUriBuilder()).thenReturn(uriBuilder);
         when(mockDescriptor.getMethod()).thenReturn(resourceMethod);
@@ -271,8 +284,8 @@ public class MockerInvocationHandlerTest {
 
     @SuppressWarnings("unused")
     private static class TestMocker extends BaseMocker {
-        private TestMocker(WireMockServer wireMockServer, ObjectMapper objectMapper) {
-            super(wireMockServer, objectMapper);
+        private TestMocker(WireMock wireMock, Serializers serializers) {
+            super(wireMock, serializers);
         }
 
         void method() {}

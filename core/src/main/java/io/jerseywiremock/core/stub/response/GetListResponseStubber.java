@@ -1,20 +1,21 @@
 package io.jerseywiremock.core.stub.response;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
+import java.util.Collection;
+
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
 
-import java.util.Collection;
+import io.jerseywiremock.core.stub.request.Serializer;
 
 public class GetListResponseStubber<Entity> extends CollectionResponseStubber<Entity, GetListResponseStubber<Entity>> {
     public GetListResponseStubber(
-            WireMockServer wireMockServer,
-            ObjectMapper objectMapper,
+            WireMock wireMock,
+            Serializer serializer,
             MappingBuilder mappingBuilder,
             ResponseDefinitionBuilder responseDefinitionBuilder,
             Collection<Entity> collection
     ) {
-        super(wireMockServer, objectMapper, mappingBuilder, responseDefinitionBuilder, collection);
+        super(wireMock, serializer, mappingBuilder, responseDefinitionBuilder, collection);
     }
 }

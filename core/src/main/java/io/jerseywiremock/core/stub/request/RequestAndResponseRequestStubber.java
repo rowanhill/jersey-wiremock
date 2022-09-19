@@ -1,14 +1,13 @@
 package io.jerseywiremock.core.stub.request;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
-import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
-import io.jerseywiremock.core.stub.response.SimpleEntityResponseStubber;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.matching.ContentPattern;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import io.jerseywiremock.core.stub.response.SimpleEntityResponseStubber;
 
 public abstract class RequestAndResponseRequestStubber<
         RequestEntity,
@@ -18,32 +17,30 @@ public abstract class RequestAndResponseRequestStubber<
         > extends EmptyRequestSimpleResponseRequestStubber<ResponseEntity, ResponseStubber>
 {
     public RequestAndResponseRequestStubber(
-            WireMockServer wireMockServer,
-            ObjectMapper objectMapper,
+            WireMock wireMock,
+            Serializer serializer,
             MappingBuilder mappingBuilder,
             ResponseDefinitionBuilder responseDefinitionBuilder
     ) {
-        super(wireMockServer, objectMapper, mappingBuilder, responseDefinitionBuilder);
+        super(wireMock, serializer, mappingBuilder, responseDefinitionBuilder);
     }
 
     public RequestAndResponseRequestStubber(
-            WireMockServer wireMockServer,
-            ObjectMapper objectMapper,
+            WireMock wireMock,
+            Serializer serializer,
             MappingBuilder mappingBuilder
     ) {
-        super(wireMockServer, objectMapper, mappingBuilder);
+        super(wireMock, serializer, mappingBuilder);
     }
 
-    public Self withRequestEntity(RequestEntity requestEntity)
-            throws JsonProcessingException
-    {
-        String entityString = objectMapper.writeValueAsString(requestEntity);
+    public Self withRequestEntity(RequestEntity requestEntity) {
+        String entityString = serializer.serialize(requestEntity);
         mappingBuilder.withRequestBody(equalTo(entityString));
         //noinspection unchecked
         return (Self) this;
     }
 
-    public Self withRequestBody(ValueMatchingStrategy strategy) {
+    public Self withRequestBody(ContentPattern<?> strategy) {
         mappingBuilder.withRequestBody(strategy);
         //noinspection unchecked
         return (Self) this;

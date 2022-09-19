@@ -4,13 +4,17 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import io.jerseywiremock.annotations.handler.util.ReflectionHelper;
 
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.UriBuilder;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 
 public class ResourceMethodDescriptor {
+    private static final String FALLBACK_CONTENT_TYPE = "application/json";
+    public static final String ROOT_PATH = "/";
     private final Class<?> resourceClass;
     private final String methodName;
     private final HttpVerb verb;
@@ -59,25 +63,21 @@ public class ResourceMethodDescriptor {
     public UriBuilder createUriBuilder() {
         Method method = ReflectionHelper.getMethod(resourceClass, methodName);
 
-        UriBuilder uriBuilder = UriBuilder.fromResource(resourceClass);
+        UriBuilder uriBuilder = UriBuilder.fromPath(ROOT_PATH).path(resourceClass);
         for (Annotation methodAnnotation : method.getDeclaredAnnotations()) {
             if (methodAnnotation.annotationType().equals(Path.class)) {
                 uriBuilder.path(method);
             }
         }
-
         return  uriBuilder;
     }
 
     public ResponseDefinitionBuilder toResponseDefinitionBuilder() {
         ResponseDefinitionBuilder responseDefinitionBuilder = aResponse();
-
         Method method = getMethod();
         if (!method.getReturnType().equals(Void.TYPE)) {
-            // TODO: Add content type based on what was declared by @Produces
-            responseDefinitionBuilder.withHeader("Content-Type", "application/json");
+            responseDefinitionBuilder.withHeader("Content-Type", computeContentType());
         }
-
         if (method.getReturnType().equals(Void.TYPE)) {
             responseDefinitionBuilder.withStatus(204);
         } else {
@@ -85,7 +85,13 @@ public class ResourceMethodDescriptor {
                 responseDefinitionBuilder.withStatus(201);
             }
         }
-
         return responseDefinitionBuilder;
     }
+
+    public String computeContentType() {
+        Produces producesAnnotation = Optional.ofNullable(getMethod().getAnnotation(Produces.class))
+                .orElseGet(() -> getResourceClass().getAnnotation(Produces.class));
+        return producesAnnotation != null ? producesAnnotation.value()[0] : FALLBACK_CONTENT_TYPE;
+    }
+
 }

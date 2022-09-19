@@ -1,6 +1,8 @@
 package io.jerseywiremock.annotations.handler.requestmatching;
 
-import com.github.tomakehurst.wiremock.client.ValueMatchingStrategy;
+import com.github.tomakehurst.wiremock.matching.ContainsPattern;
+import com.github.tomakehurst.wiremock.matching.EqualToPattern;
+import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.google.common.collect.*;
 import io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamFormatterInvoker;
 import io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType;
@@ -15,12 +17,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import javax.ws.rs.HEAD;
 import javax.ws.rs.core.UriBuilder;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.LinkedList;
 
 import static io.jerseywiremock.annotations.ParamMatchingStrategy.*;
+import static io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType.HEADER;
 import static io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType.QUERY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -76,15 +80,16 @@ public class RequestMatchingDescriptorFactoryTest {
         // then
         assertThat(descriptor).isEqualToComparingFieldByField(new RequestMatchingDescriptor(
                 "http://localhost/forPathParam",
-                ImmutableListMultimap.<String, ValueMatchingStrategy>of()
+                ImmutableListMultimap.of(),
+                ImmutableListMultimap.of()
         ));
     }
 
     @Test
     public void descriptorDerivesQueryParamMatchingStrategiesFromQueryParams() {
         // given
-        ValueMatchingStrategy equalTo = new ValueMatchingStrategy();
-        ValueMatchingStrategy containing = new ValueMatchingStrategy();
+        StringValuePattern equalTo = new EqualToPattern("123");
+        StringValuePattern containing = new ContainsPattern("123");
         when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(null, "1")).thenReturn(equalTo);
         when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(EQUAL_TO, "2")).thenReturn(equalTo);
         when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(CONTAINING, "3")).thenReturn(containing);
@@ -96,12 +101,40 @@ public class RequestMatchingDescriptorFactoryTest {
         RequestMatchingDescriptor descriptor = createDescriptor(new Object[]{ "1", "2", "3" });
 
         // then
-        ListMultimap<String, ValueMatchingStrategy> multimap = ArrayListMultimap.create();
+        ListMultimap<String, StringValuePattern> multimap = ArrayListMultimap.create();
         multimap.put("default", equalTo);
         multimap.put("equalTo", equalTo);
         multimap.put("containing", containing);
         assertThat(descriptor).isEqualToComparingFieldByField(new RequestMatchingDescriptor(
                 PATH,
+                multimap,
+                ImmutableListMultimap.of()
+        ));
+    }
+
+    @Test
+    public void descriptorDerivesQueryParamMatchingStrategiesFromHeaderParams() {
+        // given
+        StringValuePattern equalTo = new EqualToPattern("123");
+        StringValuePattern containing = new ContainsPattern("123");
+        when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(null, "1")).thenReturn(equalTo);
+        when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(EQUAL_TO, "2")).thenReturn(equalTo);
+        when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(CONTAINING, "3")).thenReturn(containing);
+        parameterDescriptors.add(new ParameterDescriptor(HEADER, "default", null, null));
+        parameterDescriptors.add(new ParameterDescriptor(HEADER, "equalTo", null, EQUAL_TO));
+        parameterDescriptors.add(new ParameterDescriptor(HEADER, "containing", null, CONTAINING));
+
+        // when
+        RequestMatchingDescriptor descriptor = createDescriptor(new Object[]{ "1", "2", "3" });
+
+        // then
+        ListMultimap<String, StringValuePattern> multimap = ArrayListMultimap.create();
+        multimap.put("default", equalTo);
+        multimap.put("equalTo", equalTo);
+        multimap.put("containing", containing);
+        assertThat(descriptor).isEqualToComparingFieldByField(new RequestMatchingDescriptor(
+                PATH,
+                ImmutableListMultimap.of(),
                 multimap
         ));
     }
@@ -109,7 +142,7 @@ public class RequestMatchingDescriptorFactoryTest {
     @Test
     public void descriptorHasMatchingStrategyForEachItemInIterableUsedAsQueryParam() {
         // given
-        ValueMatchingStrategy equalTo = new ValueMatchingStrategy();
+        StringValuePattern equalTo = new EqualToPattern("123");
         when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(null, "l1")).thenReturn(equalTo);
         when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(null, "l2")).thenReturn(equalTo);
         parameterDescriptors.add(new ParameterDescriptor(QUERY, "list", null, null));
@@ -124,21 +157,22 @@ public class RequestMatchingDescriptorFactoryTest {
         });
 
         // then
-        ListMultimap<String, ValueMatchingStrategy> multimap = ArrayListMultimap.create();
+        ListMultimap<String, StringValuePattern> multimap = ArrayListMultimap.create();
         multimap.put("list", equalTo);
         multimap.put("list", equalTo);
         multimap.put("set", equalTo);
         multimap.put("set", equalTo);
         assertThat(descriptor).isEqualToComparingFieldByField(new RequestMatchingDescriptor(
                 PATH,
-                multimap
+                multimap,
+                ImmutableListMultimap.of()
         ));
     }
 
     @Test
     public void descriptorUrlEncodesQueryParameterValues() {
         // given
-        ValueMatchingStrategy equalTo = new ValueMatchingStrategy();
+        StringValuePattern equalTo = new EqualToPattern("123");
         when(mockValueMatchingStrategyFactory.createValueMatchingStrategy(null, "a%3Ab")).thenReturn(equalTo);
         parameterDescriptors.add(new ParameterDescriptor(QUERY, "query", null, null));
 
@@ -146,11 +180,12 @@ public class RequestMatchingDescriptorFactoryTest {
         RequestMatchingDescriptor descriptor = createDescriptor(new Object[]{ "a:b" });
 
         // then
-        ListMultimap<String, ValueMatchingStrategy> multimap = ArrayListMultimap.create();
+        ListMultimap<String, StringValuePattern> multimap = ArrayListMultimap.create();
         multimap.put("query", equalTo);
         assertThat(descriptor).isEqualToComparingFieldByField(new RequestMatchingDescriptor(
                 PATH,
-                multimap
+                multimap,
+                ImmutableListMultimap.of()
         ));
     }
 
