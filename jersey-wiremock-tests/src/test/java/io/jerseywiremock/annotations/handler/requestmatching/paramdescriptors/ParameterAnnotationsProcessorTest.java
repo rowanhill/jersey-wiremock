@@ -1,31 +1,30 @@
 package io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors;
 
-import io.jerseywiremock.annotations.ParamFormat;
-import io.jerseywiremock.annotations.ParamMatchedBy;
-import io.jerseywiremock.annotations.ParamNamed;
-import io.jerseywiremock.annotations.handler.util.ReflectionHelper;
-import io.jerseywiremock.annotations.formatter.ParamFormatter;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static io.jerseywiremock.annotations.ParamMatchingStrategy.CONTAINING;
+import static io.jerseywiremock.annotations.ParamMatchingStrategy.EQUAL_TO;
+import static io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType.PATH;
+import static io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType.QUERY;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.Date;
+import java.util.LinkedList;
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import java.util.Date;
-import java.util.LinkedList;
 
-import static io.jerseywiremock.annotations.ParamMatchingStrategy.CONTAINING;
-import static io.jerseywiremock.annotations.ParamMatchingStrategy.EQUAL_TO;
-import static io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import org.junit.jupiter.api.Test;
+
+import io.jerseywiremock.annotations.ParamFormat;
+import io.jerseywiremock.annotations.ParamMatchedBy;
+import io.jerseywiremock.annotations.ParamNamed;
+import io.jerseywiremock.annotations.formatter.ParamFormatter;
+import io.jerseywiremock.annotations.handler.util.ReflectionHelper;
 
 public class ParameterAnnotationsProcessorTest {
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
-    private ParameterAnnotationsProcessor parameterAnnotationsProcessor = new ParameterAnnotationsProcessor();
+    private final ParameterAnnotationsProcessor parameterAnnotationsProcessor = new ParameterAnnotationsProcessor();
 
     @Test
     public void targetMethodWithNoParamsProducesNoParamDescriptors() {
@@ -152,16 +151,12 @@ public class ParameterAnnotationsProcessorTest {
 
     @Test
     public void targetMethodWithMoreParamsThanMockerMethodCausesException() {
-        // when
-        expectedException.expectMessage("Expected oneNakedParam to have 2 param(s), but has 1");
-        createParameterDescriptors("pathAndQueryParams", "oneNakedParam");
+        assertThrows(Exception.class, () -> createParameterDescriptors("pathAndQueryParams", "oneNakedParam"));
     }
 
     @Test
     public void mockerMethodWithOnlySomeParamsAnnotatedWithParamNameCausesException() {
-        // when
-        expectedException.expectMessage("Only some parameters were annotated with @ParamNamed; either all must be, or none");
-        createParameterDescriptors("pathAndQueryParams", "onlySomeNamedParams");
+        assertThrows(Exception.class, () -> createParameterDescriptors("pathAndQueryParams", "onlySomeNamedParams"));
     }
 
     @Test
@@ -201,16 +196,14 @@ public class ParameterAnnotationsProcessorTest {
 
     @Test
     public void pathParamsAreRequiredEvenIfSpecifyingMockerParameterNames() {
-        // when
-        expectedException.expectMessage("Expected missingPathParams to specify all path parameters, but the following are missing: [path]");
-        createParameterDescriptors("pathAndQueryParams", "missingPathParams");
+        assertThrows(Exception.class, () -> createParameterDescriptors("pathAndQueryParams", "missingPathParams"));
     }
 
     @Test
     public void duplicatedNamedParametersCausesAnException() {
         // when
-        expectedException.expectMessage("Named parameters must be unique, but the following are duplicated: [path]");
-        createParameterDescriptors("pathAndQueryParams", "duplicatedNamedParams");
+        assertThrows(Exception.class,
+                () -> createParameterDescriptors("pathAndQueryParams", "duplicatedNamedParams"));
     }
 
     private LinkedList<ParameterDescriptor> createParameterDescriptors(String resourceMethod, String mockerMethod) {

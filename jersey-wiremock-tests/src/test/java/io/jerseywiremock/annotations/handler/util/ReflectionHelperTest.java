@@ -1,17 +1,13 @@
 package io.jerseywiremock.annotations.handler.util;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.lang.reflect.Method;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 public class ReflectionHelperTest {
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
     @Test
     public void methodCanBeRetrievedFromClassByName() {
         // when
@@ -24,8 +20,7 @@ public class ReflectionHelperTest {
     @Test
     public void exceptionIsRaisedIfMethodNameDoesNotExist() {
         // when
-        expectedException.expectMessage("No method named notAMethod on ReflectionTestClass");
-         ReflectionHelper.getMethod(ReflectionTestClass.class, "notAMethod");
+        assertThrows(Exception.class, () -> ReflectionHelper.getMethod(ReflectionTestClass.class, "notAMethod"));
     }
 
     @SuppressWarnings("unused")

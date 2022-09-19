@@ -1,42 +1,49 @@
 package io.jerseywiremock.annotations.handler.requestmatching;
 
-import com.github.tomakehurst.wiremock.matching.ContainsPattern;
-import com.github.tomakehurst.wiremock.matching.EqualToPattern;
-import com.github.tomakehurst.wiremock.matching.StringValuePattern;
-import com.google.common.collect.*;
-import io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamFormatterInvoker;
-import io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType;
-import io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterAnnotationsProcessor;
-import io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterDescriptor;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import static io.jerseywiremock.annotations.ParamMatchingStrategy.CONTAINING;
+import static io.jerseywiremock.annotations.ParamMatchingStrategy.EQUAL_TO;
+import static io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType.HEADER;
+import static io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType.QUERY;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
-import javax.ws.rs.HEAD;
-import javax.ws.rs.core.UriBuilder;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.LinkedList;
 
-import static io.jerseywiremock.annotations.ParamMatchingStrategy.*;
-import static io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType.HEADER;
-import static io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType.QUERY;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
+import javax.ws.rs.core.UriBuilder;
 
-@RunWith(MockitoJUnitRunner.class)
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
+import com.github.tomakehurst.wiremock.matching.ContainsPattern;
+import com.github.tomakehurst.wiremock.matching.EqualToPattern;
+import com.github.tomakehurst.wiremock.matching.StringValuePattern;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ListMultimap;
+
+import io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamFormatterInvoker;
+import io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParamType;
+import io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterAnnotationsProcessor;
+import io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterDescriptor;
+
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class RequestMatchingDescriptorFactoryTest {
     private static final String PATH = "http://localhost";
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     @Mock
     private ParameterAnnotationsProcessor mockParameterAnnotationsProcessor;
@@ -47,24 +54,23 @@ public class RequestMatchingDescriptorFactoryTest {
     @InjectMocks
     private RequestMatchingDescriptorFactory descriptorFactory;
 
-    private LinkedList<ParameterDescriptor> parameterDescriptors = new LinkedList<>();
+    private final LinkedList<ParameterDescriptor> parameterDescriptors = new LinkedList<>();
     private Method targetMethod;
     private Method mockerMethod;
 
     @Mock
     private UriBuilder mockUriBuilder;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         targetMethod = TestResource.class.getDeclaredMethod("method");
         mockerMethod = TestMocker.class.getDeclaredMethod("method");
         when(mockParameterAnnotationsProcessor.createParameterDescriptors(targetMethod, mockerMethod))
                 .thenReturn(parameterDescriptors);
 
-        //noinspection unchecked
-        when(mockParamFormatterInvoker.getFormattedParamValue(anyString(), any(Class.class))).thenReturn("formattedVal");
+        when(mockParamFormatterInvoker.getFormattedParamValue(any(), any())).thenReturn("formattedVal");
 
-        when(mockUriBuilder.buildFromMap(ImmutableMap.<String, Object>of())).thenReturn(new URI("http://localhost"));
+        when(mockUriBuilder.buildFromMap(ImmutableMap.of())).thenReturn(new URI("http://localhost"));
     }
 
     @Test
@@ -191,9 +197,7 @@ public class RequestMatchingDescriptorFactoryTest {
 
     @Test
     public void exceptionIsThrownIfNumberOfParamsDoesNotMuchNumberOfParamDescriptors() {
-        // when
-        expectedException.expectMessage("Invocation of method had 1 params, but 0 are desired");
-        createDescriptor(new Object[]{ "Param value without descriptor" });
+        assertThrows(Exception.class, () -> createDescriptor(new Object[] {"Param value without descriptor"}));
     }
 
     private RequestMatchingDescriptor createDescriptor(Object[] params) {

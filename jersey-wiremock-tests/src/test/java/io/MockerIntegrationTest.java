@@ -1,4 +1,4 @@
-package io.jerseywiremock.core;
+package io;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
@@ -13,6 +13,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,16 +34,15 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.Fault;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.google.common.collect.ImmutableList;
 
@@ -58,19 +58,20 @@ import io.jerseywiremock.core.verify.PostRequestVerifier;
 import io.jerseywiremock.core.verify.PutRequestVerifier;
 
 public class MockerIntegrationTest {
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(8080);
-
+    private final WireMockServer wireMockServer = new WireMockServer(8080);
     private TestClient client;
     private TestMocker mocker;
 
-    @Before
+    @BeforeEach
     public void setUp() {
+        wireMockServer.start();
         client = new TestClient();
-        mocker = new TestMocker(new WireMock(8080), new JacksonSerializer());
+        mocker = new TestMocker(new WireMock(8080), new com.JacksonSerializer());
+    }
+
+    @AfterEach
+    void after() {
+        wireMockServer.stop();
     }
 
     @Test
@@ -218,7 +219,7 @@ public class MockerIntegrationTest {
         Client client = ClientBuilder.newClient().register(new JacksonJaxbJsonProvider());
         DeleteRequestStubber stubber = new DeleteRequestStubber(
                 new WireMock(8080),
-                new JacksonSerializer(),
+                new com.JacksonSerializer(),
                 delete(urlPathEqualTo("/test")),
                 aResponse().withStatus(403));
 
@@ -236,8 +237,7 @@ public class MockerIntegrationTest {
         mocker.stubGetDoubleGivenInt(1).andRespond().withFault(Fault.EMPTY_RESPONSE).stub();
 
         // when
-        expectedException.expect(ProcessingException.class);
-        client.getDoubleGivenInt(1);
+        assertThrows(ProcessingException.class, () -> client.getDoubleGivenInt(1));
     }
 
     public static class TestMocker {
@@ -472,7 +472,7 @@ public class MockerIntegrationTest {
         }
 
         public Integer postName(String name) {
-            String nameJson = new JacksonSerializer().serialize(name);
+            String nameJson = new com.JacksonSerializer().serialize(name);
             return client
                     .target(UriBuilder
                             .fromResource(TestResource.class)
@@ -486,7 +486,7 @@ public class MockerIntegrationTest {
         }
 
         public Integer putName(int id, String name) {
-            String nameJson = new JacksonSerializer().serialize(name);
+            String nameJson = new com.JacksonSerializer().serialize(name);
             return client
                     .target(UriBuilder
                             .fromResource(TestResource.class)

@@ -1,20 +1,16 @@
 package io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors;
 
-import io.jerseywiremock.annotations.formatter.ParamFormatter;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.hamcrest.CoreMatchers.isA;
+import org.junit.jupiter.api.Test;
+
+import io.jerseywiremock.annotations.formatter.ParamFormatter;
 
 public class ParamFormatterInvokerTest {
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
-    private ParamFormatterInvoker invoker = new ParamFormatterInvoker();
+    private final ParamFormatterInvoker invoker = new ParamFormatterInvoker();
 
     @Test
     public void invokerDelegatesToSpecifiedClass() {
@@ -48,26 +44,17 @@ public class ParamFormatterInvokerTest {
 
     @Test
     public void usingAbstractFormatterClassThrowsException() {
-        // when
-        expectedException.expectMessage("Could not instantiate formatter AbstractFormatter");
-        expectedException.expectCause(isA(InstantiationException.class));
-        invoker.getFormattedParamValue(null, AbstractFormatter.class);
+        assertThrows(RuntimeException.class, () -> invoker.getFormattedParamValue(null, AbstractFormatter.class));
     }
 
     @Test
     public void usingNoNullConstructorFormatterClassThrowsException() {
-        // when
-        expectedException.expectMessage("Could not instantiate formatter NoNullConstructorFormatter");
-        expectedException.expectCause(isA(InstantiationException.class));
-        invoker.getFormattedParamValue(null, NoNullConstructorFormatter.class);
+        assertThrows(RuntimeException.class, () -> invoker.getFormattedParamValue(null, NoNullConstructorFormatter.class));
     }
 
     @Test
     public void usingPrivateFormatterClassThrowsException() {
-        // when
-        expectedException.expectMessage("Could not instantiate formatter PrivateFormatter");
-        expectedException.expectCause(isA(IllegalAccessException.class));
-        invoker.getFormattedParamValue(null, PrivateFormatter.class);
+        assertThrows(Exception.class, () -> invoker.getFormattedParamValue(null, PrivateFormatter.class));
     }
 
     static class StaticFormatter implements ParamFormatter<Date> {

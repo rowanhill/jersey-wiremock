@@ -1,26 +1,23 @@
 package io.jerseywiremock.annotations.handler;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import io.jerseywiremock.annotations.WireMockForResource;
 import io.jerseywiremock.annotations.WireMockStub;
 import io.jerseywiremock.annotations.WireMockVerify;
 import io.jerseywiremock.annotations.handler.resourcemethod.HttpVerbDetector;
 import io.jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptor;
 import io.jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith({MockitoExtension.class})
 public class ResourceMethodDescriptorFactoryTest {
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
     @Mock
     private HttpVerbDetector mockHttpVerbDetector;
     @InjectMocks
@@ -60,39 +57,38 @@ public class ResourceMethodDescriptorFactoryTest {
     }
 
     @Test
-    public void exceptionIsThrownIfMockerTypeIsMissingWireMockForResourceAnnotation() throws Exception {
+    public void exceptionIsThrownIfMockerTypeIsMissingWireMockForResourceAnnotation() {
         // when
-        expectedException.expectMessage(
-                "Expected TestUnannotatedMocker to be annotated with @WireMockForResource, but it was not");
-        methodDescriptorFactory.constructMethodDescriptor(
+        assertThrows(Exception.class, () -> methodDescriptorFactory.constructMethodDescriptor(
                 TestUnannotatedMocker.class.getMethod("stub"),
-                WireMockStub.class);
+                WireMockStub.class
+        ));
     }
 
     @Test
     public void exceptionIsThrownIfMockerMethodIsMissingExpectedWireMockStubAnnotation() throws Exception {
         // when
-        expectedException.expectMessage("Expected verify to be annotated with @WireMockStub, but it was not");
-        methodDescriptorFactory.constructMethodDescriptor(
+        assertThrows(Exception.class, () -> methodDescriptorFactory.constructMethodDescriptor(
                 TestMocker.class.getMethod("verify"),
-                WireMockStub.class);
+                WireMockStub.class
+        ));
     }
 
     @Test
     public void exceptionIsThrownIfMockerMethodIsMissingExpectedWireMockVerifyAnnotation() throws Exception {
         // when
-        expectedException.expectMessage("Expected stub to be annotated with @WireMockVerify, but it was not");
-        methodDescriptorFactory.constructMethodDescriptor(
+        assertThrows(Exception.class, () -> methodDescriptorFactory.constructMethodDescriptor(
                 TestMocker.class.getMethod("stub"),
-                WireMockVerify.class);
+                WireMockVerify.class
+        ));
     }
 
     @Test
     public void exceptionIsThrownIfUnexpectedMethodAnnotationIsGiven() throws Exception {
-        expectedException.expectMessage("Unexpected annotation: WireMockForResource");
-        methodDescriptorFactory.constructMethodDescriptor(
+        assertThrows(Exception.class, () -> methodDescriptorFactory.constructMethodDescriptor(
                 TestMocker.class.getMethod("stub"),
-                WireMockForResource.class);
+                WireMockForResource.class
+        ));
     }
 
     @SuppressWarnings("unused")

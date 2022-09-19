@@ -1,23 +1,10 @@
 package io.jerseywiremock.annotations.factory;
 
-import com.JacksonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import io.jerseywiremock.annotations.WireMockForResource;
-import io.jerseywiremock.annotations.WireMockStub;
-import io.jerseywiremock.annotations.WireMockVerify;
-import io.jerseywiremock.annotations.handler.BaseMocker;
-import io.jerseywiremock.core.stub.request.GetSingleRequestStubber;
-import io.jerseywiremock.core.stub.request.Serializers;
-import io.jerseywiremock.core.verify.GetRequestVerifier;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -27,27 +14,40 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.JacksonSerializer;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+
+import io.jerseywiremock.annotations.WireMockForResource;
+import io.jerseywiremock.annotations.WireMockStub;
+import io.jerseywiremock.annotations.WireMockVerify;
+import io.jerseywiremock.annotations.handler.BaseMocker;
+import io.jerseywiremock.core.stub.request.GetSingleRequestStubber;
+import io.jerseywiremock.core.stub.request.Serializers;
+import io.jerseywiremock.core.verify.GetRequestVerifier;
 
 public class MockerFactoryAbstractClassTest {
-    private static final int WIREMOCK_PORT = 8080;
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(WIREMOCK_PORT);
-
     private TestClient client;
     private TestMockerFromBase mocker;
+    private final WireMockServer wireMockServer = new WireMockServer(8080);
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
+        wireMockServer.start();
         client = new TestClient();
         Serializers serializers = new Serializers();
         serializers.addSerializer("application/json", new JacksonSerializer());
         mocker = MockerFactory.wireMockerFor(TestMockerFromBase.class, new WireMock(8080), serializers);
+    }
+
+    @AfterEach
+    void after() {
+        wireMockServer.stop();
     }
 
     @Test
@@ -76,11 +76,10 @@ public class MockerFactoryAbstractClassTest {
     }
 
     @Test
-    public void exceptionIsThrownCreatingMockerFromAbstractClassThatDoesNotInheritFromBaseMocker() throws Exception {
+    public void exceptionIsThrownCreatingMockerFromAbstractClassThatDoesNotInheritFromBaseMocker() {
         Serializers serializers = new Serializers();
         serializers.addSerializer("application/json", new JacksonSerializer());
-        expectedException.expectMessage("must subclass BaseMocker. TestMockerWithoutBase does not.");
-        MockerFactory.wireMockerFor(TestMockerWithoutBase.class, new WireMock(8080), serializers);
+        assertThrows(Exception.class, () -> MockerFactory.wireMockerFor(TestMockerWithoutBase.class, new WireMock(8080), serializers));
     }
 
     @WireMockForResource(TestResource.class)

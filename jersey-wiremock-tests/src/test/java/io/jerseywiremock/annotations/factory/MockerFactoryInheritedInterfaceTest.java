@@ -8,13 +8,12 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.UriBuilder;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import com.JacksonSerializer;
-import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
@@ -24,18 +23,22 @@ import io.jerseywiremock.core.stub.request.GetSingleRequestStubber;
 import io.jerseywiremock.core.stub.request.Serializers;
 
 public class MockerFactoryInheritedInterfaceTest {
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(8080);
-
+    private final WireMockServer wireMockServer = new WireMockRule(8080);
     private TestClient client;
     private TestMocker mocker;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
+        wireMockServer.start();
         client = new TestClient();
         Serializers serializers = new Serializers();
-        serializers.addSerializer("application/json", new JacksonSerializer());
+        serializers.addSerializer("application/json", new com.JacksonSerializer());
         mocker = MockerFactory.wireMockerFor(TestMocker.class, new WireMock(8080), serializers);
+    }
+
+    @AfterEach
+    void afterEach() {
+        wireMockServer.stop();
     }
 
     @Test

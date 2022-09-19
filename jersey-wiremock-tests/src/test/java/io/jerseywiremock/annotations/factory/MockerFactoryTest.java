@@ -1,57 +1,76 @@
 package io.jerseywiremock.annotations.factory;
 
-import com.JacksonSerializer;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.common.collect.ImmutableList;
-import io.jerseywiremock.annotations.*;
-import io.jerseywiremock.annotations.formatter.ParamFormatter;
-import io.jerseywiremock.core.stub.request.*;
-import io.jerseywiremock.core.verify.DeleteRequestVerifier;
-import io.jerseywiremock.core.verify.GetRequestVerifier;
-import io.jerseywiremock.core.verify.PostRequestVerifier;
-import io.jerseywiremock.core.verify.PutRequestVerifier;
-import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
-import org.joda.time.DateTime;
-import org.joda.time.format.ISODateTimeFormat;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static io.jerseywiremock.annotations.ParamMatchingStrategy.CONTAINING;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import javax.ws.rs.*;
+import java.util.Collection;
+
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-import java.util.Collection;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
-import static io.jerseywiremock.annotations.ParamMatchingStrategy.CONTAINING;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import org.joda.time.DateTime;
+import org.joda.time.format.ISODateTimeFormat;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.JacksonSerializer;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.collect.ImmutableList;
+
+import io.jerseywiremock.annotations.ParamFormat;
+import io.jerseywiremock.annotations.ParamMatchedBy;
+import io.jerseywiremock.annotations.WireMockForResource;
+import io.jerseywiremock.annotations.WireMockStub;
+import io.jerseywiremock.annotations.WireMockVerify;
+import io.jerseywiremock.annotations.formatter.ParamFormatter;
+import io.jerseywiremock.core.stub.request.DeleteRequestStubber;
+import io.jerseywiremock.core.stub.request.GetListRequestStubber;
+import io.jerseywiremock.core.stub.request.GetSingleRequestStubber;
+import io.jerseywiremock.core.stub.request.PostRequestStubber;
+import io.jerseywiremock.core.stub.request.PutRequestStubber;
+import io.jerseywiremock.core.stub.request.Serializers;
+import io.jerseywiremock.core.verify.DeleteRequestVerifier;
+import io.jerseywiremock.core.verify.GetRequestVerifier;
+import io.jerseywiremock.core.verify.PostRequestVerifier;
+import io.jerseywiremock.core.verify.PutRequestVerifier;
 
 public class MockerFactoryTest {
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(8080);
+    private final WireMockServer wireMockServer = new WireMockRule(8080);
 
     private TestClient client;
     private TestMockerInterface mocker;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
+        wireMockServer.start();
         client = new TestClient();
         Serializers serializers = new Serializers();
         serializers.addSerializer("application/json", new JacksonSerializer());
         mocker = MockerFactory.wireMockerFor(TestMockerInterface.class, new WireMock(8080), serializers);
+    }
+
+    @AfterEach
+    void after() {
+        wireMockServer.stop();
     }
 
     @Test
@@ -148,15 +167,12 @@ public class MockerFactoryTest {
     }
 
     @Test
-    public void callingInterfaceMethodWithWrongReturnTypeThrowsException() throws Exception {
+    public void callingInterfaceMethodWithWrongReturnTypeThrowsException() {
         // given
         Serializers serializers = new Serializers();
 
         // when
-        expectedException.expectMessage("All methods must return request stubbers or verifiers");
-        expectedException.expectMessage("stubGetDoubleGivenInt");
-        expectedException.expectMessage("verifyGetDoubleGivenInt");
-        MockerFactory.wireMockerFor(TestBadMockerInterface.class, new WireMock(8080), serializers);
+        assertThrows(Exception.class, () -> MockerFactory.wireMockerFor(TestBadMockerInterface.class, new WireMock(8080), serializers));
     }
 
     @Test

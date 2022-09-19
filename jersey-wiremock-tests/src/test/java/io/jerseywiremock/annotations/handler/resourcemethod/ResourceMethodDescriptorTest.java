@@ -1,24 +1,20 @@
 package io.jerseywiremock.annotations.handler.resourcemethod;
 
-import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
+
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 
 public class ResourceMethodDescriptorTest {
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
     @Test
     public void assertingVerbThrowsExceptionForDifferentVerb() {
         // given
         ResourceMethodDescriptor descriptor = new ResourceMethodDescriptor(Object.class, "method", HttpVerb.GET);
 
         // when
-        expectedException.expectMessage("Expected method to be annotated with @POST");
-        descriptor.assertVerb(HttpVerb.POST);
+        assertThrows(Exception.class, () -> descriptor.assertVerb(HttpVerb.POST));
     }
 
     @Test

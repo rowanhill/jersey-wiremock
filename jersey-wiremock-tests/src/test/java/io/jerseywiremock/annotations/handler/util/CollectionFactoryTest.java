@@ -1,18 +1,18 @@
 package io.jerseywiremock.annotations.handler.util;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 
-import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 public class CollectionFactoryTest {
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
-    private CollectionFactory collectionFactory = new CollectionFactory();
+    private final CollectionFactory collectionFactory = new CollectionFactory();
 
     @Test
     public void listIsCreatedForMethodWithListReturnType() {
@@ -43,16 +43,12 @@ public class CollectionFactoryTest {
 
     @Test
     public void exceptionIsThrownForMethodWithUnsupportedCollectionReturnType() {
-        // when
-        expectedException.expectMessage("Cannot create collection for type Queue");
-        collectionFactory.createCollection(TestCollectionClass.class, "queue");
+        assertThrows(Exception.class, () -> collectionFactory.createCollection(TestCollectionClass.class, "queue"));
     }
 
     @Test
     public void exceptionIsThrownForMethodWithUnsupportedNonCollectionReturnType() {
-        // when
-        expectedException.expectMessage("does not return Collection type; it returns Map");
-        collectionFactory.createCollection(TestCollectionClass.class, "map");
+        assertThrows(Exception.class, () -> collectionFactory.createCollection(TestCollectionClass.class, "map"));
     }
 
     @SuppressWarnings("unused")

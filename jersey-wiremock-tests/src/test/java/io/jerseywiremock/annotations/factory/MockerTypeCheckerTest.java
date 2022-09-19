@@ -1,25 +1,23 @@
 package io.jerseywiremock.annotations.factory;
 
-import com.google.common.collect.ImmutableList;
-import io.jerseywiremock.core.stub.request.GetSingleRequestStubber;
-import io.jerseywiremock.core.verify.GetRequestVerifier;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
 
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import com.google.common.collect.ImmutableList;
+
+import io.jerseywiremock.core.stub.request.GetSingleRequestStubber;
+import io.jerseywiremock.core.verify.GetRequestVerifier;
+
+@ExtendWith(MockitoExtension.class)
 public class MockerTypeCheckerTest {
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
     @Mock
     private MockerMethodSelector mockMethodSelector;
     @InjectMocks
@@ -34,10 +32,7 @@ public class MockerTypeCheckerTest {
                 .thenReturn(ImmutableList.of(returnsInt, returnsString));
 
         // when
-        expectedException.expectMessage("All methods must return request stubbers or verifiers");
-        expectedException.expectMessage("returnsInt");
-        expectedException.expectMessage("returnsString");
-        checker.checkReturnTypes(TestInterface.class);
+        assertThrows(Exception.class, () -> checker.checkReturnTypes(TestInterface.class));
     }
 
     @Test

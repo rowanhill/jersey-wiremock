@@ -1,7 +1,7 @@
 package io.jerseywiremock.annotations.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
@@ -14,14 +14,14 @@ import java.lang.reflect.Method;
 
 import javax.ws.rs.core.UriBuilder;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 
@@ -44,11 +44,9 @@ import io.jerseywiremock.core.verify.GetRequestVerifier;
 import io.jerseywiremock.core.verify.PostRequestVerifier;
 import io.jerseywiremock.core.verify.PutRequestVerifier;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class MockerInvocationHandlerTest {
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
     @Mock
     private ResourceMethodDescriptorFactory mockResourceMethodDescriptorFactory;
     @Mock
@@ -65,7 +63,7 @@ public class MockerInvocationHandlerTest {
     private Method resourceMethod;
     private UriBuilder uriBuilder;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         params = new Object[]{};
         testMocker = new TestMocker(null, new Serializers());
@@ -109,8 +107,7 @@ public class MockerInvocationHandlerTest {
         doThrow(rte).when(mockDescriptor).assertVerb(HttpVerb.GET);
 
         // when
-        expectedException.expect(is(rte));
-        handler.handleStubGet(params, testMocker, mockerMethod);
+        assertThrows(Exception.class, () -> handler.handleStubGet(params, testMocker, mockerMethod));
     }
 
     @Test
@@ -133,8 +130,9 @@ public class MockerInvocationHandlerTest {
         doThrow(rte).when(mockDescriptor).assertVerb(HttpVerb.GET);
 
         // when
-        expectedException.expect(is(rte));
-        handler.handleStubList(params, testMocker, mockerMethod);
+        final RuntimeException runtimeException =
+                assertThrows(RuntimeException.class, () -> handler.handleStubList(params, testMocker, mockerMethod));
+        assertThat(runtimeException).isEqualTo(rte);
     }
 
     @Test
@@ -157,8 +155,9 @@ public class MockerInvocationHandlerTest {
         doThrow(rte).when(mockDescriptor).assertVerb(HttpVerb.GET);
 
         // when
-        expectedException.expect(is(rte));
-        handler.handleVerifyGetVerb(params, testMocker, mockerMethod);
+        final RuntimeException runtimeException =
+                assertThrows(RuntimeException.class, () -> handler.handleVerifyGetVerb(params, testMocker, mockerMethod));
+        assertThat(runtimeException).isEqualTo(rte);
     }
 
     @Test

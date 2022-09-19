@@ -10,12 +10,12 @@ import static io.jerseywiremock.annotations.ParamMatchingStrategy.MATCHING;
 import static io.jerseywiremock.annotations.ParamMatchingStrategy.NOT_MATCHING;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 
 public class ValueMatchingStrategyFactoryTest {
-    private ValueMatchingStrategyFactory factory = new ValueMatchingStrategyFactory();
+    private final ValueMatchingStrategyFactory factory = new ValueMatchingStrategyFactory();
 
     @Test
     public void strategyCanBeCreatedForEqualTo() {
