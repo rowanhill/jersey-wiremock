@@ -1,14 +1,15 @@
 package io.jerseywiremock.annotations.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+
+import io.jerseywiremock.core.stub.request.Serializers;
 
 public abstract class BaseMocker {
-    protected final WireMockServer wireMockServer;
-    protected final ObjectMapper objectMapper;
+    protected final WireMock wireMock;
+    protected final Serializers serializers;
 
-    public BaseMocker(WireMockServer wireMockServer, ObjectMapper objectMapper) {
-        this.wireMockServer = wireMockServer;
-        this.objectMapper = objectMapper;
+    public BaseMocker(WireMock wireMock, Serializers serializers) {
+        this.wireMock = wireMock;
+        this.serializers = serializers;
     }
 }

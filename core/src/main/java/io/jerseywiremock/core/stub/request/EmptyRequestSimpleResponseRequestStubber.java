@@ -1,9 +1,9 @@
 package io.jerseywiremock.core.stub.request;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
+
 import io.jerseywiremock.core.stub.response.SimpleEntityResponseStubber;
 
 public abstract class EmptyRequestSimpleResponseRequestStubber<
@@ -13,20 +13,20 @@ public abstract class EmptyRequestSimpleResponseRequestStubber<
         extends BaseRequestStubber<ResponseStubber>
 {
     public EmptyRequestSimpleResponseRequestStubber(
-            WireMockServer wireMockServer,
-            ObjectMapper objectMapper,
+            WireMock wireMock,
+            Serializer serializer,
             MappingBuilder mappingBuilder,
             ResponseDefinitionBuilder responseDefinitionBuilder
     ) {
-        super(wireMockServer, objectMapper, mappingBuilder, responseDefinitionBuilder);
+        super(wireMock, serializer, mappingBuilder, responseDefinitionBuilder);
     }
 
     public EmptyRequestSimpleResponseRequestStubber(
-            WireMockServer wireMockServer,
-            ObjectMapper objectMapper,
+            WireMock wireMock,
+            Serializer serializer,
             MappingBuilder mappingBuilder
     ) {
-        super(wireMockServer, objectMapper, mappingBuilder);
+        super(wireMock, serializer, mappingBuilder);
     }
 
     public ResponseStubber andRespondWith(Entity entity) {

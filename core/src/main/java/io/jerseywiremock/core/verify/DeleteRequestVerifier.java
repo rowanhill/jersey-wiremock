@@ -1,13 +1,13 @@
 package io.jerseywiremock.core.verify;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 
 public class DeleteRequestVerifier extends EmptyRequestVerifier {
     public DeleteRequestVerifier(
-            WireMockServer wireMockServer,
+            WireMock wireMock,
             RequestPatternBuilder patternBuilder
     ) {
-        super(wireMockServer, patternBuilder);
+        super(wireMock, patternBuilder);
     }
 }

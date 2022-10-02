@@ -7,6 +7,7 @@ import io.jerseywiremock.annotations.ParamMatchingStrategy;
 import io.jerseywiremock.annotations.ParamNamed;
 import io.jerseywiremock.annotations.formatter.ParamFormatter;
 
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import java.lang.annotation.Annotation;
@@ -130,7 +131,7 @@ public class ParameterAnnotationsProcessor {
 
     private boolean includesQueryOrPathParams(Annotation[] annotations) {
         for (Annotation annotation : annotations) {
-            if (annotation instanceof QueryParam || annotation instanceof PathParam) {
+            if (annotation instanceof QueryParam || annotation instanceof PathParam || annotation instanceof HeaderParam) {
                 return true;
             }
         }
@@ -143,7 +144,7 @@ public class ParameterAnnotationsProcessor {
     ) {
         // Param matching strategies do not make sense for path params, so are ignored
         ParamMatchingStrategy matchingStrategy = null;
-        if (targetParamDescriptor.type == ParamType.QUERY) {
+        if (targetParamDescriptor.type == ParamType.QUERY || targetParamDescriptor.type == ParamType.HEADER) {
             matchingStrategy = getParamMatchingStrategy(mockerParamAnnotations);
         }
 
@@ -162,6 +163,8 @@ public class ParameterAnnotationsProcessor {
                 return ((QueryParam) annotation).value();
             } else if (annotation instanceof PathParam) {
                 return ((PathParam) annotation).value();
+            } else if (annotation instanceof HeaderParam) {
+                return ((HeaderParam) annotation).value();
             }
         }
         throw new RuntimeException("Trying to create ParameterDescriptor for neither @QueryParam nor @PathParam");
@@ -191,6 +194,9 @@ public class ParameterAnnotationsProcessor {
                 return ParamType.QUERY;
             } else if (annotation instanceof PathParam) {
                 return ParamType.PATH;
+            }
+            else if (annotation instanceof HeaderParam) {
+                return ParamType.HEADER;
             }
         }
         throw new RuntimeException("Trying to create ParameterDescriptor for neither @QueryParam nor @PathParam");

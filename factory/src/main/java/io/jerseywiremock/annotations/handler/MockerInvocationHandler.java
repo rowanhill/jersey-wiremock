@@ -1,8 +1,9 @@
 package io.jerseywiremock.annotations.handler;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.github.tomakehurst.wiremock.client.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
+
 import io.jerseywiremock.annotations.WireMockStub;
 import io.jerseywiremock.annotations.WireMockVerify;
 import io.jerseywiremock.annotations.handler.requestmatching.RequestMatchingDescriptor;
@@ -60,9 +61,12 @@ public class MockerInvocationHandler {
                 .toMappingBuilder(new GetMappingBuilderStrategy());
         ResponseDefinitionBuilder responseDefinitionBuilder = descriptors.resourceMethodDescriptor
                 .toResponseDefinitionBuilder();
+        String contentType = descriptors.resourceMethodDescriptor.computeContentType();
+        Serializer serializer = mocker.serializers.getSerializerByContentType(contentType);
+
         return new GetSingleRequestStubber<>(
-                mocker.wireMockServer,
-                mocker.objectMapper,
+                mocker.wireMock,
+                serializer,
                 mappingBuilder,
                 responseDefinitionBuilder);
     }
@@ -79,13 +83,17 @@ public class MockerInvocationHandler {
                 .toResponseDefinitionBuilder();
         Collection<T> collection = collectionFactory.createCollection(
                 descriptors.resourceMethodDescriptor.getResourceClass(),
-                descriptors.resourceMethodDescriptor.getMethodName());
+                descriptors.resourceMethodDescriptor.getMethodName()
+        );
+        String contentType = descriptors.resourceMethodDescriptor.computeContentType();
+        Serializer serializer = mocker.serializers.getSerializerByContentType(contentType);
         return new GetListRequestStubber<>(
-                mocker.wireMockServer,
-                mocker.objectMapper,
+                mocker.wireMock,
+                serializer,
                 mappingBuilder,
                 responseDefinitionBuilder,
-                collection);
+                collection
+        );
     }
 
     public GetRequestVerifier handleVerifyGetVerb(
@@ -96,7 +104,7 @@ public class MockerInvocationHandler {
         DescriptorsHolder descriptors = descriptorsForVerifyGet(parameters, method);
         RequestPatternBuilder requestPatternBuilder = descriptors.requestMatchingDescriptor
                 .toRequestPatternBuilder(new GetRequestedForStrategy());
-        return new GetRequestVerifier(mocker.wireMockServer, requestPatternBuilder);
+        return new GetRequestVerifier(mocker.wireMock, requestPatternBuilder);
     }
 
     public <Req, Resp> PostRequestStubber<Req, Resp> handleStubPost(
@@ -109,9 +117,11 @@ public class MockerInvocationHandler {
                 .toMappingBuilder(new PostMappingBuilderStrategy());
         ResponseDefinitionBuilder responseDefinitionBuilder = descriptors.resourceMethodDescriptor
                 .toResponseDefinitionBuilder();
+        String contentType = descriptors.resourceMethodDescriptor.computeContentType();
+        Serializer serializer = mocker.serializers.getSerializerByContentType(contentType);
         return new PostRequestStubber<>(
-                mocker.wireMockServer,
-                mocker.objectMapper,
+                mocker.wireMock,
+                serializer,
                 mappingBuilder,
                 responseDefinitionBuilder);
     }
@@ -124,7 +134,9 @@ public class MockerInvocationHandler {
         DescriptorsHolder descriptors = descriptorsForVerifyPost(parameters, method);
         RequestPatternBuilder requestPatternBuilder = descriptors.requestMatchingDescriptor
                 .toRequestPatternBuilder(new PostRequestedForStrategy());
-        return new PostRequestVerifier<>(mocker.wireMockServer, mocker.objectMapper, requestPatternBuilder);
+        String contentType = descriptors.resourceMethodDescriptor.computeContentType();
+        Serializer serializer = mocker.serializers.getSerializerByContentType(contentType);
+        return new PostRequestVerifier<>(mocker.wireMock, serializer, requestPatternBuilder);
     }
 
     public <Req, Resp> PutRequestStubber<Req, Resp> handleStubPut(
@@ -137,9 +149,11 @@ public class MockerInvocationHandler {
                 .toMappingBuilder(new PutMappingBuilderStrategy());
         ResponseDefinitionBuilder responseDefinitionBuilder = descriptors.resourceMethodDescriptor
                 .toResponseDefinitionBuilder();
+        String contentType = descriptors.resourceMethodDescriptor.computeContentType();
+        Serializer serializer = mocker.serializers.getSerializerByContentType(contentType);
         return new PutRequestStubber<>(
-                mocker.wireMockServer,
-                mocker.objectMapper,
+                mocker.wireMock,
+                serializer,
                 mappingBuilder,
                 responseDefinitionBuilder);
     }
@@ -152,7 +166,9 @@ public class MockerInvocationHandler {
         DescriptorsHolder descriptors = descriptorsForVerifyPut(parameters, method);
         RequestPatternBuilder requestPatternBuilder = descriptors.requestMatchingDescriptor
                 .toRequestPatternBuilder(new PutRequestedForStrategy());
-        return new PutRequestVerifier<>(mocker.wireMockServer, mocker.objectMapper, requestPatternBuilder);
+        String contentType = descriptors.resourceMethodDescriptor.computeContentType();
+        Serializer serializer = mocker.serializers.getSerializerByContentType(contentType);
+        return new PutRequestVerifier<>(mocker.wireMock, serializer, requestPatternBuilder);
     }
 
     public <Entity> DeleteRequestStubber<Entity> handleStubDelete(
@@ -165,9 +181,11 @@ public class MockerInvocationHandler {
                 .toMappingBuilder(new DeleteMappingBuilderStrategy());
         ResponseDefinitionBuilder responseDefinitionBuilder = descriptors.resourceMethodDescriptor
                 .toResponseDefinitionBuilder();
+        String contentType = descriptors.resourceMethodDescriptor.computeContentType();
+        Serializer serializer = mocker.serializers.getSerializerByContentType(contentType);
         return new DeleteRequestStubber<>(
-                mocker.wireMockServer,
-                mocker.objectMapper,
+                mocker.wireMock,
+                serializer,
                 mappingBuilder,
                 responseDefinitionBuilder);
     }
@@ -180,7 +198,7 @@ public class MockerInvocationHandler {
         DescriptorsHolder descriptors = descriptorsForVerifyDelete(parameters, method);
         RequestPatternBuilder requestPatternBuilder = descriptors.requestMatchingDescriptor
                 .toRequestPatternBuilder(new DeleteRequestedForStrategy());
-        return new DeleteRequestVerifier(mocker.wireMockServer, requestPatternBuilder);
+        return new DeleteRequestVerifier(mocker.wireMock, requestPatternBuilder);
     }
 
     private DescriptorsHolder descriptorsForStubGet(Object[] parameters, Method method) {

@@ -1,7 +1,11 @@
 package io.jerseywiremock.annotations.factory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
+import static net.bytebuddy.matcher.ElementMatchers.isAbstract;
+
+import java.lang.reflect.InvocationTargetException;
+
+import com.github.tomakehurst.wiremock.client.WireMock;
+
 import io.jerseywiremock.annotations.handler.BaseMocker;
 import io.jerseywiremock.annotations.handler.MockerInvocationHandler;
 import io.jerseywiremock.annotations.handler.requestmatching.RequestMatchingDescriptorFactory;
@@ -10,16 +14,13 @@ import io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.Pa
 import io.jerseywiremock.annotations.handler.requestmatching.paramdescriptors.ParameterAnnotationsProcessor;
 import io.jerseywiremock.annotations.handler.resourcemethod.HttpVerbDetector;
 import io.jerseywiremock.annotations.handler.resourcemethod.ResourceMethodDescriptorFactory;
+import io.jerseywiremock.core.stub.request.Serializers;
 import io.jerseywiremock.annotations.handler.util.CollectionFactory;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.NamingStrategy;
 import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ImplementationDefinition;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.implementation.MethodDelegation;
-
-import java.lang.reflect.InvocationTargetException;
-
-import static net.bytebuddy.matcher.ElementMatchers.isAbstract;
 
 public class MockerFactory {
     private final MockerTypeChecker mockerTypeChecker;
@@ -28,14 +29,14 @@ public class MockerFactory {
         this.mockerTypeChecker = mockerTypeChecker;
     }
 
-    public static <T> T wireMockerFor(Class<T> mockerType, WireMockServer wireMockServer, ObjectMapper objectMapper)
+    public static <T> T wireMockerFor(Class<T> mockerType, WireMock wireMock, Serializers serializers)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException
     {
         return new MockerFactory(new MockerTypeChecker(new MockerMethodSelector()))
-                .createWireMockerFor(mockerType, wireMockServer, objectMapper);
+                .createWireMockerFor(mockerType, wireMock, serializers);
     }
 
-    <T> T createWireMockerFor(Class<T> mockerType, WireMockServer wireMockServer, ObjectMapper objectMapper)
+    <T> T createWireMockerFor(Class<T> mockerType, WireMock wireMock, Serializers serializers)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException
     {
         mockerTypeChecker.checkReturnTypes(mockerType);
@@ -49,8 +50,8 @@ public class MockerFactory {
 
         //noinspection unchecked
         return (T) mockerSubclass
-                .getConstructor(WireMockServer.class, ObjectMapper.class)
-                .newInstance(wireMockServer, objectMapper);
+                .getConstructor(WireMock.class, Serializers.class)
+                .newInstance(wireMock, serializers);
     }
 
     private MockerInvocationHandler createHandler() {
